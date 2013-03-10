@@ -1,0 +1,210 @@
+<html>
+
+<head>
+    <title>currtime Manual Page - v2.21</title>
+    <link rev=made href="mailto:hollasch@acm.org">
+
+    <style type="text/css">
+        body { margin-top: 5%; margin-left: 5%; margin-right: 5%; }
+        div.indent { margin-left: 4ex; }
+        dt { margin-top: 1em; }
+        h1 { text-align: center; }
+    </style>
+
+</head>
+
+<body>
+
+<h1><kbd>currtime</kbd></h1>
+
+<h2>Summary</h2> <div class="indent">
+
+<p>currtime - Print current time and date
+
+</div>
+
+
+
+<h2>Usage</h2> <div class="indent">
+
+<p>currtime [-e&lt;char&gt;] [-m&lt;file&gt;] [-z&lt;timezone&gt;] [string] ... [string]
+
+</div>
+
+
+
+<h2>Description</h2> <div class="indent">
+
+<p>This command prints time information to the standard output stream
+
+<p>The -e switch specifies an alternate escape character to the default %
+character (escape codes are described below).  If the backslash (\) is
+specified as the escape character, then normal backslash escapes will be
+disabled.  The -e switch is ignored unless the format string is specified
+on the command line.
+
+<p>The -m switch specifies a file whose modification time is used as the
+base time (instead of 1970-01-01 00:00:00).  This is useful for reporting
+time elapsed since a given file's modification.
+
+<p>The -z argument takes a timezone string of the form used by the _tzset
+function.  If no timezone is specified, the system local time is used.
+The timezone also be set in the environment via the TZ environment
+variable.  The format of this string is "tzn[+|-]hh[:mm[:ss]][dzn]", where
+
+<dl>
+    <dt>tzn</dt>
+    <dd>
+        Three-letter time-zone name, such as PST.  You must specify the
+        correct offset from local time to UTC.
+    </dd>
+
+    <dt>hh</dt>
+        <dd>
+        Difference in hours between UTC and local time.  Optionally signed.
+        </dd>
+
+    <dt>mm</dt>
+        <dd>
+        Minutes.  Separated by hh by a colon (:).
+        </dd>
+
+    <dt>ss</dt>
+        <dd>
+        Seconds.  Separated by mm by a colon (:).
+        </dd>
+
+    <dt>dzn</dt>
+        <dd>
+        Three-letter daylight-saving-time zone such as PDT.  If daylight
+        saving time is never in effect in the locality, omit dzn.  The C
+        run-time library assumes the US rules for implementing the
+        calculation of Daylight Saving Time (DST).
+        </dd>
+</dl>
+
+<p>Examples of the timezone string include the following:
+
+<p>
+<div class="indent">
+    <table border="2" cellpadding="4">
+        <tr><td>UTC      <td>Universal Coordinated Time
+        <tr><td>PST8     <td>Pacific Standard Time
+        <tr><td>PST8PDT  <td>Pacific Standard Time,
+                             daylight savings in effect.
+        <tr><td>GST-1GDT <td>German Standard Time,
+                             daylight savings in effect.
+    </table>
+    </div>
+
+<p>If no output string is supplied, the format specified in the environment
+variable TIMEFORMAT is used.  If this variable is not set, then the format
+defaults to "%#c".
+
+<p>Note that if your format string begins with - or /, you will need to prefix
+it with a \ character so that it is not confused with a command switch.
+
+<p>Strings take both \ escape codes and %-arguments in the style of printf.
+The \ escape codes include \n (newline), \t (tab), \b (backspace),
+\r (carriage return), and \a (alert, or beep).
+
+<p>The %-arguments are
+
+<p>
+<center>
+<table border=1 cellpadding=2>
+    <colspan>
+        <col style="text-align:center">
+    </colspan>
+
+    <tr><td>%%<td>Percent sign
+    <tr><td>%a<td>Abbreviated weekday name
+    <tr><td>%A<td>Full weekday name
+    <tr><td>%b<td>Abbreviated month name
+    <tr><td>%B<td>Full month name
+    <tr><td>%c<td>Date and time representation appropriate for locale
+    <tr><td>%d<td>Day of month as decimal number (01 - 31)
+    <tr><td>%D<td>Total elapsed whole days
+    <tr><td>%H<td>Hour in 24-hour format (00 - 23)
+    <tr><td>%I<td>Hour in 12-hour format (01 - 12)
+    <tr><td>%j<td>Day of year as decimal number (001 - 366)
+    <tr><td>%m<td>Month as decimal number (01 - 12)
+    <tr><td>%M<td>Minute as decimal number (00 - 59)
+    <tr><td>%p<td>Current locales A.M./P.M. indicator for 12-hour clock
+    <tr><td>%R<td>Total elapsed whole hours
+    <tr><td>%s<td>Total elapsed seconds
+    <tr><td>%S<td>Second as decimal number (00 - 59)
+    <tr><td>%U<td>Week of year as number, Sunday as first day of week (00 - 51)
+    <tr><td>%w<td>Weekday as decimal number (0 - 6; Sunday is 0)
+    <tr><td>%W<td>Week of year as decimal number, Monday as first day of week (00 - 51)
+    <tr><td>%x<td>Date representation for current locale
+    <tr><td>%X<td>Time representation for current locale
+    <tr><td>%y<td>Year without century, as decimal number (00 - 99)
+    <tr><td>%Y<td>Year with century, as decimal number
+    <tr><td>%z, %Z<td>Time-zone name or abbreviation; nil if time zone is unknown
+</table>
+</center>
+
+<p>As in the printf function, the # flag may prefix any formatting code.  In
+that case, the meaning of the format code is changed as follows.
+
+<p>
+<dl>
+
+<dt>%#a, %#A, %#b, %#B, %#D, %#p, %#R, %#X, %#z, %#Z, %#%
+<dd>flag is ignored.
+
+<p>
+<dt>%#c
+<dd>Long date and time representation, appropriate for current locale.
+For example: Tuesday, March 14, 1995, 12:41:29.
+
+<p>
+<dt>%#x
+<dd>Long date representation, appropriate to current locale.
+For example: Tuesday, March 14, 1995.
+
+<p>
+<dt>%#d, %#H, %#I, %#j, %#m, %#M, %#S, %#U, %#w, %#W, %#y, %#Y
+<dd>Remove any leading zeros.
+
+</dl>
+
+</div>
+
+
+<h2>Examples:</h2>
+
+<pre>
+    &gt; currtime
+    Sunday, July 20, 2003 17:02:39
+
+    &gt; currtime %H:%M:%S
+    17:03:17
+
+    &gt; currtime -z UTC
+    Monday, July 21, 2003 00:03:47
+
+    &gt; currtime Building endzones [%Y-%m-%d %#I:%M:%S %p].
+    Building endzones [2003-07-20 5:06:09 PM].
+
+    &gt; echo. &gt;timestamp.txt
+
+    [about a day and a half later...]
+
+    &gt; currtime -m timestamp.txt Elapsed Time: %Dd, %H:%M:%S
+    Elapsed Time: 1d, 12:03:47
+
+    &gt; currtime -m timestamp.txt Elapsed Time: %R:%M:%S
+    Elapsed Time: 36:03:47
+
+    &gt; currtime -m timestamp.txt Elapsed Time: %s seconds
+    Elapsed Time: 129827 seconds
+</pre>
+
+
+<hr>
+<p style="margin-top:0;text-align:right">v2.21 / 2004 April 21
+
+</body>
+</html>
