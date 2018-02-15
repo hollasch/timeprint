@@ -12,43 +12,44 @@ It takes an optional format string to control the output.
 
 
 auto usage =
-    "currtime v1.0.0  |  https://github.com/hollasch/currtime\n"
-    "currtime:  Print current time and date\n"
+    "currtime v1.0.0+  |  https://github.com/hollasch/currtime\n"
+    "currtime:  Print time and date information\n"
     "usage   :  currtime [-e<char>] [-m<file>] [-z<timezone>] [string] ... [string]\n"
     "\n"
     "    This command prints time information to the standard output stream.\n"
     "\n"
     "    The -e switch specifies an alternate escape character to the default %\n"
-    "    character (escape codes are described below).  If the backslash (\\) is\n"
+    "    character (escape codes are described below). If the backslash (\\) is\n"
     "    specified as the escape character, then normal backslash escapes will be\n"
-    "    disabled.  The -e switch is ignored unless the format string is specified\n"
+    "    disabled. The -e switch is ignored unless the format string is specified\n"
     "    on the command line.\n"
     "\n"
     "    The -m switch specifies a file whose modification time is used as the\n"
-    "    base time (instead of 1970-01-01 00:00:00).  This is useful for reporting\n"
+    "    base time (instead of 1970-01-01 00:00:00). This is useful for reporting\n"
     "    time elapsed since a given file's modification.\n"
     "\n"
     "    The -z argument takes a timezone string of the form used by the _tzset\n"
-    "    function.  If no timezone is specified, the system local time is used.\n"
+    "    function. If no timezone is specified, the system local time is used.\n"
     "    The timezone also be set in the environment via the TZ environment\n"
-    "    variable.  The format of this string is \"tzn[+|-]hh[:mm[:ss]][dzn]\", where\n"
+    "    variable. The format of this string is \"tzn[+|-]hh[:mm[:ss]][dzn]\",\n"
+    "    where\n"
     "\n"
     "        tzn\n"
-    "            Three-letter time-zone name, such as PST.  You must specify the\n"
+    "            Three-letter time-zone name, such as PST. You must specify the\n"
     "            correct offset from local time to UTC.\n"
     "\n"
     "        hh\n"
-    "            Difference in hours between UTC and local time.  Optionally signed.\n"
+    "            Difference in hours between UTC and local time. Optionally signed.\n"
     "\n"
     "        mm\n"
-    "            Minutes.  Separated by hh by a colon (:).\n"
+    "            Minutes, separated with a colon (:).\n"
     "\n"
     "        ss\n"
-    "            Seconds.  Separated by mm by a colon (:).\n"
+    "            Seconds, separated with a colon (:).\n"
     "\n"
     "        dzn\n"
-    "            Three-letter daylight-saving-time zone such as PDT.  If daylight\n"
-    "            saving time is never in effect in the locality, omit dzn.  The C\n"
+    "            Three-letter daylight-saving-time zone such as PDT. If daylight\n"
+    "            saving time is never in effect in the locality, omit dzn. The C\n"
     "            run-time library assumes the US rules for implementing the\n"
     "            calculation of Daylight Saving Time (DST).\n"
     "\n"
@@ -56,53 +57,68 @@ auto usage =
     "\n"
     "            UTC       Universal Coordinated Time\n"
     "            PST8      Pacific Standard Time\n"
-    "            PST8PDT   Pacific Standard Time, daylight savings in effect.\n"
-    "            GST-1GDT  German Standard Time, daylight savings in effect.\n"
+    "            PST8PDT   Pacific Standard Time, daylight savings in effect\n"
+    "            GST-1GDT  German Standard Time, daylight savings in effect\n"
     "\n"
     "    If no output string is supplied, the format specified in the environment\n"
-    "    variable TIMEFORMAT is used.  If this variable is not set, then the format\n"
+    "    variable TIMEFORMAT is used. If this variable is not set, then the format\n"
     "    defaults to \"%#c\".\n"
     "\n"
     "    Note that if your format string begins with - or /, you will need to prefix\n"
     "    it with a \\ character so that it is not confused with a command switch.\n"
     "\n"
-    "    Strings take both \\ escape codes and %-arguments in the style of printf.\n"
+    "    Strings take both \\-escaped characters and %-codes in the style of printf.\n"
     "    The \\ escape codes include \\n (newline), \\t (tab), \\b (backspace),\n"
     "    \\r (carriage return), and \\a (alert, or beep).\n"
     "\n"
-    "    The %-arguments are\n"
+    "    The %-codes are\n"
     "\n"
-    "        %%     Percent sign\n"
-    "        %a     Abbreviated weekday name\n"
-    "        %A     Full weekday name\n"
-    "        %b     Abbreviated month name\n"
-    "        %B     Full month name\n"
-    "        %c     Date and time representation appropriate for locale\n"
-    "        %d     Day of month as decimal number (01 - 31)\n"
-    "        %D     Total elapsed whole days\n"
-    "        %H     Hour in 24-hour format (00 - 23)\n"
-    "        %I     Hour in 12-hour format (01 - 12)\n"
-    "        %j     Day of year as decimal number (001 - 366)\n"
-    "        %m     Month as decimal number (01 - 12)\n"
-    "        %M     Minute as decimal number (00 - 59)\n"
-    "        %p     Current locales A.M./P.M. indicator for 12-hour clock\n"
-    "        %R     Total elapsed whole hours\n"
-    "        %s     Total elapsed seconds\n"
-    "        %S     Seconds as a decimal number (00 - 59)\n"
-    "        %U     Week of year as number, Sunday as first day of week (00 - 51)\n"
-    "        %w     Weekday as decimal number (0 - 6; Sunday is 0)\n"
-    "        %W     Week of year, decimal, Monday as first day of week (00 - 51)\n"
-    "        %x     Date representation for current locale\n"
-    "        %X     Time representation for current locale\n"
-    "        %y     Year without century, as decimal number (00 - 99)\n"
+    "        %a     Abbreviated weekday name *\n"
+    "        %A     Full weekday name *\n"
+    "        %b     Abbreviated month name *\n"
+    "        %B     Full month name *\n"
+    "        %c     Date and time representation *\n"
+    "        %C     Year divided by 100 and truncated to integer (00-99)\n"
+    "        %d     Day of month as decimal number (01-31)\n"
+    "        %D     Short MM/DD/YY date, equivalent to %m/%d/%y\n"
+    "        %e     Day of the month, space-padded ( 1-31)\n"
+    "        %F     Short YYYY-MM-DD date, equivalent to %Y-%m-%d\n"
+    "        %g     Week-based year, last two digits (00-99)\n"
+    "        %G     Week-based year\n"
+    "        %h     Abbreviated month name (same as %b) *\n"
+    "        %H     Hour in 24-hour format (00-23)\n"
+    "        %I     Hour in 12-hour format (01-12)\n"
+    "        %j     Day of year as decimal number (001-366)\n"
+    "        %m     Month as decimal number (01-12)\n"
+    "        %M     Minute as decimal number (00-59)\n"
+    "        %n     New line character (same as '\\n')\n"
+    "        %p     AM or PM designation\n"
+    "        %r     12-hour clock time *\n"
+    "        %R     24-hour HH:MM time, equivalent to %H:%M\n"
+    "        %S     Seconds as a decimal number (00-59)\n"
+    "        %t     Horizontal tab character (same as '\\t')\n"
+    "        %T     ISO 8601 time format (HH:MM:SS) equivalent to %H:%M:%S\n"
+    "        %u     ISO 8601 weekday as number with Monday=1 (1-7)\n"
+    "        %U     Week number, first Sunday = week 1 day 1 (00-53)\n"
+    "        %V     ISO 8601 week number (01-53)\n"
+    "        %w     Weekday as decimal number, Sunday = 0 (0-6)\n"
+    "        %W     Week of year, decimal, Monday = week 1 day 1(00-51)\n"
+    "        %x     Date representation *\n"
+    "        %X     Time representation *\n"
+    "        %y     Year without century, as decimal number (00-99)\n"
     "        %Y     Year with century, as decimal number\n"
-    "        %z,%Z  Time-zone name or abbreviation; nil if time zone is unknown\n"
+    "        %z     ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)\n"
+    "               If timezone cannot be determined, no characters\n"
+    "        %Z     Time-zone name or abbreviation, empty for unrecognized zones *\n"
+    "        %_d    Elapsed whole days\n"
+    "        %_h    Elapsed whole hours\n"
+    "        %_s    Elapsed whole seconds\n"
+    "        %%     Percent sign\n"
     "\n"
-    "    As in the printf function, the # flag may prefix any formatting code.  In\n"
+    "        * Specifiers marked with an asterisk are locale-dependent.\n"
+    "\n"
+    "    As in the printf function, the # flag may prefix any formatting code. In\n"
     "    that case, the meaning of the format code is changed as follows.\n"
-    "\n"
-    "        %#a, %#A, %#b, %#B, %#D, %#p, %#R, %#X, %#z, %#Z, %#%\n"
-    "            The flag is ignored.\n"
     "\n"
     "        %#c\n"
     "            Long date and time representation, appropriate for current locale.\n"
@@ -114,6 +130,10 @@ auto usage =
     "\n"
     "        %#d, %#H, %#I, %#j, %#m, %#M, %#S, %#U, %#w, %#W, %#y, %#Y\n"
     "            Remove any leading zeros.\n"
+    "\n"
+    "        All others\n"
+    "            The flag is ignored.\n"
+    "\n"
     "\n"
     "    Examples:\n"
     "\n"
@@ -133,11 +153,11 @@ auto usage =
     "\n"
     "        [about a day and a half later...]\n"
     "\n"
-    "        > currtime -m timestamp.txt Elapsed Time: %Dd, %H:%M:%S\n"
+    "        > currtime -m timestamp.txt Elapsed Time: %_dd, %H:%M:%S\n"
     "        Elapsed Time: 1d, 12:03:47\n"
-    "        > currtime -m timestamp.txt Elapsed Time: %R:%M:%S\n"
+    "        > currtime -m timestamp.txt Elapsed Time: %_h:%M:%S\n"
     "        Elapsed Time: 36:03:47\n"
-    "        > currtime -m timestamp.txt Elapsed Time: %s seconds\n"
+    "        > currtime -m timestamp.txt Elapsed Time: %_s seconds\n"
     "        Elapsed Time: 129827 seconds\n"
     "\n"
     ;
@@ -342,35 +362,33 @@ int main (int argc, char *argv[])
 
             ++fmtptr;
 
-            switch (*fmtptr) {
-                case 'D':   // Total Elapsed Whole Days
-                    printf ("%I64d", longTime / (24*60*60));
-                    break;
+            if (*fmtptr == '_') {
+                time_t divisor;
 
-                case 'R':  // Total Elapsed Whole Hours
-                    printf ("%I64d", longTime / (60*60));
-                    break;
+                ++fmtptr;
+                switch (*fmtptr) {
+                    case 'd': divisor = 60 * 60 * 24; break;   // Elapsed days
+                    case 'h': divisor = 60 * 60;      break;   // Elapsed hours
+                    default:  divisor = 1;            break;   // Elapsed seconds
+                }
 
-                case 's':  // Total Elapsed Seconds
-                    printf ("%I64d", longTime);
-                    break;
+                printf ("%I64d", longTime / divisor);
 
-                default:
-                    // All other escape sequences are handled here.
+            } else {
 
-                    token[0] = '%';
-                    token[1] = *fmtptr;
-                    token[2] = 0;
+                // All other escape sequences are handled here.
 
-                    if (*fmtptr == '#') {
-                        token[2] = *++fmtptr;
-                        token[3] = 0;
-                    }
+                token[0] = '%';
+                token[1] = *fmtptr;
+                token[2] = 0;
 
-                    strftime (buff, buffsize, token, &currTime);
-                    fputs (buff, stdout);
+                if (*fmtptr == '#') {
+                    token[2] = *++fmtptr;
+                    token[3] = 0;
+                }
 
-                    break;
+                strftime (buff, buffsize, token, &currTime);
+                fputs (buff, stdout);
             }
 
         } else {
