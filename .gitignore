@@ -1,12 +1,8 @@
 # Git Ignore File for currtime
 
-# Temporary or Ignorable Files
-.*.swp
-*.bak
-*.tmp
-
 # Built Files & Directories
 x64/
+.vs/
 /currtime.log
 /*.opensdf
 /*.sdf
