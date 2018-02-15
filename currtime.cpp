@@ -162,26 +162,20 @@ int main (int argc, char *argv[])
 
     // Gather command-line arguments.
 
-    for (auto i=1;  i < argc;  ++i)
-    {
+    for (auto i=1;  i < argc;  ++i) {
         auto argptr = argv[i];
 
-        if (!((argv[i][0] == '-') || (argv[i][0] == '/')))
-        {
+        if (!((argv[i][0] == '-') || (argv[i][0] == '/'))) {
             if (format[0] == 0)
                 strcpy_s (format, formatSize, argptr);
-            else
-            {
+            else {
                 strcat_s (format, formatSize, " ");
                 strcat_s (format, formatSize, argptr);
             }
-        }
-        else
-        {
+        } else {
             auto optchar = argv[i][1];     // Option Character
 
-            if (optchar == 0)
-            {
+            if (optchar == 0) {
                 fputs ("Error: Null option switch.\n", stderr);
                 return -1;
             }
@@ -189,27 +183,20 @@ int main (int argc, char *argv[])
             // Point argptr to the contents of the switch.  This may be immediately following the
             // option character, or it may be the next token on the command line.
 
-            if (argv[i][2] == 0)
-            {
+            if (argv[i][2] == 0) {
                 ++i;
-                if (i >= argc)
-                {
+                if (i >= argc) {
                     argptr = 0;
-                }
-                else
-                {
+                } else {
                     argptr = argv[i];
                 }
-            }
-            else
-            {
+            } else {
                 argptr = argv[i]+2;
             }
 
             // Handle the option according to the option character.
 
-            switch (optchar)
-            {
+            switch (optchar) {
                 default:
                     fprintf (stderr, "Error: Unrecognized option (-%c).\n", optchar);
                     return -1;
@@ -244,8 +231,7 @@ int main (int argc, char *argv[])
             // Currently, all options take an argument, so flag an error if we're missing
             // an argument.
 
-            if (argptr == 0)
-            {
+            if (argptr == 0) {
                 fprintf (stderr, "Error: Missing argument for -%c switch.\n", optchar);
                 return -1;
             }
@@ -255,17 +241,14 @@ int main (int argc, char *argv[])
     // If no format string was specified on the command line, fetch it from the TIMEFORMAT
     // environment variable.  If not available there, then use the default format string.
 
-    if (format[0] == 0)
-    {
+    if (format[0] == 0) {
         const auto timeFormatName = "TIMEFORMAT";
         size_t buffSize;
         getenv_s (&buffSize, nullptr, 0, timeFormatName);
 
-        if (buffSize == 0)
-        {   strcpy_s (format, formatSize, "%#c");
-        }
-        else
-        {   auto buffer = new char[buffSize];
+        if (buffSize == 0) {
+            strcpy_s (format, formatSize, "%#c");
+        } else {   auto buffer = new char[buffSize];
             getenv_s (&buffSize, buffer, buffSize, timeFormatName);
             strcpy_s (format, formatSize, buffer);
             delete buffer;
@@ -275,13 +258,12 @@ int main (int argc, char *argv[])
     // If an alternate time zone was specified, then we need to set the TZ environment variable.
     // Kludgey, but I couldn't find another way.
 
-    if (zone)
-    {
+    if (zone) {
         const auto buffSize = 1 + strlen("TZ=") + strlen(zone);
         auto buff = new char [buffSize];
 
-        if (buff == 0)
-        {   fputs ("Error: Out of memory.\n", stderr);
+        if (buff == 0) {
+            fputs ("Error: Out of memory.\n", stderr);
             return -1;
         }
 
@@ -295,12 +277,10 @@ int main (int argc, char *argv[])
 
     // If an offset base file was specified, get the modification time from the file.
 
-    if (offsetBaseFile)
-    {
+    if (offsetBaseFile) {
         struct _stat stat;    // File Status Data
 
-        if (0 != _stat(offsetBaseFile, &stat))
-        {
+        if (0 != _stat(offsetBaseFile, &stat)) {
             fprintf (stderr, "Couldn't get status of \"%s\".\n", offsetBaseFile);
             return -1;
         }
@@ -313,37 +293,32 @@ int main (int argc, char *argv[])
 
     time (&longTime);
 
-    if (offsetBaseFile)
-    {
-        if (longTime < offsetBase)
-        {
+    if (offsetBaseFile) {
+        if (longTime < offsetBase) {
             fprintf (stderr, "currtime: Time zone error: is your environment variable TZ set incorrectly?\n");
             return -1;
         }
 
         longTime -= offsetBase;
         gmtime_s (&currTime, &longTime);
-    }
-    else
-    {
+
+    } else {
+
         localtime_s (&currTime, &longTime);
     }
 
     // Now scan through the format string, emitting expanded characters along the way.
 
-    for (fmtptr=format;  *fmtptr;  ++fmtptr)
-    {
+    for (fmtptr=format;  *fmtptr;  ++fmtptr) {
         const auto buffsize = 1024;
         char buff [buffsize];   // Intermediate Output Buffer
 
         // Handle backslash sequences, unless backslash is the alternate escape character.
 
-        if ((*fmtptr == '\\') && (escchar != '\\'))
-        {
+        if ((*fmtptr == '\\') && (escchar != '\\')) {
             ++fmtptr;
 
-            switch (*fmtptr)
-            {
+            switch (*fmtptr) {
                 // Unrecognized \-sequences resolve to the escaped character.
 
                 default:   putchar(*fmtptr);  break;
@@ -360,15 +335,14 @@ int main (int argc, char *argv[])
                 case 'r':  putchar('\r');  break;
                 case 'a':  putchar('\a');  break;
             }
-        }
-        else if (*fmtptr == escchar)
-        {
+
+        } else if (*fmtptr == escchar) {
+
             char token[4];    // Escape Token Word
 
             ++fmtptr;
 
-            switch (*fmtptr)
-            {
+            switch (*fmtptr) {
                 case 'D':   // Total Elapsed Whole Days
                     printf ("%I64d", longTime / (24*60*60));
                     break;
@@ -388,8 +362,7 @@ int main (int argc, char *argv[])
                     token[1] = *fmtptr;
                     token[2] = 0;
 
-                    if (*fmtptr == '#')
-                    {
+                    if (*fmtptr == '#') {
                         token[2] = *++fmtptr;
                         token[3] = 0;
                     }
@@ -399,9 +372,9 @@ int main (int argc, char *argv[])
 
                     break;
             }
-        }
-        else
-        {
+
+        } else {
+
             // All unescaped character are emitted as-is.
 
             putchar (*fmtptr);
