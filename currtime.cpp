@@ -12,7 +12,7 @@ It takes an optional format string to control the output.
 
 
 char usage[] =
-"currtime v2.21\n"
+"currtime v1.0.0  |  https://github.com/hollasch/currtime\n"
 "currtime:  Print current time and date\n"
 "usage   :  currtime [-e<char>] [-m<file>] [-z<timezone>] [string] ... [string]\n"
 "\n"
