@@ -1,9 +1,8 @@
-# Git Ignore File for currtime
+# Git Ignore File for timeprint
 
 # Built Files & Directories
 x64/
 .vs/
-/currtime.log
 /*.opensdf
 /*.log
 /*.sdf

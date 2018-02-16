@@ -1,22 +1,22 @@
-`currtime`
+`timeprint`
 ================================================================================
 View time and date information.
 
 
 Summary
 -------------
-`currtime` is a Windows command-line tool that provides a way to format and display aspects of the
+`timeprint` is a Windows command-line tool that provides a way to format and display aspects of the
 current or of elapsed date and time. It is based on the C++ standard `strftime` function.
 
 
 Usage
 -------
-currtime [-e&lt;char&gt;] [-m&lt;file&gt;] [-z&lt;timezone&gt;] [string] ... [string]
+timeprint [-e&lt;char&gt;] [-m&lt;file&gt;] [-z&lt;timezone&gt;] [string] ... [string]
 
 
 Description
 -------------
-`currtime` prints time and date information to the standard output stream.
+`timeprint` prints time and date information to the standard output stream.
 
 #### `-e`
 The -e switch specifies an alternate escape character to the default `%` character (escape codes are
@@ -131,27 +131,27 @@ The flag is ignored.
 
 Examples
 ----------
-    > currtime
+    > timeprint
     Sunday, July 20, 2003 17:02:39
 
-    > currtime %H:%M:%S
+    > timeprint %H:%M:%S
     17:03:17
 
-    > currtime -z UTC
+    > timeprint -z UTC
     Monday, July 21, 2003 00:03:47
 
-    > currtime Building endzones [%Y-%m-%d %#I:%M:%S %p].
+    > timeprint Building endzones [%Y-%m-%d %#I:%M:%S %p].
     Building endzones [2003-07-20 5:06:09 PM].
 
     > echo. >timestamp.txt
 
     [about a day and a half later...]
 
-    > currtime -m timestamp.txt Elapsed Time: %_dd, %H:%M:%S
+    > timeprint -m timestamp.txt Elapsed Time: %_dd, %H:%M:%S
     Elapsed Time: 1d, 12:03:47
-    > currtime -m timestamp.txt Elapsed Time: %_h:%M:%S
+    > timeprint -m timestamp.txt Elapsed Time: %_h:%M:%S
     Elapsed Time: 36:03:47
-    > currtime -m timestamp.txt Elapsed Time: %_s seconds
+    > timeprint -m timestamp.txt Elapsed Time: %_s seconds
     Elapsed Time: 129827 seconds
 
 
@@ -163,10 +163,10 @@ so it should be trivial to build with any other toolset.
 
 Installation
 --------------
-The built executable is `currtime.exe`, and can be copied anywhere to your command path. There is no
+The built executable is `timeprint.exe`, and can be copied anywhere to your command path. There is no
 Windows installation required for this tool.
 
 
 ----------------------------------------------------------------------------------------------------
 Steve Hollasch, steve@hollasch.net<br>
-https://github.com/hollasch/currtime
+https://github.com/hollasch/timeprint

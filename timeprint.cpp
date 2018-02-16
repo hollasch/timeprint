@@ -12,9 +12,9 @@ It takes an optional format string to control the output.
 
 
 auto usage =
-    "currtime v1.0.0+  |  https://github.com/hollasch/currtime\n"
-    "currtime:  Print time and date information\n"
-    "usage   :  currtime [-e<char>] [-m<file>] [-z<timezone>] [string] ... [string]\n"
+    "timeprint v2.0.0+  |  https://github.com/hollasch/timeprint\n"
+    "timeprint:  Print time and date information\n"
+    "usage    :  timeprint [-e<char>] [-m<file>] [-z<timezone>] [string] ... [string]\n"
     "\n"
     "    This command prints time information to the standard output stream.\n"
     "\n"
@@ -137,27 +137,27 @@ auto usage =
     "\n"
     "    Examples:\n"
     "\n"
-    "        > currtime\n"
+    "        > timeprint\n"
     "        Sunday, July 20, 2003 17:02:39\n"
     "\n"
-    "        > currtime %H:%M:%S\n"
+    "        > timeprint %H:%M:%S\n"
     "        17:03:17\n"
     "\n"
-    "        > currtime -z UTC\n"
+    "        > timeprint -z UTC\n"
     "        Monday, July 21, 2003 00:03:47\n"
     "\n"
-    "        > currtime Building endzones [%Y-%m-%d %#I:%M:%S %p].\n"
+    "        > timeprint Building endzones [%Y-%m-%d %#I:%M:%S %p].\n"
     "        Building endzones [2003-07-20 5:06:09 PM].\n"
     "\n"
     "        > echo. >timestamp.txt\n"
     "\n"
     "        [about a day and a half later...]\n"
     "\n"
-    "        > currtime -m timestamp.txt Elapsed Time: %_dd, %H:%M:%S\n"
+    "        > timeprint -m timestamp.txt Elapsed Time: %_dd, %H:%M:%S\n"
     "        Elapsed Time: 1d, 12:03:47\n"
-    "        > currtime -m timestamp.txt Elapsed Time: %_h:%M:%S\n"
+    "        > timeprint -m timestamp.txt Elapsed Time: %_h:%M:%S\n"
     "        Elapsed Time: 36:03:47\n"
-    "        > currtime -m timestamp.txt Elapsed Time: %_s seconds\n"
+    "        > timeprint -m timestamp.txt Elapsed Time: %_s seconds\n"
     "        Elapsed Time: 129827 seconds\n"
     "\n"
     ;
@@ -315,7 +315,7 @@ int main (int argc, char *argv[])
 
     if (offsetBaseFile) {
         if (longTime < offsetBase) {
-            fprintf (stderr, "currtime: Time zone error: is your environment variable TZ set incorrectly?\n");
+            fprintf (stderr, "timeprint: Time zone error: is your environment variable TZ set incorrectly?\n");
             return -1;
         }
 
