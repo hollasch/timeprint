@@ -11,27 +11,35 @@ current or of elapsed date and time. It is based on the C++ standard `strftime` 
 
 Usage
 -------
-timeprint [-e&lt;char&gt;] [-m&lt;file&gt;] [-z&lt;timezone&gt;] [string] ... [string]
+    timeprint [--escapeChar <char>] [-e<char>]
+              [--help] [-h] [/?]
+              [--modTime <fileName>] [-m<fileName>]
+              [--timeZone <zone>] [-z<zone>]
+              [string] ... [string]
 
 
 Description
 -------------
-`timeprint` prints time and date information to the standard output stream.
+`timeprint` prints time and date information to the standard output stream. All string fragments
+will be concatenated with a space, so it's usually unnecessary to quote the format string.
 
-#### `-e`
-The -e switch specifies an alternate escape character to the default `%` character (escape codes are
-described below). If the backslash (`\`) is specified as the escape character, then normal backslash
-escapes will be disabled. The `-e` switch is ignored unless the format string is specified on the
-command line.
+##### `--escapeChar`, `-e`
+The escapeChar switch specifies an alternate escape character to the default `%` character (escape
+codes are described below). If the backslash (`\`) is specified as the escape character, then normal
+backslash escapes will be disabled. The `-e` switch is ignored unless the format string is specified
+on the command line.
 
-#### `-m`
-The `-m` switch specifies a file whose modification time is used as the base time (instead of
+##### `--help`, `-h`, `/h`, `-?`, `/?`
+Print help and usage information.
+
+##### `--modTime`, `-m`
+The modTime switch specifies a file whose modification time is used as the base time (instead of
 1970-01-01 00:00:00). This is useful for reporting time elapsed since a given file's modification.
 
-#### `-z`
-The `-z` argument takes a timezone string of the form used by the `_tzset` function. If no timezone
-is specified, the system local time is used. The timezone also be set in the environment via the
-`TZ` environment variable. The format of this string is "tzn[+|-]hh[:mm[:ss]][dzn]", where
+##### `--timeZone`, `-z`
+The timeZone argument takes a timezone string of the form used by the `_tzset` function. If no
+timezone is specified, the system local time is used. The timezone also be set in the environment
+via the `TZ` environment variable. The format of this string is "tzn[+|-]hh[:mm[:ss]][dzn]", where
 
 *tzn* — Three-letter time-zone name, such as PST. You must specify the correct offset from local
 time to UTC.

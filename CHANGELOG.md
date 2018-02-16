@@ -2,6 +2,7 @@ Change Log for timeprint
 ================================================================================
 
 ## v2.0.0  In Progress
+- Add new -- switch variants (--help, --escapeChar, --modTime, --timeZone).
 - Add help information on new (C++11) codes.
 - Moved custom elapse codes to use new underscore modifier.
   + Old %D is replaced with %_d,
