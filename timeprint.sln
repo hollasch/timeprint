@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.30110.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "currtime", "currtime.vcxproj", "{D8C34146-7B3F-46E6-B997-AF7D27AA4F88}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "timeprint", "timeprint.vcxproj", "{D8C34146-7B3F-46E6-B997-AF7D27AA4F88}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,5 +18,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3286C8EB-8F5B-48AE-9E0C-C6952D723B6F}
 	EndGlobalSection
 EndGlobal

@@ -5,6 +5,7 @@ x64/
 .vs/
 /currtime.log
 /*.opensdf
+/*.log
 /*.sdf
 /*.suo
 /*.vcxproj.user
