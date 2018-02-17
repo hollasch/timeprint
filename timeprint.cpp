@@ -7,9 +7,14 @@ It takes an optional format string to control the output.
 #include <stdio.h>
 #include <time.h>
 #include <ctype.h>
-#include <string.h>
 #include <sys/stat.h>
 
+#include <string>
+#include <iostream>
+
+using std::string;
+using std::cout;
+using std::cerr;
 
 auto usage =
     "timeprint v2.0.0+  |  https://github.com/hollasch/timeprint\n"
@@ -208,10 +213,10 @@ int main (int argc, char *argv[])
                 strcat_s (format, formatSize, argptr);
             }
         } else {
-            auto optchar = argv[i][1];     // Option Character
+            auto optChar = argv[i][1];     // Option Character
 
-            if (optchar == 0) {
-                fputs ("Error: Null option switch.\n", stderr);
+            if (optChar == 0) {
+                cerr << "timeprint: Null option switch.\n";
                 return -1;
             }
 
@@ -221,18 +226,18 @@ int main (int argc, char *argv[])
             auto  advanceArg = (argv[i][2] == 0);
             char* switchWord = nullptr;
 
-            if (optchar == '-') {
+            if (optChar == '-') {
                 switchWord = argv[i] + 2;
                 if (0 == _stricmp(switchWord, "escapeChar"))
-                    optchar = 'e';
+                    optChar = 'e';
                 else if (0 == _stricmp(switchWord, "help"))
-                    optchar = 'h';
+                    optChar = 'h';
                 else if (0 == _stricmp(switchWord, "modTime"))
-                    optchar = 'm';
+                    optChar = 'm';
                 else if (0 == _stricmp(switchWord, "timeZone"))
-                    optchar = 'z';
+                    optChar = 'z';
                 else {
-                    fprintf (stderr, "timeprint: Unrecognized switch (--%s)\n", switchWord);
+                    cerr << "timeprint: Unrecognized switch (--" << switchWord << ").\n";
                     return -1;
                 }
                 advanceArg = true;
@@ -251,9 +256,9 @@ int main (int argc, char *argv[])
 
             // Handle the option according to the option character.
 
-            switch (optchar) {
+            switch (optChar) {
                 default:
-                    fprintf (stderr, "Error: Unrecognized option (-%c).\n", optchar);
+                    cerr << "timeprint: Unrecognized option (-" << optChar << ").\n";
                     return -1;
 
                 // Alternate Escape Character
@@ -267,6 +272,7 @@ int main (int argc, char *argv[])
                 case 'H':
                 case 'h':
                 case '?':
+                    // cout << usage;
                     fputs (usage, stdout);
                     return 0;
 
@@ -288,9 +294,9 @@ int main (int argc, char *argv[])
 
             if (argptr == 0) {
                 if (switchWord) {
-                    fprintf (stderr, "Error: Missing argument for --%s switch.\n", switchWord);
+                    cerr << "timeprint: Missing argument for --" << switchWord << " switch.\n";
                 } else {
-                    fprintf (stderr, "Error: Missing argument for -%c switch.\n", optchar);
+                    cerr << "timeprint: Missing argument for -" << optChar << " switch.\n";
                 }
                 return -1;
             }
@@ -322,7 +328,7 @@ int main (int argc, char *argv[])
         auto buff = new char [buffSize];
 
         if (buff == 0) {
-            fputs ("Error: Out of memory.\n", stderr);
+            cerr << "timeprint: Out of memory.\n";
             return -1;
         }
 
@@ -340,7 +346,7 @@ int main (int argc, char *argv[])
         struct _stat stat;    // File Status Data
 
         if (0 != _stat(offsetBaseFile, &stat)) {
-            fprintf (stderr, "Couldn't get status of \"%s\".\n", offsetBaseFile);
+            cerr << "timeprint: Couldn't get status of \"" << offsetBaseFile << "\".\n";
             return -1;
         }
 
@@ -354,7 +360,7 @@ int main (int argc, char *argv[])
 
     if (offsetBaseFile) {
         if (longTime < offsetBase) {
-            fprintf (stderr, "timeprint: Time zone error: is your environment variable TZ set incorrectly?\n");
+            cerr << "timeprint: Time zone error. Is your environment variable TZ set correctly?\n";
             return -1;
         }
 
