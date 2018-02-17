@@ -13,8 +13,6 @@ It takes an optional format string to control the output.
 #include <iostream>
 
 using std::string;
-using std::cout;
-using std::cerr;
 
 auto usage =
     "timeprint v2.0.0+  |  https://github.com/hollasch/timeprint\n"
@@ -191,7 +189,7 @@ int main (int argc, char *argv[])
 
     time_t     longTime;
     time_t     offsetBase = -1;              // Offset Base Time
-    char*      offsetBaseFile = nullptr;     // Offset Base File
+    string     offsetBaseFile;               // Offset Base File
     struct tm  currTime;                     // Current time
     char*      fmtptr;                       // Pointer into Format String
     char*      zone = nullptr;               // Time Zone;
@@ -216,7 +214,7 @@ int main (int argc, char *argv[])
             auto optChar = argv[i][1];     // Option Character
 
             if (optChar == 0) {
-                cerr << "timeprint: Null option switch.\n";
+                fputs ("timeprint: Null option switch.\n", stderr);
                 return -1;
             }
 
@@ -237,7 +235,7 @@ int main (int argc, char *argv[])
                 else if (0 == _stricmp(switchWord, "timeZone"))
                     optChar = 'z';
                 else {
-                    cerr << "timeprint: Unrecognized switch (--" << switchWord << ").\n";
+                    fprintf (stderr, "timeprint: Unrecognized switch (--%s).\n", switchWord);
                     return -1;
                 }
                 advanceArg = true;
@@ -258,7 +256,7 @@ int main (int argc, char *argv[])
 
             switch (optChar) {
                 default:
-                    cerr << "timeprint: Unrecognized option (-" << optChar << ").\n";
+                    fprintf (stderr, "timeprint: Unrecognized option (-%c).\n", optChar);
                     return -1;
 
                 // Alternate Escape Character
@@ -272,7 +270,6 @@ int main (int argc, char *argv[])
                 case 'H':
                 case 'h':
                 case '?':
-                    // cout << usage;
                     fputs (usage, stdout);
                     return 0;
 
@@ -294,9 +291,9 @@ int main (int argc, char *argv[])
 
             if (argptr == 0) {
                 if (switchWord) {
-                    cerr << "timeprint: Missing argument for --" << switchWord << " switch.\n";
+                    fprintf (stderr, "timeprint: Missing argument for --%s switch.\n", switchWord);
                 } else {
-                    cerr << "timeprint: Missing argument for -" << optChar << " switch.\n";
+                    fprintf (stderr, "timeprint: Missing argument for -%c switch.\n", optChar);
                 }
                 return -1;
             }
@@ -328,7 +325,7 @@ int main (int argc, char *argv[])
         auto buff = new char [buffSize];
 
         if (buff == 0) {
-            cerr << "timeprint: Out of memory.\n";
+            fputs ("timeprint: Out of memory.\n", stderr);
             return -1;
         }
 
@@ -342,11 +339,11 @@ int main (int argc, char *argv[])
 
     // If an offset base file was specified, get the modification time from the file.
 
-    if (offsetBaseFile) {
+    if (!offsetBaseFile.empty()) {
         struct _stat stat;    // File Status Data
 
-        if (0 != _stat(offsetBaseFile, &stat)) {
-            cerr << "timeprint: Couldn't get status of \"" << offsetBaseFile << "\".\n";
+        if (0 != _stat(offsetBaseFile.c_str(), &stat)) {
+            fprintf (stderr, "timeprint: Couldn't get status of \"%s\".\n", offsetBaseFile.c_str());
             return -1;
         }
 
@@ -358,9 +355,9 @@ int main (int argc, char *argv[])
 
     time (&longTime);
 
-    if (offsetBaseFile) {
+    if (!offsetBaseFile.empty()) {
         if (longTime < offsetBase) {
-            cerr << "timeprint: Time zone error. Is your environment variable TZ set correctly?\n";
+            fputs ("timeprint: Time zone error. Is your environment variable TZ set correctly?\n", stderr);
             return -1;
         }
 
