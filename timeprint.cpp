@@ -191,11 +191,10 @@ int main (int argc, char *argv[])
     time_t     offsetBase = -1;              // Offset Base Time
     string     offsetBaseFile;               // Offset Base File
     struct tm  currTime;                     // Current time
-    char*      fmtptr;                       // Pointer into Format String
     string     zone;                         // Time Zone;
     auto       escchar = '%';                // Escape Character
     auto       formatSize = formatBuffSize;  // Maximum Size of Format String
-    char       format[formatBuffSize] = "";  // Format String Buffer
+    string     format;                       // Format String Buffer
 
 
     // Gather command-line arguments.
@@ -204,11 +203,11 @@ int main (int argc, char *argv[])
         auto argptr = argv[i];
 
         if (!((argv[i][0] == '-') || (argv[i][0] == '/'))) {
-            if (format[0] == 0)
-                strcpy_s (format, formatSize, argptr);
+            if (format.empty())
+                format += argptr;
             else {
-                strcat_s (format, formatSize, " ");
-                strcat_s (format, formatSize, argptr);
+                format += " ";
+                format += argptr;
             }
         } else {
             auto optChar = argv[i][1];     // Option Character
@@ -303,17 +302,15 @@ int main (int argc, char *argv[])
     // If no format string was specified on the command line, fetch it from the TIMEFORMAT
     // environment variable.  If not available there, then use the default format string.
 
-    if (format[0] == 0) {
-        const auto timeFormatName = "TIMEFORMAT";
-        size_t buffSize;
-        getenv_s (&buffSize, nullptr, 0, timeFormatName);
+    if (format.empty()) {
+        char *timeFormat;
+        _dupenv_s (&timeFormat, nullptr, "TIMEFORMAT");
 
-        if (buffSize == 0) {
-            strcpy_s (format, formatSize, "%#c");
-        } else {   auto buffer = new char[buffSize];
-            getenv_s (&buffSize, buffer, buffSize, timeFormatName);
-            strcpy_s (format, formatSize, buffer);
-            delete buffer;
+        if (timeFormat == nullptr) {
+            format = "%#c";
+        } else {
+            format = timeFormat;
+            free (timeFormat);
         }
     }
 
@@ -343,7 +340,9 @@ int main (int argc, char *argv[])
 
     time (&longTime);
 
-    if (!offsetBaseFile.empty()) {
+    if (offsetBase < 0) {
+        localtime_s (&currTime, &longTime);
+    } else {
         if (longTime < offsetBase) {
             fputs ("timeprint: Time zone error. Is your environment variable TZ set correctly?\n", stderr);
             return -1;
@@ -351,27 +350,23 @@ int main (int argc, char *argv[])
 
         longTime -= offsetBase;
         gmtime_s (&currTime, &longTime);
-
-    } else {
-
-        localtime_s (&currTime, &longTime);
     }
 
     // Now scan through the format string, emitting expanded characters along the way.
 
-    for (fmtptr=format;  *fmtptr;  ++fmtptr) {
+    for (auto formatIterator = format.begin();  formatIterator != format.end();  ++formatIterator) {
         const auto buffsize = 1024;
-        char buff [buffsize];   // Intermediate Output Buffer
+        char       buff [buffsize];        // Intermediate Output Buffer
 
         // Handle backslash sequences, unless backslash is the alternate escape character.
 
-        if ((*fmtptr == '\\') && (escchar != '\\')) {
-            ++fmtptr;
+        if ((*formatIterator == '\\') && (escchar != '\\')) {
+            ++formatIterator;
 
-            switch (*fmtptr) {
+            switch (*formatIterator) {
                 // Unrecognized \-sequences resolve to the escaped character.
 
-                default:   putchar(*fmtptr);  break;
+                default:   putchar(*formatIterator);  break;
 
                 // If the string ends with a \, then just emit the \.
 
@@ -386,47 +381,47 @@ int main (int argc, char *argv[])
                 case 'a':  putchar('\a');  break;
             }
 
-        } else if (*fmtptr == escchar) {
+        } else if (*formatIterator == escchar) {
 
             const static auto legalCodes = "%aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ";
 
             char token[4];    // Escape Token Word
 
-            ++fmtptr;
+            ++formatIterator;
 
-            if (*fmtptr == '_') {
+            if (*formatIterator == '_') {
                 time_t divisor;
 
-                ++fmtptr;
-                switch (*fmtptr) {
+                ++formatIterator;
+                switch (*formatIterator) {
                     case 'd': divisor = 60 * 60 * 24; break;   // Elapsed days
                     case 'h': divisor = 60 * 60;      break;   // Elapsed hours
                     default:  divisor = 1;            break;   // Elapsed seconds
                 }
                 printf ("%I64d", longTime / divisor);
 
-            } else if ((*fmtptr != '#') && !strchr(legalCodes, *fmtptr)) {
+            } else if ((*formatIterator != '#') && !strchr(legalCodes, *formatIterator)) {
                 // Print out illegal codes as-is.
                 putchar ('%');
-                putchar (*fmtptr);
-            } else if ((fmtptr[0] == '#') && !strchr(legalCodes, fmtptr[1])) {
+                putchar (*formatIterator);
+            } else if ((formatIterator[0] == '#') && !strchr(legalCodes, formatIterator[1])) {
                 // Print out illegal '#'-prefixed codes as-is.
-                ++fmtptr;
+                ++formatIterator;
                 putchar ('%');
                 putchar ('#');
-                putchar (*fmtptr);
+                putchar (*formatIterator);
             } else {
                 // Standard legal strftime() Escape Sequences
                 token[0] = '%';
-                token[1] = *fmtptr;
+                token[1] = *formatIterator;
                 token[2] = 0;
 
-                if (*fmtptr == '#') {
-                    token[2] = *++fmtptr;
+                if (*formatIterator == '#') {
+                    token[2] = *++formatIterator;
                     token[3] = 0;
                 }
 
-                strftime (buff, buffsize, token, &currTime);
+                strftime (buff, sizeof(buff), token, &currTime);
                 fputs (buff, stdout);
             }
 
@@ -434,7 +429,7 @@ int main (int argc, char *argv[])
 
             // All unescaped character are emitted as-is.
 
-            putchar (*fmtptr);
+            putchar (*formatIterator);
         }
     }
 
