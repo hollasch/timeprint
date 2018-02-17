@@ -397,6 +397,8 @@ int main (int argc, char *argv[])
 
         } else if (*fmtptr == escchar) {
 
+            const static auto legalCodes = "%aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ";
+
             char token[4];    // Escape Token Word
 
             ++fmtptr;
@@ -410,13 +412,20 @@ int main (int argc, char *argv[])
                     case 'h': divisor = 60 * 60;      break;   // Elapsed hours
                     default:  divisor = 1;            break;   // Elapsed seconds
                 }
-
                 printf ("%I64d", longTime / divisor);
 
+            } else if ((*fmtptr != '#') && !strchr(legalCodes, *fmtptr)) {
+                // Print out illegal codes as-is.
+                putchar ('%');
+                putchar (*fmtptr);
+            } else if ((fmtptr[0] == '#') && !strchr(legalCodes, fmtptr[1])) {
+                // Print out illegal '#'-prefixed codes as-is.
+                ++fmtptr;
+                putchar ('%');
+                putchar ('#');
+                putchar (*fmtptr);
             } else {
-
-                // All other escape sequences are handled here.
-
+                // Standard legal strftime() Escape Sequences
                 token[0] = '%';
                 token[1] = *fmtptr;
                 token[2] = 0;
