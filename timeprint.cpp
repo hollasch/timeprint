@@ -192,7 +192,7 @@ int main (int argc, char *argv[])
     string     offsetBaseFile;               // Offset Base File
     struct tm  currTime;                     // Current time
     char*      fmtptr;                       // Pointer into Format String
-    char*      zone = nullptr;               // Time Zone;
+    string     zone;                         // Time Zone;
     auto       escchar = '%';                // Escape Character
     auto       formatSize = formatBuffSize;  // Maximum Size of Format String
     char       format[formatBuffSize] = "";  // Format String Buffer
@@ -320,21 +320,9 @@ int main (int argc, char *argv[])
     // If an alternate time zone was specified, then we need to set the TZ environment variable.
     // Kludgey, but I couldn't find another way.
 
-    if (zone) {
-        const auto buffSize = 1 + strlen("TZ=") + strlen(zone);
-        auto buff = new char [buffSize];
-
-        if (buff == 0) {
-            fputs ("timeprint: Out of memory.\n", stderr);
-            return -1;
-        }
-
-        strcpy_s (buff, buffSize, "TZ=");
-        strcat_s (buff, buffSize, zone);
-
-        _putenv (buff);
-
-        delete buff;
+    if (!zone.empty()) {
+        string zoneSet { "TZ=" + zone };
+        _putenv (zoneSet.c_str());
     }
 
     // If an offset base file was specified, get the modification time from the file.
