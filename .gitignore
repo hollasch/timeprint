@@ -1,10 +1,7 @@
 # Git Ignore File for timeprint
 
-# Built Files & Directories
 x64/
 .vs/
-/*.opensdf
 /*.log
-/*.sdf
-/*.suo
-/*.vcxproj.user
+
+tests-output.txt
