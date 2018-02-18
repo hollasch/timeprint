@@ -343,6 +343,46 @@ bool getParameters (Parameters &params, int argc, char* argv[])
 }
 
 
+/*==================================================================================================
+Temporary Notes: Legal ISO-8601 Formats for timeprint
+
+Syntax
+    Done   Syntax                            Missing Values
+    -----  --------------------------------  -------------------------------------------------------
+    [ ]    <timeValue> = now                 use current date + time + zone
+    [ ]    <timeValue> = <date>              time = current time
+    [ ]    <timeValue> = <time>              date = current date
+    [ ]    <timeValue> = <date>T<time>
+
+    [ ]    <date> = <YYYY>-?<MM>-?<DD>
+    [ ]    <date> = <YYYY>                   month = current month, day = current day
+    [ ]    <date> = <YYYY>-<MM>              day = current day
+    [ ]    <date> = --<MM>-?<DD>             year = current year
+    [ ]    <date> = <YYYY>-?<DDD>
+
+    [ ]    <time> = <HH>:?<MM>:?<SS><zone>
+    [ ]    <time> = <HH>:?<MM><zone>         seconds = current seconds
+    [ ]    <time> = <HH><zone>               minutes = current minutes, seconds = current seconds
+
+    [ ]    <zone> = <null>                   use current local time zone
+    [ ]    <zone> = Z
+    [ ]    <zone> = [+-]<HH>:?<MM>
+    [ ]    <zone> = [+-]<HH>
+
+    [ ]    -?     = - | <null>
+    [ ]    :?     = : | <null>
+    [ ]    +-     = + | -
+    [ ]    <YYYY> = 0000-9999
+    [ ]    <MM>   = 01-12
+    [ ]    <DD>   = 01-31
+    [ ]    <DDD>  = 001-366
+    [ ]    <HH>   = 00-24                    24 = midnight / 00 of next day
+    [ ]    <MM>   = 00-59
+    [ ]    <SS>   = 00-60                    Accomodates leap seconds
+
+==================================================================================================*/
+
+
 //__________________________________________________________________________________________________
 static auto help_general =
     "timeprint v2.0.0+  |  https://github.com/hollasch/timeprint\n"
