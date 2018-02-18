@@ -15,7 +15,8 @@ It takes an optional format string to control the output.
 using std::string;
 
 
-enum class HelpType {
+enum class HelpType
+{
     // Types of usage information for the --help option
 
     None,     // No help information requested
@@ -23,7 +24,8 @@ enum class HelpType {
 };
 
 
-enum class TimeType {
+enum class TimeType
+{
     // Type of time for an associated time value string
 
     None,         // Not a legal time
@@ -34,7 +36,8 @@ enum class TimeType {
 };
 
 
-struct Parameters {
+struct Parameters
+{
     // Describes the parameters for a run of this program.
 
     char     codeChar;      // Format Code Character (default '%')
@@ -56,7 +59,8 @@ struct Parameters {
 
 // Function Declarations
 bool getParameters (Parameters &params, int argc, char* argv[]);
-void help (HelpType);
+void help          (HelpType);
+void printResults  (string format, char codeChar, struct tm &timeValue, time_t deltaTime);
 
 
 //__________________________________________________________________________________________________
@@ -98,9 +102,9 @@ int main (int argc, char *argv[])
     // Get the current time. If an offset file was specified, subtract that
     // file's modification time from the current time.
 
-    struct tm currentTime;  // Current time (either now, or delta time)
-    time_t    nowLong;      // Current time as a long value (seconds since 1970 Jan 1 00:00)
-    time_t    deltaTime;    // Time Difference
+    struct tm currentTime;      // Current time (either now, or delta time)
+    time_t    nowLong;          // Current time as a long value (seconds since 1970 Jan 1 00:00)
+    time_t    deltaTime = 0;    // Time Difference
 
     time (&nowLong);
 
@@ -116,90 +120,8 @@ int main (int argc, char *argv[])
         gmtime_s (&currentTime, &deltaTime);
     }
 
-    // Now scan through the format string, emitting expanded characters along the way.
+    printResults (params.format, params.codeChar, currentTime, deltaTime);
 
-    for (auto formatIterator = params.format.begin();  formatIterator != params.format.end();  ++formatIterator) {
-        const auto buffsize = 1024;
-        char       buff [buffsize];        // Intermediate Output Buffer
-
-        // Handle backslash sequences, unless backslash is the alternate escape character.
-
-        if ((*formatIterator == '\\') && (params.codeChar != '\\')) {
-            ++formatIterator;
-
-            switch (*formatIterator) {
-                // Unrecognized \-sequences resolve to the escaped character.
-
-                default:   putchar(*formatIterator);  break;
-
-                // If the string ends with a \, then just emit the \.
-
-                case 0:    putchar('\\');  break;
-
-                // Recognized \-sequences are handled here.
-
-                case 'n':  putchar('\n');  break;
-                case 't':  putchar('\t');  break;
-                case 'b':  putchar('\b');  break;
-                case 'r':  putchar('\r');  break;
-                case 'a':  putchar('\a');  break;
-            }
-
-        } else if (*formatIterator == params.codeChar) {
-
-            const static auto legalCodes = "%aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ";
-
-            char token[4];    // Code Token Word
-
-            ++formatIterator;
-
-            if (*formatIterator == '_') {
-                time_t divisor;
-
-                ++formatIterator;
-                switch (*formatIterator) {
-                    case 'd': divisor = 60 * 60 * 24; break;   // Elapsed days
-                    case 'h': divisor = 60 * 60;      break;   // Elapsed hours
-                    default:  divisor = 1;            break;   // Elapsed seconds
-                }
-                printf ("%I64d", deltaTime / divisor);
-
-            } else if ((*formatIterator != '#') && !strchr(legalCodes, *formatIterator)) {
-                // Print out illegal codes as-is.
-                putchar ('%');
-                putchar (*formatIterator);
-            } else if ((formatIterator[0] == '#') && !strchr(legalCodes, formatIterator[1])) {
-                // Print out illegal '#'-prefixed codes as-is.
-                ++formatIterator;
-                putchar ('%');
-                putchar ('#');
-                putchar (*formatIterator);
-            } else {
-                // Standard legal strftime() Code Sequences
-                token[0] = '%';
-                token[1] = *formatIterator;
-                token[2] = 0;
-
-                if (*formatIterator == '#') {
-                    token[2] = *++formatIterator;
-                    token[3] = 0;
-                }
-
-                strftime (buff, sizeof(buff), token, &currentTime);
-                fputs (buff, stdout);
-            }
-
-        } else {
-
-            // All unescaped character are emitted as-is.
-
-            putchar (*formatIterator);
-        }
-    }
-
-    // Print the final newline.
-
-    putchar ('\n');
     return 0;
 }
 
@@ -340,6 +262,108 @@ bool getParameters (Parameters &params, int argc, char* argv[])
         params.time1.type = TimeType::Now;
 
     return true;
+}
+
+
+//__________________________________________________________________________________________________
+void printResults (
+    string     format,      // The format string, possibly with escape sequences and format codes
+    char       codeChar,    // The format code character (normally %)
+    struct tm& timeValue,   // The primary time value to use
+    time_t     deltaTime)   // Time difference when comparing two times
+{
+    // This procedure scans through the format string, emitting expanded codes and escape sequences
+    // along the way.
+
+    for (auto formatIterator = format.begin();  formatIterator != format.end();  ++formatIterator) {
+        const auto buffsize = 1024;
+        char       buff [buffsize];        // Intermediate Output Buffer
+
+        // Handle backslash sequences, unless backslash is the alternate escape character.
+
+        if ((*formatIterator == '\\') && (codeChar != '\\')) {
+            ++formatIterator;
+
+            switch (*formatIterator) {
+                // Unrecognized \-sequences resolve to the escaped character.
+
+                default:   putchar(*formatIterator);  break;
+
+                // If the string ends with a \, then just emit the \.
+
+                case 0:    putchar('\\');  break;
+
+                // Recognized \-sequences are handled here.
+
+                case 'n':  putchar('\n');  break;
+                case 't':  putchar('\t');  break;
+                case 'b':  putchar('\b');  break;
+                case 'r':  putchar('\r');  break;
+                case 'a':  putchar('\a');  break;
+            }
+
+        } else if (*formatIterator == codeChar) {
+
+            const static auto legalCodes = "%aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ";
+
+            char token[4];    // Code Token Word
+
+            ++formatIterator;
+
+            if (*formatIterator == '_') {
+                time_t divisor;          // Delta seconds divisor
+                bool   bogus = false;    // True on bogus %_ codes.
+
+                ++formatIterator;
+                switch (*formatIterator) {
+                    case 'd': divisor = 60 * 60 * 24; break;   // Elapsed days
+                    case 'h': divisor = 60 * 60;      break;   // Elapsed hours
+                    case 's': divisor = 1;            break;   // Elapsed seconds
+                    default:  bogus = true;           break;   // Unrecognized %_ code
+                }
+
+                if (bogus) {
+                    printf ("%%_%c", *formatIterator);
+                } else {
+                    printf ("%I64d", deltaTime / divisor);
+                }
+
+            } else if ((*formatIterator != '#') && !strchr(legalCodes, *formatIterator)) {
+                // Print out illegal codes as-is.
+                putchar ('%');
+                putchar (*formatIterator);
+            } else if ((formatIterator[0] == '#') && !strchr(legalCodes, formatIterator[1])) {
+                // Print out illegal '#'-prefixed codes as-is.
+                ++formatIterator;
+                putchar ('%');
+                putchar ('#');
+                putchar (*formatIterator);
+            } else {
+                // Standard legal strftime() Code Sequences
+                token[0] = '%';
+                token[1] = *formatIterator;
+                token[2] = 0;
+
+                if (*formatIterator == '#') {
+                    token[2] = *++formatIterator;
+                    token[3] = 0;
+                }
+
+                strftime (buff, sizeof(buff), token, &timeValue);
+                fputs (buff, stdout);
+            }
+
+        } else {
+
+            // All unescaped character are emitted as-is.
+
+            putchar (*formatIterator);
+        }
+    }
+
+    // Print the final newline.
+
+    putchar ('\n');
 }
 
 

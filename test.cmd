@@ -71,6 +71,8 @@ call :test "A\tB\tC"
 call :test "A%%%%nB%%%%nC"
 call :test "A%%%%tB%%%%tC"
 call :test Percent sign = %%%%%%%%
+call :test Bogus codes: %%%%E%%%%f%%%%i%%%%J%%%%N%%%%P%%%%s%%%%v
+call :test Bogus codes: %%%%_a %%%%_z
 
 echo.--------------------------------------------------------------------------------
 exit /b 0
