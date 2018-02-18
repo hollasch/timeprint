@@ -290,6 +290,11 @@ bool getParameters (Parameters &params, int argc, char* argv[])
 
                 // Modification Base Time
                 case 'm':
+                    if (!argptr) {
+                        fprintf (stderr, "timeprint: Missing argument for (-m/--modTime) option.\n");
+                        return false;
+                    }
+
                     if (params.time1.type == TimeType::None) {
                         params.time1.type = TimeType::Modification;
                         params.time1.value = argptr;
@@ -304,18 +309,13 @@ bool getParameters (Parameters &params, int argc, char* argv[])
 
                 // Timezone
                 case 'z':
+                    if (!argptr) {
+                        fprintf (stderr, "timeprint: Missing argument for (-z/--timeZone) option.\n");
+                        return false;
+                    }
+
                     params.zone = argptr;
                     break;
-            }
-
-            // All options take an argument, so flag an error if we're missing an argument.
-            if (argptr == 0) {
-                if (switchWord) {
-                    fprintf (stderr, "timeprint: Missing argument for --%s switch.\n", switchWord);
-                } else {
-                    fprintf (stderr, "timeprint: Missing argument for -%c switch.\n", optChar);
-                }
-                return false;
             }
         }
     }

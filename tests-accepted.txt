@@ -6,9 +6,10 @@ Acceptance Tests for `timeprint`
 timeprint v2.0.0+  |  https://github.com/hollasch/timeprint
 timeprint - Print time and date information
 
-usage: timeprint [--escapeChar <char>] [-e<char>]
+usage: timeprint [--codeChar <char>] [-c<char>]
                  [--help] [-h] [/?]
                  [--modTime <fileName>] [-m<fileName>]
+                 [--accessTime <fileName>] [-a<accessTime>]
                  [--timeZone <zone>] [-z<zone>]
                  [string] ... [string]
 
@@ -18,11 +19,14 @@ quote the format string.
 
 Command switches may be prefixed with a dash (-) or a slash (/).
 
---escapeChar, -e
-    The escapeChar switch specifies an alternate escape character to the
-    default % character (escape codes are described below). If the backslash
-    (\) is specified as the escape character, then normal backslash escapes
-    will be disabled. The -e switch is ignored unless the format string is
+--accessTime, -a
+    Use the time of last access of the named file for a time value.
+
+--codeChar, -c
+    The codeChar switch specifies an alternate code character to the default
+    '%' character (format codes are described below). If the backslash (\)
+    is specified as the code character, then normal backslash escapes will
+    be disabled. The --codeChar switch is ignored unless the format string is
     specified on the command line.
 
 --help, -h, /h, -?, /?
@@ -164,15 +168,17 @@ Examples:
     Elapsed Time: 36:03:47
     > timeprint -m timestamp.txt Elapsed Time: %_s seconds
     Elapsed Time: 129827 seconds
+
 
 --------------------------------------------------------------------------------
 [-H]
 timeprint v2.0.0+  |  https://github.com/hollasch/timeprint
 timeprint - Print time and date information
 
-usage: timeprint [--escapeChar <char>] [-e<char>]
+usage: timeprint [--codeChar <char>] [-c<char>]
                  [--help] [-h] [/?]
                  [--modTime <fileName>] [-m<fileName>]
+                 [--accessTime <fileName>] [-a<accessTime>]
                  [--timeZone <zone>] [-z<zone>]
                  [string] ... [string]
 
@@ -182,11 +188,14 @@ quote the format string.
 
 Command switches may be prefixed with a dash (-) or a slash (/).
 
---escapeChar, -e
-    The escapeChar switch specifies an alternate escape character to the
-    default % character (escape codes are described below). If the backslash
-    (\) is specified as the escape character, then normal backslash escapes
-    will be disabled. The -e switch is ignored unless the format string is
+--accessTime, -a
+    Use the time of last access of the named file for a time value.
+
+--codeChar, -c
+    The codeChar switch specifies an alternate code character to the default
+    '%' character (format codes are described below). If the backslash (\)
+    is specified as the code character, then normal backslash escapes will
+    be disabled. The --codeChar switch is ignored unless the format string is
     specified on the command line.
 
 --help, -h, /h, -?, /?
@@ -328,15 +337,17 @@ Examples:
     Elapsed Time: 36:03:47
     > timeprint -m timestamp.txt Elapsed Time: %_s seconds
     Elapsed Time: 129827 seconds
+
 
 --------------------------------------------------------------------------------
 [/h]
 timeprint v2.0.0+  |  https://github.com/hollasch/timeprint
 timeprint - Print time and date information
 
-usage: timeprint [--escapeChar <char>] [-e<char>]
+usage: timeprint [--codeChar <char>] [-c<char>]
                  [--help] [-h] [/?]
                  [--modTime <fileName>] [-m<fileName>]
+                 [--accessTime <fileName>] [-a<accessTime>]
                  [--timeZone <zone>] [-z<zone>]
                  [string] ... [string]
 
@@ -346,11 +357,14 @@ quote the format string.
 
 Command switches may be prefixed with a dash (-) or a slash (/).
 
---escapeChar, -e
-    The escapeChar switch specifies an alternate escape character to the
-    default % character (escape codes are described below). If the backslash
-    (\) is specified as the escape character, then normal backslash escapes
-    will be disabled. The -e switch is ignored unless the format string is
+--accessTime, -a
+    Use the time of last access of the named file for a time value.
+
+--codeChar, -c
+    The codeChar switch specifies an alternate code character to the default
+    '%' character (format codes are described below). If the backslash (\)
+    is specified as the code character, then normal backslash escapes will
+    be disabled. The --codeChar switch is ignored unless the format string is
     specified on the command line.
 
 --help, -h, /h, -?, /?
@@ -492,15 +506,17 @@ Examples:
     Elapsed Time: 36:03:47
     > timeprint -m timestamp.txt Elapsed Time: %_s seconds
     Elapsed Time: 129827 seconds
+
 
 --------------------------------------------------------------------------------
 [/H]
 timeprint v2.0.0+  |  https://github.com/hollasch/timeprint
 timeprint - Print time and date information
 
-usage: timeprint [--escapeChar <char>] [-e<char>]
+usage: timeprint [--codeChar <char>] [-c<char>]
                  [--help] [-h] [/?]
                  [--modTime <fileName>] [-m<fileName>]
+                 [--accessTime <fileName>] [-a<accessTime>]
                  [--timeZone <zone>] [-z<zone>]
                  [string] ... [string]
 
@@ -510,11 +526,14 @@ quote the format string.
 
 Command switches may be prefixed with a dash (-) or a slash (/).
 
---escapeChar, -e
-    The escapeChar switch specifies an alternate escape character to the
-    default % character (escape codes are described below). If the backslash
-    (\) is specified as the escape character, then normal backslash escapes
-    will be disabled. The -e switch is ignored unless the format string is
+--accessTime, -a
+    Use the time of last access of the named file for a time value.
+
+--codeChar, -c
+    The codeChar switch specifies an alternate code character to the default
+    '%' character (format codes are described below). If the backslash (\)
+    is specified as the code character, then normal backslash escapes will
+    be disabled. The --codeChar switch is ignored unless the format string is
     specified on the command line.
 
 --help, -h, /h, -?, /?
@@ -656,15 +675,17 @@ Examples:
     Elapsed Time: 36:03:47
     > timeprint -m timestamp.txt Elapsed Time: %_s seconds
     Elapsed Time: 129827 seconds
+
 
 --------------------------------------------------------------------------------
 [-?]
 timeprint v2.0.0+  |  https://github.com/hollasch/timeprint
 timeprint - Print time and date information
 
-usage: timeprint [--escapeChar <char>] [-e<char>]
+usage: timeprint [--codeChar <char>] [-c<char>]
                  [--help] [-h] [/?]
                  [--modTime <fileName>] [-m<fileName>]
+                 [--accessTime <fileName>] [-a<accessTime>]
                  [--timeZone <zone>] [-z<zone>]
                  [string] ... [string]
 
@@ -674,11 +695,14 @@ quote the format string.
 
 Command switches may be prefixed with a dash (-) or a slash (/).
 
---escapeChar, -e
-    The escapeChar switch specifies an alternate escape character to the
-    default % character (escape codes are described below). If the backslash
-    (\) is specified as the escape character, then normal backslash escapes
-    will be disabled. The -e switch is ignored unless the format string is
+--accessTime, -a
+    Use the time of last access of the named file for a time value.
+
+--codeChar, -c
+    The codeChar switch specifies an alternate code character to the default
+    '%' character (format codes are described below). If the backslash (\)
+    is specified as the code character, then normal backslash escapes will
+    be disabled. The --codeChar switch is ignored unless the format string is
     specified on the command line.
 
 --help, -h, /h, -?, /?
@@ -820,15 +844,17 @@ Examples:
     Elapsed Time: 36:03:47
     > timeprint -m timestamp.txt Elapsed Time: %_s seconds
     Elapsed Time: 129827 seconds
+
 
 --------------------------------------------------------------------------------
 ["/?"]
 timeprint v2.0.0+  |  https://github.com/hollasch/timeprint
 timeprint - Print time and date information
 
-usage: timeprint [--escapeChar <char>] [-e<char>]
+usage: timeprint [--codeChar <char>] [-c<char>]
                  [--help] [-h] [/?]
                  [--modTime <fileName>] [-m<fileName>]
+                 [--accessTime <fileName>] [-a<accessTime>]
                  [--timeZone <zone>] [-z<zone>]
                  [string] ... [string]
 
@@ -838,11 +864,14 @@ quote the format string.
 
 Command switches may be prefixed with a dash (-) or a slash (/).
 
---escapeChar, -e
-    The escapeChar switch specifies an alternate escape character to the
-    default % character (escape codes are described below). If the backslash
-    (\) is specified as the escape character, then normal backslash escapes
-    will be disabled. The -e switch is ignored unless the format string is
+--accessTime, -a
+    Use the time of last access of the named file for a time value.
+
+--codeChar, -c
+    The codeChar switch specifies an alternate code character to the default
+    '%' character (format codes are described below). If the backslash (\)
+    is specified as the code character, then normal backslash escapes will
+    be disabled. The --codeChar switch is ignored unless the format string is
     specified on the command line.
 
 --help, -h, /h, -?, /?
@@ -984,15 +1013,17 @@ Examples:
     Elapsed Time: 36:03:47
     > timeprint -m timestamp.txt Elapsed Time: %_s seconds
     Elapsed Time: 129827 seconds
+
 
 --------------------------------------------------------------------------------
 [--help]
 timeprint v2.0.0+  |  https://github.com/hollasch/timeprint
 timeprint - Print time and date information
 
-usage: timeprint [--escapeChar <char>] [-e<char>]
+usage: timeprint [--codeChar <char>] [-c<char>]
                  [--help] [-h] [/?]
                  [--modTime <fileName>] [-m<fileName>]
+                 [--accessTime <fileName>] [-a<accessTime>]
                  [--timeZone <zone>] [-z<zone>]
                  [string] ... [string]
 
@@ -1002,11 +1033,14 @@ quote the format string.
 
 Command switches may be prefixed with a dash (-) or a slash (/).
 
---escapeChar, -e
-    The escapeChar switch specifies an alternate escape character to the
-    default % character (escape codes are described below). If the backslash
-    (\) is specified as the escape character, then normal backslash escapes
-    will be disabled. The -e switch is ignored unless the format string is
+--accessTime, -a
+    Use the time of last access of the named file for a time value.
+
+--codeChar, -c
+    The codeChar switch specifies an alternate code character to the default
+    '%' character (format codes are described below). If the backslash (\)
+    is specified as the code character, then normal backslash escapes will
+    be disabled. The --codeChar switch is ignored unless the format string is
     specified on the command line.
 
 --help, -h, /h, -?, /?
@@ -1148,15 +1182,17 @@ Examples:
     Elapsed Time: 36:03:47
     > timeprint -m timestamp.txt Elapsed Time: %_s seconds
     Elapsed Time: 129827 seconds
+
 
 --------------------------------------------------------------------------------
 [--HELP]
 timeprint v2.0.0+  |  https://github.com/hollasch/timeprint
 timeprint - Print time and date information
 
-usage: timeprint [--escapeChar <char>] [-e<char>]
+usage: timeprint [--codeChar <char>] [-c<char>]
                  [--help] [-h] [/?]
                  [--modTime <fileName>] [-m<fileName>]
+                 [--accessTime <fileName>] [-a<accessTime>]
                  [--timeZone <zone>] [-z<zone>]
                  [string] ... [string]
 
@@ -1166,11 +1202,14 @@ quote the format string.
 
 Command switches may be prefixed with a dash (-) or a slash (/).
 
---escapeChar, -e
-    The escapeChar switch specifies an alternate escape character to the
-    default % character (escape codes are described below). If the backslash
-    (\) is specified as the escape character, then normal backslash escapes
-    will be disabled. The -e switch is ignored unless the format string is
+--accessTime, -a
+    Use the time of last access of the named file for a time value.
+
+--codeChar, -c
+    The codeChar switch specifies an alternate code character to the default
+    '%' character (format codes are described below). If the backslash (\)
+    is specified as the code character, then normal backslash escapes will
+    be disabled. The --codeChar switch is ignored unless the format string is
     specified on the command line.
 
 --help, -h, /h, -?, /?
@@ -1313,6 +1352,34 @@ Examples:
     > timeprint -m timestamp.txt Elapsed Time: %_s seconds
     Elapsed Time: 129827 seconds
 
+
+--------------------------------------------------------------------------------
+Error Test [--]
+timeprint: Unrecognized switch (--).
+--------------------------------------------------------------------------------
+Error Test [-]
+timeprint: Null option switch.
+--------------------------------------------------------------------------------
+Error Test [--bogusSwitch]
+timeprint: Unrecognized switch (--bogusSwitch).
+--------------------------------------------------------------------------------
+Error Test [-m]
+timeprint: Missing argument for (-m/--modTime) option.
+--------------------------------------------------------------------------------
+Error Test [--modTime]
+timeprint: Missing argument for (-m/--modTime) option.
+--------------------------------------------------------------------------------
+Error Test [--modTime someBogusFile]
+timeprint: Couldn't get status of "someBogusFile".
+--------------------------------------------------------------------------------
+Error Test [--modTime file1 --modTime file2 --modTime bogusThirdOption]
+timeprint: Unexpected third time value (bogusThirdOption).
+--------------------------------------------------------------------------------
+Error Test [-z]
+timeprint: Missing argument for (-z/--timeZone) option.
+--------------------------------------------------------------------------------
+Error Test [--timezone]
+timeprint: Missing argument for (-z/--timeZone) option.
 --------------------------------------------------------------------------------
 [A b c d e Hello world f g h i j]
 A b c d e Hello world f g h i j
