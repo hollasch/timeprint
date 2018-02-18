@@ -58,9 +58,9 @@ struct Parameters
 
 
 // Function Declarations
-bool getParameters (Parameters &params, int argc, char* argv[]);
+bool getParameters (Parameters& params, int argc, char* argv[]);
 void help          (HelpType);
-void printResults  (string format, char codeChar, struct tm &timeValue, time_t deltaTime);
+void printResults  (string format, char codeChar, struct tm& timeValue, time_t deltaTimeSeconds);
 
 
 //__________________________________________________________________________________________________
@@ -102,9 +102,9 @@ int main (int argc, char *argv[])
     // Get the current time. If an offset file was specified, subtract that
     // file's modification time from the current time.
 
-    struct tm currentTime;      // Current time (either now, or delta time)
-    time_t    nowLong;          // Current time as a long value (seconds since 1970 Jan 1 00:00)
-    time_t    deltaTime = 0;    // Time Difference
+    struct tm currentTime;            // Current time (either now, or delta time)
+    time_t    nowLong;                // Current time as a long value (seconds since 1970 Jan 1 00:00)
+    time_t    deltaTimeSeconds = 0;   // Time difference in seconds
 
     time (&nowLong);
 
@@ -116,11 +116,11 @@ int main (int argc, char *argv[])
             return -1;
         }
 
-        deltaTime = nowLong - offsetBase;
-        gmtime_s (&currentTime, &deltaTime);
+        deltaTimeSeconds = nowLong - offsetBase;
+        gmtime_s (&currentTime, &deltaTimeSeconds);
     }
 
-    printResults (params.format, params.codeChar, currentTime, deltaTime);
+    printResults (params.format, params.codeChar, currentTime, deltaTimeSeconds);
 
     return 0;
 }
@@ -267,10 +267,10 @@ bool getParameters (Parameters &params, int argc, char* argv[])
 
 //__________________________________________________________________________________________________
 void printResults (
-    string     format,      // The format string, possibly with escape sequences and format codes
-    char       codeChar,    // The format code character (normally %)
-    struct tm& timeValue,   // The primary time value to use
-    time_t     deltaTime)   // Time difference when comparing two times
+    string     format,             // The format string, possibly with escape sequences and format codes
+    char       codeChar,           // The format code character (normally %)
+    struct tm& timeValue,          // The primary time value to use
+    time_t     deltaTimeSeconds)   // Time difference when comparing two times
 {
     // This procedure scans through the format string, emitting expanded codes and escape sequences
     // along the way.
@@ -325,7 +325,7 @@ void printResults (
                 if (bogus) {
                     printf ("%%_%c", *formatIterator);
                 } else {
-                    printf ("%I64d", deltaTime / divisor);
+                    printf ("%I64d", deltaTimeSeconds / divisor);
                 }
 
             } else if ((*formatIterator != '#') && !strchr(legalCodes, *formatIterator)) {
