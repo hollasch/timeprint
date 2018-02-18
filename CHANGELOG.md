@@ -2,8 +2,11 @@ Change Log for timeprint
 ================================================================================
 
 ## v2.0.0  In Progress
-- Add new -- switch variants (--help, --escapeChar, --modTime, --timeZone).
-- Add help information on new (C++11) codes.
+- Renamed from currtime to timeprint.
+- Add new -- switch variants (--help, --codeChar, --modTime, --timeZone).
+- -e is now -c/--codeChar to eliminate confusion between escape sequences and
+  format code sequences.
+- Add help information on new (C++11) format codes.
 - Moved custom elapse codes to use new underscore modifier.
   + Old %D is replaced with %_d,
     %D is now standard "Short MM/DD/YY date, equivalent to %m/%d/%y".
@@ -11,7 +14,8 @@ Change Log for timeprint
     %R is now standard "24-hour HH:MM time, equivalent to %H:%M".
   + Old %s is replaced with %_s,
     %s is now undefined.
-- Renamed from currtime to timeprint.
+- Fix crashing bug when the format contained unrecognized %-codes.
+- Fix crashing bug on missing --modTime, --timeZone options.
 
 ## v1.0.0  (original 2013-03-09, released 2018-02-15)
   - Original version snap as of 2013-03-09.
