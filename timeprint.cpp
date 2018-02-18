@@ -14,7 +14,337 @@ It takes an optional format string to control the output.
 
 using std::string;
 
-auto usage =
+
+enum class HelpType {
+    // Types of usage information for the --help option
+
+    None,     // No help information requested
+    General   // General usage information
+};
+
+
+enum class TimeType {
+    // Type of time for an associated time value string
+
+    None,         // Not a legal time
+    Now,          // Current time
+    Explicit,     // Explicit ISO-8601 date/time
+    Access,       // Access time of the named file
+    Modification  // Modification time of the named file
+};
+
+
+struct Parameters {
+    // Describes the parameters for a run of this program.
+
+    char     codeChar;      // Format Code Character (default '%')
+    HelpType helpType;      // Type of help information to print & exit
+    string   zone;          // Time zone string
+    string   format;        // Output format string
+
+    struct {              // Time 1 [required] (either single use, or for time difference)
+        TimeType type;
+        string   value;
+    } time1;
+
+    struct {              // Time 2 [optional] (for time difference output)
+        TimeType type;
+        string   value;
+    } time2;
+};
+
+
+// Function Declarations
+bool getParameters (Parameters &params, int argc, char* argv[]);
+void help (HelpType);
+
+
+//__________________________________________________________________________________________________
+int main (int argc, char *argv[])
+{
+    Parameters params;
+
+    if (!getParameters(params, argc, argv)) {
+        return -1;
+    }
+
+    help (params.helpType);
+
+    // If an alternate time zone was specified, then we need to set the TZ environment variable.
+    // Kludgey, but I couldn't find another way.
+
+    if (!params.zone.empty()) {
+        string zoneSet { "TZ=" + params.zone };
+        _putenv (zoneSet.c_str());
+    }
+
+    // If an offset base file was specified, get the modification time from the file.
+
+    time_t offsetBase = -1;              // Offset Base Time
+
+    if (params.time1.type == TimeType::Modification) {
+        struct _stat stat;    // File Status Data
+
+        auto modFileName = params.time1.value.c_str();
+
+        if (0 != _stat(modFileName, &stat)) {
+            fprintf (stderr, "timeprint: Couldn't get status of \"%s\".\n", modFileName);
+            return -1;
+        }
+
+        offsetBase = stat.st_mtime;
+    }
+
+    // Get the current time. If an offset file was specified, subtract that
+    // file's modification time from the current time.
+
+    struct tm currentTime;  // Current time (either now, or delta time)
+    time_t    nowLong;      // Current time as a long value (seconds since 1970 Jan 1 00:00)
+    time_t    deltaTime;    // Time Difference
+
+    time (&nowLong);
+
+    if (offsetBase < 0) {
+        localtime_s (&currentTime, &nowLong);
+    } else {
+        if (nowLong < offsetBase) {
+            fputs ("timeprint: Time zone error. Is your environment variable TZ set correctly?\n", stderr);
+            return -1;
+        }
+
+        deltaTime = nowLong - offsetBase;
+        gmtime_s (&currentTime, &deltaTime);
+    }
+
+    // Now scan through the format string, emitting expanded characters along the way.
+
+    for (auto formatIterator = params.format.begin();  formatIterator != params.format.end();  ++formatIterator) {
+        const auto buffsize = 1024;
+        char       buff [buffsize];        // Intermediate Output Buffer
+
+        // Handle backslash sequences, unless backslash is the alternate escape character.
+
+        if ((*formatIterator == '\\') && (params.codeChar != '\\')) {
+            ++formatIterator;
+
+            switch (*formatIterator) {
+                // Unrecognized \-sequences resolve to the escaped character.
+
+                default:   putchar(*formatIterator);  break;
+
+                // If the string ends with a \, then just emit the \.
+
+                case 0:    putchar('\\');  break;
+
+                // Recognized \-sequences are handled here.
+
+                case 'n':  putchar('\n');  break;
+                case 't':  putchar('\t');  break;
+                case 'b':  putchar('\b');  break;
+                case 'r':  putchar('\r');  break;
+                case 'a':  putchar('\a');  break;
+            }
+
+        } else if (*formatIterator == params.codeChar) {
+
+            const static auto legalCodes = "%aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ";
+
+            char token[4];    // Code Token Word
+
+            ++formatIterator;
+
+            if (*formatIterator == '_') {
+                time_t divisor;
+
+                ++formatIterator;
+                switch (*formatIterator) {
+                    case 'd': divisor = 60 * 60 * 24; break;   // Elapsed days
+                    case 'h': divisor = 60 * 60;      break;   // Elapsed hours
+                    default:  divisor = 1;            break;   // Elapsed seconds
+                }
+                printf ("%I64d", deltaTime / divisor);
+
+            } else if ((*formatIterator != '#') && !strchr(legalCodes, *formatIterator)) {
+                // Print out illegal codes as-is.
+                putchar ('%');
+                putchar (*formatIterator);
+            } else if ((formatIterator[0] == '#') && !strchr(legalCodes, formatIterator[1])) {
+                // Print out illegal '#'-prefixed codes as-is.
+                ++formatIterator;
+                putchar ('%');
+                putchar ('#');
+                putchar (*formatIterator);
+            } else {
+                // Standard legal strftime() Code Sequences
+                token[0] = '%';
+                token[1] = *formatIterator;
+                token[2] = 0;
+
+                if (*formatIterator == '#') {
+                    token[2] = *++formatIterator;
+                    token[3] = 0;
+                }
+
+                strftime (buff, sizeof(buff), token, &currentTime);
+                fputs (buff, stdout);
+            }
+
+        } else {
+
+            // All unescaped character are emitted as-is.
+
+            putchar (*formatIterator);
+        }
+    }
+
+    // Print the final newline.
+
+    putchar ('\n');
+    return 0;
+}
+
+//__________________________________________________________________________________________________
+bool getParameters (Parameters &params, int argc, char* argv[])
+{
+    // This function processes the command line arguments and sets the corresponding values in the
+    // Parameters structure. This function returns true if all arguments were legal and processed
+    // properly, otherwise it returns false.
+
+    // Set default values.
+    params.codeChar = '%';
+    params.helpType   = HelpType::None;
+    params.time1.type = TimeType::None;
+    params.time2.type = TimeType::None;
+
+    // Process command arguments.
+    for (auto i=1;  i < argc;  ++i) {
+        auto argptr = argv[i];
+
+        if (!((argv[i][0] == '-') || (argv[i][0] == '/'))) {
+            if (params.format.empty())
+                params.format += argptr;
+            else {
+                params.format += " ";
+                params.format += argptr;
+            }
+        } else {
+            auto optChar = argv[i][1];     // Option Character
+
+            if (optChar == 0) {
+                fputs ("timeprint: Null option switch.\n", stderr);
+                return false;
+            }
+
+            // Point argptr to the contents of the switch.  This may be immediately following the
+            // option character, or it may be the next token on the command line.
+
+            auto  advanceArg = (argv[i][2] == 0);
+            char* switchWord = nullptr;
+
+            if (optChar == '-') {
+                switchWord = argv[i] + 2;
+                if (0 == _stricmp(switchWord, "codeChar"))
+                    optChar = 'c';
+                else if (0 == _stricmp(switchWord, "help"))
+                    optChar = 'h';
+                else if (0 == _stricmp(switchWord, "modTime"))
+                    optChar = 'm';
+                else if (0 == _stricmp(switchWord, "timeZone"))
+                    optChar = 'z';
+                else {
+                    fprintf (stderr, "timeprint: Unrecognized switch (--%s).\n", switchWord);
+                    return false;
+                }
+                advanceArg = true;
+            }
+
+            if (advanceArg) {
+                ++i;
+                if (i >= argc) {
+                    argptr = 0;
+                } else {
+                    argptr = argv[i];
+                }
+            } else {
+                argptr = argv[i]+2;
+            }
+
+            // Handle the option according to the option character.
+
+            switch (optChar) {
+                default:
+                    fprintf (stderr, "timeprint: Unrecognized option (-%c).\n", optChar);
+                    return false;
+
+                // Alternate Code Character
+                case 'c':
+                    if (argptr) params.codeChar = *argptr;
+                    break;
+
+                // Command Usage & Help
+                case 'H':
+                case 'h':
+                case '?':
+                    params.helpType = HelpType::General;
+                    return true;
+
+                // Modification Base Time
+                case 'm':
+                    if (params.time1.type == TimeType::None) {
+                        params.time1.type = TimeType::Modification;
+                        params.time1.value = argptr;
+                    } else if (params.time2.type == TimeType::None) {
+                        params.time2.type = TimeType::Modification;
+                        params.time2.value = argptr;
+                    } else {
+                        fprintf (stderr, "timeprint: Unexpected third time value (%s).\n", argptr);
+                        return false;
+                    }
+                    break;
+
+                // Timezone
+                case 'z':
+                    params.zone = argptr;
+                    break;
+            }
+
+            // All options take an argument, so flag an error if we're missing an argument.
+            if (argptr == 0) {
+                if (switchWord) {
+                    fprintf (stderr, "timeprint: Missing argument for --%s switch.\n", switchWord);
+                } else {
+                    fprintf (stderr, "timeprint: Missing argument for -%c switch.\n", optChar);
+                }
+                return false;
+            }
+        }
+    }
+
+    // If no format string was specified on the command line, fetch it from the TIMEFORMAT
+    // environment variable.  If not available there, then use the default format string.
+
+    if (params.format.empty()) {
+        char *timeFormat;
+        _dupenv_s (&timeFormat, nullptr, "TIMEFORMAT");
+
+        if (!timeFormat) {
+            params.format = "%#c";
+        } else {
+            params.format = timeFormat;
+            free (timeFormat);
+        }
+    }
+
+    // If no time source was specified, then report information for the current time.
+    if (params.time1.type == TimeType::None)
+        params.time1.type = TimeType::Now;
+
+    return true;
+}
+
+
+//__________________________________________________________________________________________________
+static auto help_general =
     "timeprint v2.0.0+  |  https://github.com/hollasch/timeprint\n"
     "timeprint - Print time and date information\n"
     "\n"
@@ -183,316 +513,17 @@ auto usage =
     "\n"
     ;
 
-
-enum TimeType {
-    None, Now, Explicit, Access, Modification
-};
-
-struct Parameters {
-    char   codeChar;      // Format Code Character (default '%')
-    bool   help;          // Print help information & exit
-    string zone;          // Time zone string
-    string format;        // Output format string
-
-    struct {              // Time 1
-        TimeType type;
-        string   value;
-    } time1;
-
-    struct {              // Time 2 (for time difference output)
-        TimeType type;
-        string   value;
-    } time2;
-};
-
-
-bool GetParameters (Parameters &params, int argc, char* argv[]);
-
 //__________________________________________________________________________________________________
-int main (int argc, char *argv[]) {
+void help (HelpType type)
+{
+    // For HelpType::None, do nothing. For other help types, print corresponding help information
+    // and exit.
 
-    Parameters params;
+    switch (type) {
+        default: return;
 
-    if (!GetParameters(params, argc, argv)) {
-        return -1;
+        case HelpType::General:  puts(help_general); break;
     }
 
-    if (params.help) {    // If help was requested, print usage & exit.
-        puts (usage);
-        return 0;
-    }
-
-    // If an alternate time zone was specified, then we need to set the TZ environment variable.
-    // Kludgey, but I couldn't find another way.
-
-    if (!params.zone.empty()) {
-        string zoneSet { "TZ=" + params.zone };
-        _putenv (zoneSet.c_str());
-    }
-
-    // If an offset base file was specified, get the modification time from the file.
-
-    time_t offsetBase = -1;              // Offset Base Time
-
-    if (params.time1.type == TimeType::Modification) {
-        struct _stat stat;    // File Status Data
-
-        auto modFileName = params.time1.value.c_str();
-
-        if (0 != _stat(modFileName, &stat)) {
-            fprintf (stderr, "timeprint: Couldn't get status of \"%s\".\n", modFileName);
-            return -1;
-        }
-
-        offsetBase = stat.st_mtime;
-    }
-
-    // Get the current time. If an offset file was specified, subtract that
-    // file's modification time from the current time.
-
-    struct tm currentTime;  // Current time (either now, or delta time)
-    time_t    nowLong;      // Current time as a long value (seconds since 1970 Jan 1 00:00)
-    time_t    deltaTime;    // Time Difference
-
-    time (&nowLong);
-
-    if (offsetBase < 0) {
-        localtime_s (&currentTime, &nowLong);
-    } else {
-        if (nowLong < offsetBase) {
-            fputs ("timeprint: Time zone error. Is your environment variable TZ set correctly?\n", stderr);
-            return -1;
-        }
-
-        deltaTime = nowLong - offsetBase;
-        gmtime_s (&currentTime, &deltaTime);
-    }
-
-    // Now scan through the format string, emitting expanded characters along the way.
-
-    for (auto formatIterator = params.format.begin();  formatIterator != params.format.end();  ++formatIterator) {
-        const auto buffsize = 1024;
-        char       buff [buffsize];        // Intermediate Output Buffer
-
-        // Handle backslash sequences, unless backslash is the alternate escape character.
-
-        if ((*formatIterator == '\\') && (params.codeChar != '\\')) {
-            ++formatIterator;
-
-            switch (*formatIterator) {
-                // Unrecognized \-sequences resolve to the escaped character.
-
-                default:   putchar(*formatIterator);  break;
-
-                // If the string ends with a \, then just emit the \.
-
-                case 0:    putchar('\\');  break;
-
-                // Recognized \-sequences are handled here.
-
-                case 'n':  putchar('\n');  break;
-                case 't':  putchar('\t');  break;
-                case 'b':  putchar('\b');  break;
-                case 'r':  putchar('\r');  break;
-                case 'a':  putchar('\a');  break;
-            }
-
-        } else if (*formatIterator == params.codeChar) {
-
-            const static auto legalCodes = "%aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ";
-
-            char token[4];    // Code Token Word
-
-            ++formatIterator;
-
-            if (*formatIterator == '_') {
-                time_t divisor;
-
-                ++formatIterator;
-                switch (*formatIterator) {
-                    case 'd': divisor = 60 * 60 * 24; break;   // Elapsed days
-                    case 'h': divisor = 60 * 60;      break;   // Elapsed hours
-                    default:  divisor = 1;            break;   // Elapsed seconds
-                }
-                printf ("%I64d", deltaTime / divisor);
-
-            } else if ((*formatIterator != '#') && !strchr(legalCodes, *formatIterator)) {
-                // Print out illegal codes as-is.
-                putchar ('%');
-                putchar (*formatIterator);
-            } else if ((formatIterator[0] == '#') && !strchr(legalCodes, formatIterator[1])) {
-                // Print out illegal '#'-prefixed codes as-is.
-                ++formatIterator;
-                putchar ('%');
-                putchar ('#');
-                putchar (*formatIterator);
-            } else {
-                // Standard legal strftime() Code Sequences
-                token[0] = '%';
-                token[1] = *formatIterator;
-                token[2] = 0;
-
-                if (*formatIterator == '#') {
-                    token[2] = *++formatIterator;
-                    token[3] = 0;
-                }
-
-                strftime (buff, sizeof(buff), token, &currentTime);
-                fputs (buff, stdout);
-            }
-
-        } else {
-
-            // All unescaped character are emitted as-is.
-
-            putchar (*formatIterator);
-        }
-    }
-
-    // Print the final newline.
-
-    putchar ('\n');
-    return 0;
-}
-
-//__________________________________________________________________________________________________
-bool GetParameters (Parameters &params, int argc, char* argv[]) {
-
-    // Set Defaults
-    params.codeChar = '%';
-    params.help       = false;
-    params.time1.type = None;
-    params.time2.type = None;
-
-    // Process command arguments.
-    for (auto i=1;  i < argc;  ++i) {
-        auto argptr = argv[i];
-
-        if (!((argv[i][0] == '-') || (argv[i][0] == '/'))) {
-            if (params.format.empty())
-                params.format += argptr;
-            else {
-                params.format += " ";
-                params.format += argptr;
-            }
-        } else {
-            auto optChar = argv[i][1];     // Option Character
-
-            if (optChar == 0) {
-                fputs ("timeprint: Null option switch.\n", stderr);
-                return false;
-            }
-
-            // Point argptr to the contents of the switch.  This may be immediately following the
-            // option character, or it may be the next token on the command line.
-
-            auto  advanceArg = (argv[i][2] == 0);
-            char* switchWord = nullptr;
-
-            if (optChar == '-') {
-                switchWord = argv[i] + 2;
-                if (0 == _stricmp(switchWord, "codeChar"))
-                    optChar = 'c';
-                else if (0 == _stricmp(switchWord, "help"))
-                    optChar = 'h';
-                else if (0 == _stricmp(switchWord, "modTime"))
-                    optChar = 'm';
-                else if (0 == _stricmp(switchWord, "timeZone"))
-                    optChar = 'z';
-                else {
-                    fprintf (stderr, "timeprint: Unrecognized switch (--%s).\n", switchWord);
-                    return false;
-                }
-                advanceArg = true;
-            }
-
-            if (advanceArg) {
-                ++i;
-                if (i >= argc) {
-                    argptr = 0;
-                } else {
-                    argptr = argv[i];
-                }
-            } else {
-                argptr = argv[i]+2;
-            }
-
-            // Handle the option according to the option character.
-
-            switch (optChar) {
-                default:
-                    fprintf (stderr, "timeprint: Unrecognized option (-%c).\n", optChar);
-                    return false;
-
-                // Alternate Code Character
-
-                case 'c':
-                    if (argptr) params.codeChar = *argptr;
-                    break;
-
-                // Command Help
-
-                case 'H':
-                case 'h':
-                case '?':
-                    params.help = true;
-                    return true;
-
-                // Modification Base Time
-
-                case 'm':
-                    if (params.time1.type == TimeType::None) {
-                        params.time1.type = TimeType::Modification;
-                        params.time1.value = argptr;
-                    } else if (params.time2.type == TimeType::None) {
-                        params.time2.type = TimeType::Modification;
-                        params.time2.value = argptr;
-                    } else {
-                        fprintf (stderr, "timeprint: Unexpected third time value (%s).\n", argptr);
-                        return false;
-                    }
-                    break;
-
-                // Timezone
-
-                case 'z':
-                    params.zone = argptr;
-                    break;
-            }
-
-            // Currently, all options take an argument, so flag an error if we're missing
-            // an argument.
-
-            if (argptr == 0) {
-                if (switchWord) {
-                    fprintf (stderr, "timeprint: Missing argument for --%s switch.\n", switchWord);
-                } else {
-                    fprintf (stderr, "timeprint: Missing argument for -%c switch.\n", optChar);
-                }
-                return false;
-            }
-        }
-    }
-
-    // If no format string was specified on the command line, fetch it from the TIMEFORMAT
-    // environment variable.  If not available there, then use the default format string.
-
-    if (params.format.empty()) {
-        char *timeFormat;
-        _dupenv_s (&timeFormat, nullptr, "TIMEFORMAT");
-
-        if (timeFormat == nullptr) {
-            params.format = "%#c";
-        } else {
-            params.format = timeFormat;
-            free (timeFormat);
-        }
-    }
-
-    // If no time source was specified, then report information for the time now.
-
-    if (params.time1.type == TimeType::None)
-        params.time1.type = TimeType::Now;
-
-    return true;
+    exit (0);
 }
