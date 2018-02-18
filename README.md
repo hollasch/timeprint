@@ -11,7 +11,7 @@ current or of elapsed date and time. It is based on the C++ standard `strftime` 
 
 Usage
 -------
-    timeprint [--escapeChar <char>] [-e<char>]
+    timeprint [--codeChar <char>] [-c<char>]
               [--help] [-h] [/?]
               [--modTime <fileName>] [-m<fileName>]
               [--timeZone <zone>] [-z<zone>]
@@ -23,11 +23,11 @@ Description
 `timeprint` prints time and date information to the standard output stream. All string fragments
 will be concatenated with a space, so it's usually unnecessary to quote the format string.
 
-##### `--escapeChar`, `-e`
-The escapeChar switch specifies an alternate escape character to the default `%` character (escape
-codes are described below). If the backslash (`\`) is specified as the escape character, then normal
-backslash escapes will be disabled. The `-e` switch is ignored unless the format string is specified
-on the command line.
+##### `--codeChar`, `-c`
+The codeChar switch specifies an alternate code character to the default `%` character (format codes
+are described below). If the backslash (`\`) is specified as the escape character, then normal
+backslash escapes will be disabled. The `-codeChar` switch is ignored unless the format string is
+specified on the command line.
 
 ##### `--help`, `-h`, `/h`, `-?`, `/?`
 Print help and usage information.
