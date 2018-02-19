@@ -1364,22 +1364,31 @@ Error Test [--bogusSwitch]
 timeprint: Unrecognized switch (--bogusSwitch).
 --------------------------------------------------------------------------------
 Error Test [-m]
-timeprint: Missing argument for (-m/--modTime) option.
+timeprint: Missing argument for --modTime (-m) option.
+--------------------------------------------------------------------------------
+Error Test [--accessTime]
+timeprint: Missing argument for --accessTime (-a) option.
+--------------------------------------------------------------------------------
+Error Test [--accessTime someBogusFile]
+timeprint: --accessTime is not supported yet.
 --------------------------------------------------------------------------------
 Error Test [--modTime]
-timeprint: Missing argument for (-m/--modTime) option.
+timeprint: Missing argument for --modTime (-m) option.
 --------------------------------------------------------------------------------
 Error Test [--modTime someBogusFile]
 timeprint: Couldn't get status of "someBogusFile".
 --------------------------------------------------------------------------------
-Error Test [--modTime file1 --modTime file2 --modTime bogusThirdOption]
-timeprint: Unexpected third time value (bogusThirdOption).
+Error Test [--time]
+timeprint: Missing argument for --time (-t) option.
+--------------------------------------------------------------------------------
+Error Test [--time now --accessTime file1 --modTime bogusFile2]
+timeprint: Unexpected third time value (bogusFile2).
 --------------------------------------------------------------------------------
 Error Test [-z]
-timeprint: Missing argument for (-z/--timeZone) option.
+timeprint: Missing argument for --timeZone (-z) option.
 --------------------------------------------------------------------------------
 Error Test [--timezone]
-timeprint: Missing argument for (-z/--timeZone) option.
+timeprint: Missing argument for --timeZone (-z) option.
 --------------------------------------------------------------------------------
 [A b c d e Hello world f g h i j]
 A b c d e Hello world f g h i j

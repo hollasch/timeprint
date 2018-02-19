@@ -58,9 +58,12 @@ call :errTest --
 call :errTest -
 call :errTest --bogusSwitch
 call :errTest -m
+call :errTest --accessTime
+call :errTest --accessTime someBogusFile
 call :errTest --modTime
 call :errTest --modTime someBogusFile
-call :errTest --modTime file1 --modTime file2 --modTime bogusThirdOption
+call :errTest --time
+call :errTest --time now --accessTime file1 --modTime bogusFile2
 call :errTest -z
 call :errTest --timezone
 

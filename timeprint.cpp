@@ -121,12 +121,16 @@ bool getParameters (Parameters &params, int argc, char* argv[])
 
             if (optChar == '-') {
                 switchWord = argv[i] + 2;
-                if (0 == _stricmp(switchWord, "codeChar"))
+                if (0 == _stricmp(switchWord, "accessTime"))
+                    optChar = 'a';
+                else if (0 == _stricmp(switchWord, "codeChar"))
                     optChar = 'c';
                 else if (0 == _stricmp(switchWord, "help"))
                     optChar = 'h';
                 else if (0 == _stricmp(switchWord, "modTime"))
                     optChar = 'm';
+                else if (0 == _stricmp(switchWord, "time"))
+                    optChar = 't';
                 else if (0 == _stricmp(switchWord, "timeZone"))
                     optChar = 'z';
                 else {
@@ -149,10 +153,21 @@ bool getParameters (Parameters &params, int argc, char* argv[])
 
             // Handle the option according to the option character.
 
+            TimeType newTimeType = TimeType::None;    // For options that specify a time
+
             switch (optChar) {
                 default:
                     fprintf (stderr, "timeprint: Unrecognized option (-%c).\n", optChar);
                     return false;
+
+                // File Access Time
+                case 'a':
+                    if (!argptr) {
+                        fprintf (stderr, "timeprint: Missing argument for --accessTime (-a) option.\n");
+                        return false;
+                    }
+                    newTimeType = TimeType::Access;
+                    break;
 
                 // Alternate Code Character
                 case 'c':
@@ -166,34 +181,45 @@ bool getParameters (Parameters &params, int argc, char* argv[])
                     params.helpType = HelpType::General;
                     return true;
 
-                // Modification Base Time
+                // File Modification Time
                 case 'm':
                     if (!argptr) {
-                        fprintf (stderr, "timeprint: Missing argument for (-m/--modTime) option.\n");
+                        fprintf (stderr, "timeprint: Missing argument for --modTime (-m) option.\n");
                         return false;
                     }
+                    newTimeType = TimeType::Modification;
+                    break;
 
-                    if (params.time1.type == TimeType::None) {
-                        params.time1.type = TimeType::Modification;
-                        params.time1.value = argptr;
-                    } else if (params.time2.type == TimeType::None) {
-                        params.time2.type = TimeType::Modification;
-                        params.time2.value = argptr;
-                    } else {
-                        fprintf (stderr, "timeprint: Unexpected third time value (%s).\n", argptr);
+                case 't':
+                    if (!argptr) {
+                        fprintf (stderr, "timeprint: Missing argument for --time (-t) option.\n");
                         return false;
                     }
+                    newTimeType = TimeType::Explicit;
                     break;
 
                 // Timezone
                 case 'z':
                     if (!argptr) {
-                        fprintf (stderr, "timeprint: Missing argument for (-z/--timeZone) option.\n");
+                        fprintf (stderr, "timeprint: Missing argument for --timeZone (-z) option.\n");
                         return false;
                     }
 
                     params.zone = argptr;
                     break;
+            }
+
+            if (newTimeType != TimeType::None) {
+                if (params.time1.type == TimeType::None) {
+                    params.time1.type = newTimeType;
+                    params.time1.value = argptr;
+                } else if (params.time2.type == TimeType::None) {
+                    params.time2.type = newTimeType;
+                    params.time2.value = argptr;
+                } else {
+                    fprintf (stderr, "timeprint: Unexpected third time value (%s).\n", argptr);
+                    return false;
+                }
             }
         }
     }
@@ -241,6 +267,16 @@ bool calcTime (
     // If an offset base file was specified, get the modification time from the file.
 
     time_t offsetBase = -1;              // Offset Base Time
+
+    if (params.time1.type == TimeType::Access) {
+        fprintf (stderr, "timeprint: --accessTime is not supported yet.\n");
+        return false;
+    }
+
+    if (params.time1.type == TimeType::Explicit) {
+        fprintf (stderr, "timeprint: --time is not supported yet.\n");
+        return false;
+    }
 
     if (params.time1.type == TimeType::Modification) {
         struct _stat stat;    // File Status Data
