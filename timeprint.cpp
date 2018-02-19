@@ -15,19 +15,15 @@ It takes an optional format string to control the output.
 using std::string;
 
 
-enum class HelpType
+enum class HelpType    // Types of usage information for the --help option
 {
-    // Types of usage information for the --help option
-
     None,     // No help information requested
     General   // General usage information
 };
 
 
-enum class TimeType
+enum class TimeType    // Type of time for an associated time value string
 {
-    // Type of time for an associated time value string
-
     None,         // Not a legal time
     Now,          // Current time
     Explicit,     // Explicit ISO-8601 date/time
@@ -61,6 +57,7 @@ struct Parameters
 bool getParameters (Parameters& params, int argc, char* argv[]);
 void help          (HelpType);
 void printResults  (string format, char codeChar, struct tm& timeValue, time_t deltaTimeSeconds);
+bool calcTime      (Parameters& params, struct tm& timeValue, time_t& deltaTimeSeconds);
 
 
 //__________________________________________________________________________________________________
@@ -68,62 +65,21 @@ int main (int argc, char *argv[])
 {
     Parameters params;
 
-    if (!getParameters(params, argc, argv)) {
-        return -1;
-    }
+    if (!getParameters(params, argc, argv)) return -1;
 
     help (params.helpType);
 
-    // If an alternate time zone was specified, then we need to set the TZ environment variable.
-    // Kludgey, but I couldn't find another way.
+    struct tm currentTime;
+    time_t    deltaTimeSeconds;
 
-    if (!params.zone.empty()) {
-        string zoneSet { "TZ=" + params.zone };
-        _putenv (zoneSet.c_str());
+    if (calcTime (params, currentTime, deltaTimeSeconds)) {
+        printResults (params.format, params.codeChar, currentTime, deltaTimeSeconds);
+        return 0;
     }
 
-    // If an offset base file was specified, get the modification time from the file.
-
-    time_t offsetBase = -1;              // Offset Base Time
-
-    if (params.time1.type == TimeType::Modification) {
-        struct _stat stat;    // File Status Data
-
-        auto modFileName = params.time1.value.c_str();
-
-        if (0 != _stat(modFileName, &stat)) {
-            fprintf (stderr, "timeprint: Couldn't get status of \"%s\".\n", modFileName);
-            return -1;
-        }
-
-        offsetBase = stat.st_mtime;
-    }
-
-    // Get the current time. If an offset file was specified, subtract that
-    // file's modification time from the current time.
-
-    struct tm currentTime;            // Current time (either now, or delta time)
-    time_t    nowLong;                // Current time as a long value (seconds since 1970 Jan 1 00:00)
-    time_t    deltaTimeSeconds = 0;   // Time difference in seconds
-
-    time (&nowLong);
-
-    if (offsetBase < 0) {
-        localtime_s (&currentTime, &nowLong);
-    } else {
-        if (nowLong < offsetBase) {
-            fputs ("timeprint: Time zone error. Is your environment variable TZ set correctly?\n", stderr);
-            return -1;
-        }
-
-        deltaTimeSeconds = nowLong - offsetBase;
-        gmtime_s (&currentTime, &deltaTimeSeconds);
-    }
-
-    printResults (params.format, params.codeChar, currentTime, deltaTimeSeconds);
-
-    return 0;
+    return 1;
 }
+
 
 //__________________________________________________________________________________________________
 bool getParameters (Parameters &params, int argc, char* argv[])
@@ -260,6 +216,65 @@ bool getParameters (Parameters &params, int argc, char* argv[])
     // If no time source was specified, then report information for the current time.
     if (params.time1.type == TimeType::None)
         params.time1.type = TimeType::Now;
+
+    return true;
+}
+
+
+//__________________________________________________________________________________________________
+bool calcTime (
+    Parameters& params,            // Command parameters
+    struct tm&  timeValue,         // Output time value
+    time_t&     deltaTimeSeconds)  // Output time delta in seconds
+{
+    // This function computes the time results and then sets the timeValue and deltaTimeSeconds
+    // parameters. This function returns true on success, false on failure.
+
+    // If an alternate time zone was specified, then we need to set the TZ environment variable.
+    // Kludgey, but I couldn't find another way.
+
+    if (!params.zone.empty()) {
+        string zoneSet { "TZ=" + params.zone };
+        _putenv (zoneSet.c_str());
+    }
+
+    // If an offset base file was specified, get the modification time from the file.
+
+    time_t offsetBase = -1;              // Offset Base Time
+
+    if (params.time1.type == TimeType::Modification) {
+        struct _stat stat;    // File Status Data
+
+        auto modFileName = params.time1.value.c_str();
+
+        if (0 != _stat(modFileName, &stat)) {
+            fprintf (stderr, "timeprint: Couldn't get status of \"%s\".\n", modFileName);
+            return false;
+        }
+
+        offsetBase = stat.st_mtime;
+    }
+
+    // Get the current time. If an offset file was specified, subtract that
+    // file's modification time from the current time.
+
+    struct tm currentTime;   // Current time (either now, or delta time)
+    time_t    nowLong;       // Current time as a long value (seconds since 1970 Jan 1 00:00)
+
+    deltaTimeSeconds = 0;
+    time (&nowLong);
+
+    if (offsetBase < 0) {
+        localtime_s (&currentTime, &nowLong);
+    } else {
+        if (nowLong < offsetBase) {
+            fputs ("timeprint: Time zone error. Is your environment variable TZ set correctly?\n", stderr);
+            return false;
+        }
+
+        deltaTimeSeconds = nowLong - offsetBase;
+        gmtime_s (&currentTime, &deltaTimeSeconds);
+    }
 
     return true;
 }
