@@ -294,14 +294,13 @@ bool calcTime (
     // Get the current time. If an offset file was specified, subtract that
     // file's modification time from the current time.
 
-    struct tm currentTime;   // Current time (either now, or delta time)
-    time_t    nowLong;       // Current time as a long value (seconds since 1970 Jan 1 00:00)
+    time_t nowLong;       // Current time as a long value (seconds since 1970 Jan 1 00:00)
 
     deltaTimeSeconds = 0;
     time (&nowLong);
 
     if (offsetBase < 0) {
-        localtime_s (&currentTime, &nowLong);
+        localtime_s (&timeValue, &nowLong);
     } else {
         if (nowLong < offsetBase) {
             fputs ("timeprint: Time zone error. Is your environment variable TZ set correctly?\n", stderr);
@@ -309,7 +308,7 @@ bool calcTime (
         }
 
         deltaTimeSeconds = nowLong - offsetBase;
-        gmtime_s (&currentTime, &deltaTimeSeconds);
+        gmtime_s (&timeValue, &deltaTimeSeconds);
     }
 
     return true;
@@ -362,7 +361,7 @@ void printResults (
             ++formatIterator;
 
             if (*formatIterator == '_') {
-                time_t divisor;          // Delta seconds divisor
+                time_t divisor = 1;      // Delta seconds divisor
                 bool   bogus = false;    // True on bogus %_ codes.
 
                 ++formatIterator;
