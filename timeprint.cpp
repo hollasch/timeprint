@@ -136,6 +136,8 @@ bool getParameters (Parameters &params, int argc, char* argv[])
                     optChar = 'h';
                 else if (0 == _stricmp(switchWord, "modTime"))
                     optChar = 'm';
+                else if (0 == _stricmp(switchWord, "now"))
+                    optChar = 'n';
                 else if (0 == _stricmp(switchWord, "time"))
                     optChar = 't';
                 else if (0 == _stricmp(switchWord, "timeZone"))
@@ -197,6 +199,10 @@ bool getParameters (Parameters &params, int argc, char* argv[])
                     newTimeType = TimeType::Modification;
                     break;
 
+                case 'n':
+                    newTimeType = TimeType::Now;
+                    break;
+
                 case 't':
                     if (!argptr) {
                         fprintf (stderr, "timeprint: Missing argument for --time (-t) option.\n");
@@ -219,10 +225,10 @@ bool getParameters (Parameters &params, int argc, char* argv[])
             if (newTimeType != TimeType::None) {
                 if (params.time1.type == TimeType::None) {
                     params.time1.type = newTimeType;
-                    params.time1.value = argptr;
+                    if (argptr) params.time1.value = argptr;
                 } else if (params.time2.type == TimeType::None) {
                     params.time2.type = newTimeType;
-                    params.time2.value = argptr;
+                    if (argptr) params.time2.value = argptr;
                 } else {
                     fprintf (stderr, "timeprint: Unexpected third time value (%s).\n", argptr);
                     return false;
@@ -319,10 +325,6 @@ bool getTime (time_t& result, TimeSpec& spec)
 
     if (spec.type == TimeType::Explicit) {
         auto timeString = spec.value.c_str();
-        if (0 == _stricmp(timeString, "now")) {
-            result = timeNow;
-            return true;
-        }
         fprintf (stderr, "timeprint: Unrecognized explicit time (%s).\n", timeString);
         return false;
     }
