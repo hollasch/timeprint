@@ -472,7 +472,7 @@ Syntax
 
 //__________________________________________________________________________________________________
 static auto help_general =
-    "timeprint v2.0.0+  |  https://github.com/hollasch/timeprint\n"
+    "timeprint v2.0.0-beta  |  https://github.com/hollasch/timeprint\n"
     "timeprint - Print time and date information\n"
     "\n"
     "usage: timeprint [--codeChar <char>] [-c<char>]\n"

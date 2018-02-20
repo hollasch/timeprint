@@ -3,7 +3,7 @@ Acceptance Tests for `timeprint`
 
 --------------------------------------------------------------------------------
 [-h]
-timeprint v2.0.0+  |  https://github.com/hollasch/timeprint
+timeprint v2.0.0-beta  |  https://github.com/hollasch/timeprint
 timeprint - Print time and date information
 
 usage: timeprint [--codeChar <char>] [-c<char>]
@@ -172,7 +172,7 @@ Examples:
 
 --------------------------------------------------------------------------------
 [-H]
-timeprint v2.0.0+  |  https://github.com/hollasch/timeprint
+timeprint v2.0.0-beta  |  https://github.com/hollasch/timeprint
 timeprint - Print time and date information
 
 usage: timeprint [--codeChar <char>] [-c<char>]
@@ -341,7 +341,7 @@ Examples:
 
 --------------------------------------------------------------------------------
 [/h]
-timeprint v2.0.0+  |  https://github.com/hollasch/timeprint
+timeprint v2.0.0-beta  |  https://github.com/hollasch/timeprint
 timeprint - Print time and date information
 
 usage: timeprint [--codeChar <char>] [-c<char>]
@@ -510,7 +510,7 @@ Examples:
 
 --------------------------------------------------------------------------------
 [/H]
-timeprint v2.0.0+  |  https://github.com/hollasch/timeprint
+timeprint v2.0.0-beta  |  https://github.com/hollasch/timeprint
 timeprint - Print time and date information
 
 usage: timeprint [--codeChar <char>] [-c<char>]
@@ -679,7 +679,7 @@ Examples:
 
 --------------------------------------------------------------------------------
 [-?]
-timeprint v2.0.0+  |  https://github.com/hollasch/timeprint
+timeprint v2.0.0-beta  |  https://github.com/hollasch/timeprint
 timeprint - Print time and date information
 
 usage: timeprint [--codeChar <char>] [-c<char>]
@@ -848,7 +848,7 @@ Examples:
 
 --------------------------------------------------------------------------------
 ["/?"]
-timeprint v2.0.0+  |  https://github.com/hollasch/timeprint
+timeprint v2.0.0-beta  |  https://github.com/hollasch/timeprint
 timeprint - Print time and date information
 
 usage: timeprint [--codeChar <char>] [-c<char>]
@@ -1017,7 +1017,7 @@ Examples:
 
 --------------------------------------------------------------------------------
 [--help]
-timeprint v2.0.0+  |  https://github.com/hollasch/timeprint
+timeprint v2.0.0-beta  |  https://github.com/hollasch/timeprint
 timeprint - Print time and date information
 
 usage: timeprint [--codeChar <char>] [-c<char>]
@@ -1186,7 +1186,7 @@ Examples:
 
 --------------------------------------------------------------------------------
 [--HELP]
-timeprint v2.0.0+  |  https://github.com/hollasch/timeprint
+timeprint v2.0.0-beta  |  https://github.com/hollasch/timeprint
 timeprint - Print time and date information
 
 usage: timeprint [--codeChar <char>] [-c<char>]
