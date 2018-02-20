@@ -53,6 +53,10 @@ struct Parameters
 };
 
 
+// Global Variables
+static time_t timeNow;
+
+
 // Function Declarations
 bool calcTime      (Parameters& params, struct tm& timeValue, time_t& deltaTimeSeconds);
 bool getParameters (Parameters& params, int argc, char* argv[]);
@@ -64,6 +68,8 @@ void printResults  (string format, char codeChar, struct tm& timeValue, time_t d
 //__________________________________________________________________________________________________
 int main (int argc, char *argv[])
 {
+    time (&timeNow);    // Snapshot the current time.
+
     Parameters params;
 
     if (!getParameters(params, argc, argv)) return -1;
@@ -300,17 +306,16 @@ bool calcTime (
 //__________________________________________________________________________________________________
 bool getTime (time_t& result, TimeSpec& spec)
 {
-    if (spec.type == TimeType::Access) {
-        fprintf (stderr, "timeprint: --accessTime is not supported yet.\n");
-        return false;
+    // Gets the time according to the spec's type + value.
+
+    if (spec.type == TimeType::Now) {
+        result = timeNow;
+        return true;
     }
 
-    if (spec.type == TimeType::Explicit) {
-        fprintf (stderr, "timeprint: --time is not supported yet.\n");
-        return false;
-    }
+    if (  (spec.type == TimeType::Access)
+       || (spec.type == TimeType::Modification)) {
 
-    if (spec.type == TimeType::Modification) {
         struct _stat stat;    // File Status Data
 
         auto modFileName = spec.value.c_str();
@@ -320,12 +325,25 @@ bool getTime (time_t& result, TimeSpec& spec)
             return false;
         }
 
-        result = stat.st_mtime;
+        switch (spec.type) {
+            case TimeType::Access:        result = stat.st_atime; break;
+            case TimeType::Modification:  result = stat.st_mtime; break;
+        }
+        return true;
     }
 
-    return true;
-}
+    if (spec.type == TimeType::Explicit) {
+        auto timeString = spec.value.c_str();
+        if (0 == _stricmp(timeString, "now")) {
+            result = timeNow;
+            return true;
+        }
+        fprintf (stderr, "timeprint: Unrecognized explicit time (%s).\n", timeString);
+        return false;
+    }
 
+    return false;   // Unrecognized time type
+}
 
 
 //__________________________________________________________________________________________________

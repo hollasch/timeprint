@@ -1370,7 +1370,7 @@ Error Test [--accessTime]
 timeprint: Missing argument for --accessTime (-a) option.
 --------------------------------------------------------------------------------
 Error Test [--accessTime someBogusFile]
-timeprint: --accessTime is not supported yet.
+timeprint: Couldn't get status of "someBogusFile".
 --------------------------------------------------------------------------------
 Error Test [--modTime]
 timeprint: Missing argument for --modTime (-m) option.
