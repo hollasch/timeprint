@@ -6,6 +6,8 @@
 : NOTE: This test requires the `diff` tool to be on your path.
 : ==================================================================================================
 
+set testOut=x64
+
 if "%1" equ "--run" goto :runTests
 
 if "%1" neq "" (
@@ -19,8 +21,8 @@ if not exist %timePrint% (
     exit /b 1
 )
 
-call %0 --run %timePrint% > tests-output.txt
-diff -u3 tests-accepted.txt tests-output.txt
+call %0 --run %timePrint% > %testOut%\tests-output.txt
+diff -u3 tests-accepted.txt %testOut%\tests-output.txt
 
 if %errorlevel% equ 0 (
     echo All tests passed.
@@ -31,7 +33,7 @@ echo.
 set /p response="Differences found. Accept new results? "
 if /i "%response%" neq "y"  if /i "%response%" neq "yes"  exit /b 1
 
-copy tests-output.txt tests-accepted.txt
+copy %testOut%\tests-output.txt tests-accepted.txt
 exit /b 0
 
 
@@ -40,19 +42,26 @@ exit /b 0
 :runTests
 
 set timePrint=%2
+set testNum=1
 
 echo Acceptance Tests for `timeprint`
 echo ================================================================================
 echo.
 
-rem call :test -h
-rem call :test -H
-rem call :test /h
-rem call :test /H
-rem call :test -?
-rem call :test "/?"
-rem call :test --HELP
-call :test --help
+echo.--------------------------------------------------------------------------------
+echo Test %testNum%: [/?]
+%timePrint% /?
+set /a testNum = testNum + 1
+
+call :test --help FORMATCODES
+call :test -H timeSyntax
+call :test /htimezone
+call :test --help examples
+
+call :testCapture general-help --help
+call :testEqual   general-help -h bogusHelpTopic
+call :testEqual   general-help -hbogusHelpTopic
+call :testEqual   general-help --help bogusHelpTopic
 
 call :errTest --
 call :errTest -
@@ -69,6 +78,8 @@ call :errTest --modification someBogusFile
 call :errTest --time
 call :errTest --time 12:00 --access file1 --modification file2
 call :errTest --now --access file1 --modification file2
+call :errTest --access file1 --modification file2 --now
+call :errTest --modification file2 --now --time 12:00
 call :errTest -z
 call :errTest --timezone
 
@@ -87,16 +98,37 @@ exit /b 0
 
 
 
+
 :test
     echo.--------------------------------------------------------------------------------
-    echo [%*]
+    echo Test %testNum%: [%*]
     %timePrint% %*
+    set /a testNum = testNum + 1
     goto :eof
+
+:testCapture
+    %timePrint% %2 %3 %4 %5 %6 %7 %8 %9 > %testOut%\test-output-%1.txt
+    goto :eof
+
+:testEqual
+    echo.--------------------------------------------------------------------------------
+    echo Test %testNum%: Output [%2 %3 %4 %5 %6 %7 %8 %9] equal to %1
+    %timePrint% %2 %3 %4 %5 %6 %7 %8 %9 > %testOut%\test-output-%testNum%.txt
+    fc >nul %testOut%\test-output-%testNum%.txt %testOut%\test-output-%1.txt
+    if %ERRORLEVEL% equ 0 (
+        echo Test passed.
+    ) else (
+        echo Test failed.
+    )
+    set /a testNum = testNum + 1
+    goto :eof
+    
 
 :errTest
     echo.--------------------------------------------------------------------------------
-    echo Error Test [%*]
+    echo Test %testNum%: Error Test [%*]
     %timePrint% %* 1>nul 2>%TEMP%\timeprint-test-error-output.txt
     type %TEMP%\timeprint-test-error-output.txt
     del  %TEMP%\timeprint-test-error-output.txt
+    set /a testNum = testNum + 1
     goto :eof

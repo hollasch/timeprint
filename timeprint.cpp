@@ -17,8 +17,12 @@ using std::string;
 
 enum class HelpType    // Types of usage information for the --help option
 {
-    None,     // No help information requested
-    General   // General usage information
+    None,         // No help information requested
+    General,      // General usage information
+    Examples,     // Illustrative examples
+    FormatCodes,  // Output format time codes
+    TimeSyntax,   // ISO 8601 explicit time format
+    TimeZone      // Time zone formats
 };
 
 
@@ -205,7 +209,19 @@ bool getParameters (Parameters &params, int argc, char* argv[])
                 case 'H':
                 case 'h':
                 case '?':
-                    params.helpType = HelpType::General;
+                    if (!argptr) {
+                        params.helpType = HelpType::General;
+                    } else if (0 == _stricmp(argptr, "examples")) {
+                        params.helpType = HelpType::Examples;
+                    } else if (0 == _stricmp(argptr, "formatCodes")) {
+                        params.helpType = HelpType::FormatCodes;
+                    } else if (0 == _stricmp(argptr, "timeSyntax")) {
+                        params.helpType = HelpType::TimeSyntax;
+                    } else if (0 == _stricmp(argptr, "timeZone")) {
+                        params.helpType = HelpType::TimeZone;
+                    } else {
+                        params.helpType = HelpType::General;
+                    }
                     return true;
 
                 // File Modification Time
@@ -505,7 +521,7 @@ static auto help_general =
     "timeprint - Print time and date information\n"
     "\n"
     "usage: timeprint [--codeChar <char>] [-%<char>]\n"
-    "                 [--help] [-h] [/?]\n"
+    "                 [--help [topic]] [-h[topic]] [/?]\n"
     "                 [--access <fileName>] [-a<fileName>]\n"
     "                 [--creation <fileName>] [-c<fileName>]\n"
     "                 [--modification <fileName>] [-m<fileName>]\n"
@@ -531,16 +547,18 @@ static auto help_general =
     "\n"
     "    --codeChar, -%\n"
     "        The --codeChar switch specifies an alternate code character to the\n"
-    "        default '%' character (format codes are described below). If the\n"
-    "        backslash (\\) is specified as the code character, then normal\n"
-    "        backslash escapes will be disabled. The --codeChar switch is ignored\n"
-    "        unless the format string is specified on the command line.\n"
+    "        default '%' character. If the backslash (\\) is specified as the code\n"
+    "        character, then normal backslash escapes will be disabled. The\n"
+    "        --codeChar switch is ignored unless the format string is specified on\n"
+    "        the command line.\n"
     "\n"
     "    --creation, -c\n"
     "        Use the creation time of the named file.\n"
     "\n"
     "    --help, -h, /h, -?, /?\n"
-    "        Print help and usage information.\n"
+    "        Print help and usage information in general, or for the specified\n"
+    "        topic. Topics include 'examples', 'formatCodes', 'timeSyntax', and\n"
+    "        'timezone'.\n"
     "\n"
     "    --modification, -m\n"
     "        Use the modification time of the named file.\n"
@@ -548,39 +566,16 @@ static auto help_general =
     "    --now, -n\n"
     "        Use the current time.\n"
     "\n"
+    "    --time, -t\n"
+    "        Specifies an explicit absolute time, using ISO 8601 syntax. For a\n"
+    "        description of supported syntax, use '--help timeSyntax'.\n"
+    "\n"
     "    --timeZone, -z\n"
     "        The --timeZone argument takes a timezone string of the form used by\n"
     "        the _tzset function. If no timezone is specified, the system local\n"
     "        time is used. The timezone can be set in the environment via the TZ\n"
-    "        environment variable. The format of this string is\n"
-    "        \"tzn[+|-]hh[:mm[:ss]][dzn]\", where\n"
-    "\n"
-    "            tzn\n"
-    "                Three-letter time-zone name, such as PST. You must specify the\n"
-    "                correct offset from local time to UTC.\n"
-    "\n"
-    "            hh\n"
-    "                Difference in hours between UTC and local time. Optionally\n"
-    "                signed.\n"
-    "\n"
-    "            mm\n"
-    "                Minutes, separated with a colon (:).\n"
-    "\n"
-    "            ss\n"
-    "                Seconds, separated with a colon (:).\n"
-    "\n"
-    "            dzn\n"
-    "                Three-letter daylight-saving-time zone such as PDT. If\n"
-    "                daylight saving time is never in effect in the locality, omit\n"
-    "                dzn. The C run-time library assumes the US rules for\n"
-    "                implementing the calculation of Daylight Saving Time (DST).\n"
-    "\n"
-    "            Examples of the timezone string include the following:\n"
-    "\n"
-    "                UTC       Universal Coordinated Time\n"
-    "                PST8      Pacific Standard Time\n"
-    "                PST8PDT   Pacific Standard Time, daylight savings in effect\n"
-    "                GST-1GDT  German Standard Time, daylight savings in effect\n"
+    "        environment variable. For a description of the time zone format, use\n"
+    "        '--help timeZone'.\n"
     "\n"
     "If no output string is supplied, the format specified in the environment\n"
     "variable TIMEFORMAT is used. If this variable is not set, then the format\n"
@@ -590,10 +585,52 @@ static auto help_general =
     "with a \\ character so that it is not confused with a command switch.\n"
     "\n"
     "Strings take both \\-escaped characters and %-codes in the style of printf.\n"
-    "The \\ escape codes include \\n (newline), \\t (tab), \\b (backspace),\n"
+    "The escape codes include \\n (newline), \\t (tab), \\b (backspace),\n"
     "\\r (carriage return), and \\a (alert, or beep).\n"
     "\n"
-    "The %-codes are\n"
+    "For a description of supported time format codes, use '--help formatCodes'.\n"
+    "\n"
+    "\n"
+    "For additional help, use '--help <topic>', where <topic> is one of:\n"
+    "    - examples\n"
+    "    - formatCodes\n"
+    "    - timeSyntax\n"
+    "    - timeZone\n"
+    "\n"
+    ;
+
+static auto help_examples =
+    "\n"
+    "    Examples:\n"
+    "\n"
+    "    > timeprint\n"
+    "    Sunday, July 20, 2003 17:02:39\n"
+    "\n"
+    "    > timeprint %H:%M:%S\n"
+    "    17:03:17\n"
+    "\n"
+    "    > timeprint -z UTC\n"
+    "    Monday, July 21, 2003 00:03:47\n"
+    "\n"
+    "    > timeprint Building endzones [%Y-%m-%d %#I:%M:%S %p].\n"
+    "    Building endzones [2003-07-20 5:06:09 PM].\n"
+    "\n"
+    "    > echo. >timestamp.txt\n"
+    "\n"
+    "    [about a day and a half later...]\n"
+    "\n"
+    "    > timeprint -m timestamp.txt Elapsed Time: %_dd, %H:%M:%S\n"
+    "    Elapsed Time: 1d, 12:03:47\n"
+    "    > timeprint -m timestamp.txt Elapsed Time: %_h:%M:%S\n"
+    "    Elapsed Time: 36:03:47\n"
+    "    > timeprint -m timestamp.txt Elapsed Time: %_s seconds\n"
+    "    Elapsed Time: 129827 seconds\n"
+    "\n"
+    ;
+
+static auto help_formatCodes =
+    "\n"
+    "    The following time format codes are supported:\n"
     "\n"
     "    %a     Abbreviated weekday name *\n"
     "    %A     Full weekday name *\n"
@@ -656,31 +693,45 @@ static auto help_general =
     "    All others\n"
     "        The flag is ignored.\n"
     "\n"
+    ;
+
+static auto help_timeSyntax =
     "\n"
-    "Examples:\n"
+    "    The explicit '--time' option supports a variety of different formats,\n"
+    "    using the ISO 8601 date/time format.\n"
     "\n"
-    "    > timeprint\n"
-    "    Sunday, July 20, 2003 17:02:39\n"
+    "    <To be completed>\n"
+    ;
+
+static auto help_timeZone =
     "\n"
-    "    > timeprint %H:%M:%S\n"
-    "    17:03:17\n"
+    "    Time zones have the format \"tzn[+|-]hh[:mm[:ss]][dzn]\", where\n"
     "\n"
-    "    > timeprint -z UTC\n"
-    "    Monday, July 21, 2003 00:03:47\n"
+    "        tzn\n"
+    "            Three-letter time-zone name, such as PST. You must specify the\n"
+    "            correct offset from local time to UTC.\n"
     "\n"
-    "    > timeprint Building endzones [%Y-%m-%d %#I:%M:%S %p].\n"
-    "    Building endzones [2003-07-20 5:06:09 PM].\n"
+    "        hh\n"
+    "            Difference in hours between UTC and local time. Optionally signed.\n"
     "\n"
-    "    > echo. >timestamp.txt\n"
+    "        mm\n"
+    "            Minutes, separated with a colon (:).\n"
     "\n"
-    "    [about a day and a half later...]\n"
+    "        ss\n"
+    "            Seconds, separated with a colon (:).\n"
     "\n"
-    "    > timeprint -m timestamp.txt Elapsed Time: %_dd, %H:%M:%S\n"
-    "    Elapsed Time: 1d, 12:03:47\n"
-    "    > timeprint -m timestamp.txt Elapsed Time: %_h:%M:%S\n"
-    "    Elapsed Time: 36:03:47\n"
-    "    > timeprint -m timestamp.txt Elapsed Time: %_s seconds\n"
-    "    Elapsed Time: 129827 seconds\n"
+    "        dzn\n"
+    "            Three-letter daylight-saving-time zone such as PDT. If daylight\n"
+    "            saving time is never in effect in the locality, omit dzn. The C\n"
+    "            run-time library assumes the US rules for implementing the\n"
+    "            calculation of Daylight Saving Time (DST).\n"
+    "\n"
+    "        Examples of the timezone string include the following:\n"
+    "\n"
+    "            UTC       Universal Coordinated Time\n"
+    "            PST8      Pacific Standard Time\n"
+    "            PST8PDT   Pacific Standard Time, daylight savings in effect\n"
+    "            GST-1GDT  German Standard Time, daylight savings in effect\n"
     "\n"
     ;
 
@@ -693,7 +744,11 @@ void help (HelpType type)
     switch (type) {
         default: return;
 
-        case HelpType::General:  puts(help_general); break;
+        case HelpType::General:      puts(help_general);      break;
+        case HelpType::Examples:     puts(help_examples);     break;
+        case HelpType::FormatCodes:  puts(help_formatCodes);  break;
+        case HelpType::TimeSyntax:   puts(help_timeSyntax);   break;
+        case HelpType::TimeZone:     puts(help_timeZone);     break;
     }
 
     exit (0);
