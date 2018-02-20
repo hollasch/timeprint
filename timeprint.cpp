@@ -32,6 +32,13 @@ enum class TimeType    // Type of time for an associated time value string
 };
 
 
+struct TimeSpec
+{
+    TimeType type;     // Type of time
+    string   value;    // String value of specified type
+};
+
+
 struct Parameters
 {
     // Describes the parameters for a run of this program.
@@ -41,23 +48,17 @@ struct Parameters
     string   zone;          // Time zone string
     string   format;        // Output format string
 
-    struct {              // Time 1 [required] (either single use, or for time difference)
-        TimeType type;
-        string   value;
-    } time1;
-
-    struct {              // Time 2 [optional] (for time difference output)
-        TimeType type;
-        string   value;
-    } time2;
+    TimeSpec time1;         // Time 1 [required] (either single use, or for time difference)
+    TimeSpec time2;         // Time 2 [optional] (for time difference output)
 };
 
 
 // Function Declarations
+bool calcTime      (Parameters& params, struct tm& timeValue, time_t& deltaTimeSeconds);
 bool getParameters (Parameters& params, int argc, char* argv[]);
+bool getTime       (time_t& result, TimeSpec&);
 void help          (HelpType);
 void printResults  (string format, char codeChar, struct tm& timeValue, time_t deltaTimeSeconds);
-bool calcTime      (Parameters& params, struct tm& timeValue, time_t& deltaTimeSeconds);
 
 
 //__________________________________________________________________________________________________
@@ -268,27 +269,8 @@ bool calcTime (
 
     time_t offsetBase = -1;              // Offset Base Time
 
-    if (params.time1.type == TimeType::Access) {
-        fprintf (stderr, "timeprint: --accessTime is not supported yet.\n");
+    if (!getTime (offsetBase, params.time1)) {
         return false;
-    }
-
-    if (params.time1.type == TimeType::Explicit) {
-        fprintf (stderr, "timeprint: --time is not supported yet.\n");
-        return false;
-    }
-
-    if (params.time1.type == TimeType::Modification) {
-        struct _stat stat;    // File Status Data
-
-        auto modFileName = params.time1.value.c_str();
-
-        if (0 != _stat(modFileName, &stat)) {
-            fprintf (stderr, "timeprint: Couldn't get status of \"%s\".\n", modFileName);
-            return false;
-        }
-
-        offsetBase = stat.st_mtime;
     }
 
     // Get the current time. If an offset file was specified, subtract that
@@ -313,6 +295,37 @@ bool calcTime (
 
     return true;
 }
+
+
+//__________________________________________________________________________________________________
+bool getTime (time_t& result, TimeSpec& spec)
+{
+    if (spec.type == TimeType::Access) {
+        fprintf (stderr, "timeprint: --accessTime is not supported yet.\n");
+        return false;
+    }
+
+    if (spec.type == TimeType::Explicit) {
+        fprintf (stderr, "timeprint: --time is not supported yet.\n");
+        return false;
+    }
+
+    if (spec.type == TimeType::Modification) {
+        struct _stat stat;    // File Status Data
+
+        auto modFileName = spec.value.c_str();
+
+        if (0 != _stat(modFileName, &stat)) {
+            fprintf (stderr, "timeprint: Couldn't get status of \"%s\".\n", modFileName);
+            return false;
+        }
+
+        result = stat.st_mtime;
+    }
+
+    return true;
+}
+
 
 
 //__________________________________________________________________________________________________
