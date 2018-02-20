@@ -28,6 +28,7 @@ enum class TimeType    // Type of time for an associated time value string
     Now,          // Current time
     Explicit,     // Explicit ISO-8601 date/time
     Access,       // Access time of the named file
+    Creation,     // Creation time of the named file
     Modification  // Modification time of the named file
 };
 
@@ -113,6 +114,9 @@ bool getParameters (Parameters &params, int argc, char* argv[])
                 params.format += argptr;
             }
         } else {
+            auto timeValWord1 = i;         // Used later for reporting on invalid third time values.
+            auto timeValWord2 = false;
+
             auto optChar = argv[i][1];     // Option Character
 
             if (optChar == 0) {
@@ -127,17 +131,22 @@ bool getParameters (Parameters &params, int argc, char* argv[])
             char* switchWord = nullptr;
 
             if (optChar == '-') {
+                advanceArg = true;
                 switchWord = argv[i] + 2;
-                if (0 == _stricmp(switchWord, "accessTime"))
+                if (0 == _stricmp(switchWord, "access"))
                     optChar = 'a';
                 else if (0 == _stricmp(switchWord, "codeChar"))
+                    optChar = '%';
+                else if (0 == _stricmp(switchWord, "creation"))
                     optChar = 'c';
                 else if (0 == _stricmp(switchWord, "help"))
                     optChar = 'h';
-                else if (0 == _stricmp(switchWord, "modTime"))
+                else if (0 == _stricmp(switchWord, "modification"))
                     optChar = 'm';
-                else if (0 == _stricmp(switchWord, "now"))
+                else if (0 == _stricmp(switchWord, "now")) {
                     optChar = 'n';
+                    advanceArg = false;
+                }
                 else if (0 == _stricmp(switchWord, "time"))
                     optChar = 't';
                 else if (0 == _stricmp(switchWord, "timeZone"))
@@ -146,7 +155,6 @@ bool getParameters (Parameters &params, int argc, char* argv[])
                     fprintf (stderr, "timeprint: Unrecognized switch (--%s).\n", switchWord);
                     return false;
                 }
-                advanceArg = true;
             }
 
             if (advanceArg) {
@@ -155,6 +163,7 @@ bool getParameters (Parameters &params, int argc, char* argv[])
                     argptr = 0;
                 } else {
                     argptr = argv[i];
+                    timeValWord2 = true;
                 }
             } else {
                 argptr = argv[i]+2;
@@ -172,14 +181,23 @@ bool getParameters (Parameters &params, int argc, char* argv[])
                 // File Access Time
                 case 'a':
                     if (!argptr) {
-                        fprintf (stderr, "timeprint: Missing argument for --accessTime (-a) option.\n");
+                        fprintf (stderr, "timeprint: Missing argument for --access (-a) option.\n");
                         return false;
                     }
                     newTimeType = TimeType::Access;
                     break;
 
-                // Alternate Code Character
+                // File Modification Time
                 case 'c':
+                    if (!argptr) {
+                        fprintf (stderr, "timeprint: Missing argument for --creation (-c) option.\n");
+                        return false;
+                    }
+                    newTimeType = TimeType::Creation;
+                    break;
+
+                // Alternate Code Character
+                case '%':
                     if (argptr) params.codeChar = *argptr;
                     break;
 
@@ -193,7 +211,7 @@ bool getParameters (Parameters &params, int argc, char* argv[])
                 // File Modification Time
                 case 'm':
                     if (!argptr) {
-                        fprintf (stderr, "timeprint: Missing argument for --modTime (-m) option.\n");
+                        fprintf (stderr, "timeprint: Missing argument for --modification (-m) option.\n");
                         return false;
                     }
                     newTimeType = TimeType::Modification;
@@ -230,7 +248,11 @@ bool getParameters (Parameters &params, int argc, char* argv[])
                     params.time2.type = newTimeType;
                     if (argptr) params.time2.value = argptr;
                 } else {
-                    fprintf (stderr, "timeprint: Unexpected third time value (%s).\n", argptr);
+                    fprintf (stderr,
+                        "timeprint: Unexpected third time value (%s%s%s).\n",
+                        argv[timeValWord1],
+                        timeValWord2 ? " " : "",
+                        timeValWord2 ? argv[timeValWord1 + 1] : "");
                     return false;
                 }
             }
@@ -305,19 +327,21 @@ bool getTime (time_t& result, TimeSpec& spec)
     }
 
     if (  (spec.type == TimeType::Access)
+       || (spec.type == TimeType::Creation)
        || (spec.type == TimeType::Modification)) {
 
         struct _stat stat;    // File Status Data
 
-        auto modFileName = spec.value.c_str();
+        auto fileName = spec.value.c_str();
 
-        if (0 != _stat(modFileName, &stat)) {
-            fprintf (stderr, "timeprint: Couldn't get status of \"%s\".\n", modFileName);
+        if (0 != _stat(fileName, &stat)) {
+            fprintf (stderr, "timeprint: Couldn't get status of \"%s\".\n", fileName);
             return false;
         }
 
         switch (spec.type) {
             case TimeType::Access:        result = stat.st_atime; break;
+            case TimeType::Creation:      result = stat.st_ctime; break;
             case TimeType::Modification:  result = stat.st_mtime; break;
         }
         return true;
@@ -480,68 +504,83 @@ static auto help_general =
     "timeprint v2.0.0-beta  |  https://github.com/hollasch/timeprint\n"
     "timeprint - Print time and date information\n"
     "\n"
-    "usage: timeprint [--codeChar <char>] [-c<char>]\n"
+    "usage: timeprint [--codeChar <char>] [-%<char>]\n"
     "                 [--help] [-h] [/?]\n"
-    "                 [--modTime <fileName>] [-m<fileName>]\n"
-    "                 [--accessTime <fileName>] [-a<accessTime>]\n"
+    "                 [--access <fileName>] [-a<fileName>]\n"
+    "                 [--creation <fileName>] [-c<fileName>]\n"
+    "                 [--modification <fileName>] [-m<fileName>]\n"
     "                 [--timeZone <zone>] [-z<zone>]\n"
+    "                 [--now] [-n]\n"
+    "                 [--time <timeValue>] [-t<timeValue>]\n"
     "                 [string] ... [string]\n"
     "\n"
     "This command prints time information to the standard output stream. All string\n"
     "fragments will be concatenated with a space, so it's usually unnecessary to\n"
     "quote the format string.\n"
     "\n"
+    "timeprint operates in either absolute or differential mode. If one time value\n"
+    "is specified, then values for that absolute time are reported. If two time\n"
+    "values are supplied, then timeprint reports the values for the positive\n"
+    "difference between those two values. If no time values are given, then --now\n"
+    "is implied.\n"
+    "\n"
     "Command switches may be prefixed with a dash (-) or a slash (/).\n"
     "\n"
-    "--accessTime, -a\n"
-    "    Use the time of last access of the named file for a time value.\n"
+    "    --access, -a\n"
+    "        Use the time of last access of the named file for a time value.\n"
     "\n"
-    "--codeChar, -c\n"
-    "    The codeChar switch specifies an alternate code character to the default\n"
-    "    '%' character (format codes are described below). If the backslash (\\)\n"
-    "    is specified as the code character, then normal backslash escapes will\n"
-    "    be disabled. The --codeChar switch is ignored unless the format string is\n"
-    "    specified on the command line.\n"
+    "    --codeChar, -%\n"
+    "        The --codeChar switch specifies an alternate code character to the\n"
+    "        default '%' character (format codes are described below). If the\n"
+    "        backslash (\\) is specified as the code character, then normal\n"
+    "        backslash escapes will be disabled. The --codeChar switch is ignored\n"
+    "        unless the format string is specified on the command line.\n"
     "\n"
-    "--help, -h, /h, -?, /?\n"
-    "    Print help and usage information.\n"
+    "    --creation, -c\n"
+    "        Use the creation time of the named file.\n"
     "\n"
-    "--modTime, -m\n"
-    "    The modTime switch specifies the name of a file whose modification time is\n"
-    "    used as the base time (instead of 1970-01-01 00:00:00). This is useful for\n"
-    "    reporting time elapsed since a given file's modification.\n"
+    "    --help, -h, /h, -?, /?\n"
+    "        Print help and usage information.\n"
     "\n"
-    "--timeZone, -z\n"
-    "    The timeZone argument takes a timezone string of the form used by the\n"
-    "    _tzset function. If no timezone is specified, the system local time is\n"
-    "    used. The timezone also be set in the environment via the TZ environment\n"
-    "    variable. The format of this string is \"tzn[+|-]hh[:mm[:ss]][dzn]\", where\n"
+    "    --modification, -m\n"
+    "        Use the modification time of the named file.\n"
     "\n"
-    "        tzn\n"
-    "            Three-letter time-zone name, such as PST. You must specify the\n"
-    "            correct offset from local time to UTC.\n"
+    "    --now, -n\n"
+    "        Use the current time.\n"
     "\n"
-    "        hh\n"
-    "            Difference in hours between UTC and local time. Optionally signed.\n"
+    "    --timeZone, -z\n"
+    "        The --timeZone argument takes a timezone string of the form used by\n"
+    "        the _tzset function. If no timezone is specified, the system local\n"
+    "        time is used. The timezone can be set in the environment via the TZ\n"
+    "        environment variable. The format of this string is\n"
+    "        \"tzn[+|-]hh[:mm[:ss]][dzn]\", where\n"
     "\n"
-    "        mm\n"
-    "            Minutes, separated with a colon (:).\n"
+    "            tzn\n"
+    "                Three-letter time-zone name, such as PST. You must specify the\n"
+    "                correct offset from local time to UTC.\n"
     "\n"
-    "        ss\n"
-    "            Seconds, separated with a colon (:).\n"
+    "            hh\n"
+    "                Difference in hours between UTC and local time. Optionally\n"
+    "                signed.\n"
     "\n"
-    "        dzn\n"
-    "            Three-letter daylight-saving-time zone such as PDT. If daylight\n"
-    "            saving time is never in effect in the locality, omit dzn. The C\n"
-    "            run-time library assumes the US rules for implementing the\n"
-    "            calculation of Daylight Saving Time (DST).\n"
+    "            mm\n"
+    "                Minutes, separated with a colon (:).\n"
     "\n"
-    "        Examples of the timezone string include the following:\n"
+    "            ss\n"
+    "                Seconds, separated with a colon (:).\n"
     "\n"
-    "            UTC       Universal Coordinated Time\n"
-    "            PST8      Pacific Standard Time\n"
-    "            PST8PDT   Pacific Standard Time, daylight savings in effect\n"
-    "            GST-1GDT  German Standard Time, daylight savings in effect\n"
+    "            dzn\n"
+    "                Three-letter daylight-saving-time zone such as PDT. If\n"
+    "                daylight saving time is never in effect in the locality, omit\n"
+    "                dzn. The C run-time library assumes the US rules for\n"
+    "                implementing the calculation of Daylight Saving Time (DST).\n"
+    "\n"
+    "            Examples of the timezone string include the following:\n"
+    "\n"
+    "                UTC       Universal Coordinated Time\n"
+    "                PST8      Pacific Standard Time\n"
+    "                PST8PDT   Pacific Standard Time, daylight savings in effect\n"
+    "                GST-1GDT  German Standard Time, daylight savings in effect\n"
     "\n"
     "If no output string is supplied, the format specified in the environment\n"
     "variable TIMEFORMAT is used. If this variable is not set, then the format\n"

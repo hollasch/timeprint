@@ -45,25 +45,30 @@ echo Acceptance Tests for `timeprint`
 echo ================================================================================
 echo.
 
-call :test -h
-call :test -H
-call :test /h
-call :test /H
-call :test -?
-call :test "/?"
+rem call :test -h
+rem call :test -H
+rem call :test /h
+rem call :test /H
+rem call :test -?
+rem call :test "/?"
+rem call :test --HELP
 call :test --help
-call :test --HELP
 
 call :errTest --
 call :errTest -
 call :errTest --bogusSwitch
+call :errTest -a
+call :errTest --access
+call :errTest --access someBogusFile
+call :errTest -c
+call :errTest --creation
+call :errTest --creation someBogusFile
 call :errTest -m
-call :errTest --accessTime
-call :errTest --accessTime someBogusFile
-call :errTest --modTime
-call :errTest --modTime someBogusFile
+call :errTest --modification
+call :errTest --modification someBogusFile
 call :errTest --time
-call :errTest --time now --accessTime file1 --modTime bogusFile2
+call :errTest --time 12:00 --access file1 --modification file2
+call :errTest --now --access file1 --modification file2
 call :errTest -z
 call :errTest --timezone
 
