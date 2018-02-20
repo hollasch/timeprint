@@ -271,31 +271,16 @@ bool calcTime (
         _putenv (zoneSet.c_str());
     }
 
-    // If an offset base file was specified, get the modification time from the file.
+    time_t time1;
+    if (!getTime (time1, params.time1)) return false;
 
-    time_t offsetBase = -1;              // Offset Base Time
-
-    if (!getTime (offsetBase, params.time1)) {
-        return false;
-    }
-
-    // Get the current time. If an offset file was specified, subtract that
-    // file's modification time from the current time.
-
-    time_t nowLong;       // Current time as a long value (seconds since 1970 Jan 1 00:00)
-
-    deltaTimeSeconds = 0;
-    time (&nowLong);
-
-    if (offsetBase < 0) {
-        localtime_s (&timeValue, &nowLong);
-    } else {
-        if (nowLong < offsetBase) {
-            fputs ("timeprint: Time zone error. Is your environment variable TZ set correctly?\n", stderr);
-            return false;
-        }
-
-        deltaTimeSeconds = nowLong - offsetBase;
+    if (params.time2.type == TimeType::None) {      // Reporting a single absolute time.
+        deltaTimeSeconds = 0;
+        localtime_s (&timeValue, &time1);
+    } else {                                        // Reporting a time diffence
+        time_t time2;
+        if (!getTime (time2, params.time2)) return false;
+        deltaTimeSeconds = (time1 < time2) ? (time2 - time1) : (time1 - time2);
         gmtime_s (&timeValue, &deltaTimeSeconds);
     }
 
