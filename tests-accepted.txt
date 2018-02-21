@@ -74,8 +74,8 @@ Strings take both \-escaped characters and %-codes in the style of printf.
 The escape codes include \n (newline), \t (tab), \b (backspace),
 \r (carriage return), and \a (alert, or beep).
 
-For a description of supported time format codes, use '--help formatCodes'.
-
+For a full description of supported time format codes, use
+'--help formatCodes'.
 
 For additional help, use '--help <topic>', where <topic> is one of:
     - examples
