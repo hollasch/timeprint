@@ -28,35 +28,35 @@ is implied.
 
 Command switches may be prefixed with a dash (-) or a slash (/).
 
-    --access, -a
+    --access <fileName>, -a<fileName>
         Use the time of last access of the named file for a time value.
 
-    --codeChar, -%
+    --codeChar <char>, -%<char>
         The --codeChar switch specifies an alternate code character to the
         default '%' character. If the backslash (\) is specified as the code
         character, then normal backslash escapes will be disabled. The
         --codeChar switch is ignored unless the format string is specified on
         the command line.
 
-    --creation, -c
+    --creation <fileName>, -c <fileName>
         Use the creation time of the named file.
 
-    --help, -h, /h, -?, /?
+    --help [topic], -h[topic], -?[topic]
         Print help and usage information in general, or for the specified
         topic. Topics include 'examples', 'formatCodes', 'timeSyntax', and
         'timezone'.
 
-    --modification, -m
+    --modification <fileName>, -m<fileName>
         Use the modification time of the named file.
 
     --now, -n
         Use the current time.
 
-    --time, -t
+    --time <value>, -t<value>
         Specifies an explicit absolute time, using ISO 8601 syntax. For a
         description of supported syntax, use '--help timeSyntax'.
 
-    --timeZone, -z
+    --timeZone <zone>, -z<zone>
         The --timeZone argument takes a timezone string of the form used by
         the _tzset function. If no timezone is specified, the system local
         time is used. The timezone can be set in the environment via the TZ
