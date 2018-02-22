@@ -68,6 +68,7 @@ bool getParameters (Parameters& params, int argc, char* argv[]);
 bool getTime       (time_t& result, TimeSpec&);
 void help          (HelpType);
 void printResults  (string format, char codeChar, struct tm& timeValue, time_t deltaTimeSeconds);
+void printDelta    (string::iterator&, time_t deltaTimeSeconds);
 
 
 //__________________________________________________________________________________________________
@@ -419,23 +420,7 @@ void printResults (
             ++formatIterator;
 
             if (*formatIterator == '_') {
-                time_t divisor = 1;      // Delta seconds divisor
-                bool   bogus = false;    // True on bogus %_ codes.
-
-                ++formatIterator;
-                switch (*formatIterator) {
-                    case 'd': divisor = 60 * 60 * 24; break;   // Elapsed days
-                    case 'h': divisor = 60 * 60;      break;   // Elapsed hours
-                    case 's': divisor = 1;            break;   // Elapsed seconds
-                    default:  bogus = true;           break;   // Unrecognized %_ code
-                }
-
-                if (bogus) {
-                    printf ("%%_%c", *formatIterator);
-                } else {
-                    printf ("%I64d", deltaTimeSeconds / divisor);
-                }
-
+                printDelta (++formatIterator, deltaTimeSeconds);
             } else if ((*formatIterator != '#') && !strchr(legalCodes, *formatIterator)) {
                 // Print out illegal codes as-is.
                 putchar ('%');
@@ -472,6 +457,21 @@ void printResults (
     // Print the final newline.
 
     putchar ('\n');
+}
+
+
+void printDelta (
+    string::iterator& formatIterator,     // Pointer to delta format after '%_'
+    time_t            deltaTimeSeconds)   // Time difference when comparing two times
+{
+    time_t divisor = 1;      // Delta seconds divisor
+    bool   bogus = false;    // True on bogus %_ codes.
+
+    if (*formatIterator == 'S') {
+        printf ("%I64d", deltaTimeSeconds);
+    } else {
+        printf ("%%_%c", *formatIterator);
+    }
 }
 
 
@@ -599,35 +599,6 @@ static auto help_general =
     "\n"
     ;
 
-static auto help_examples =
-    "\n"
-    "    Examples:\n"
-    "\n"
-    "    > timeprint\n"
-    "    Sunday, July 20, 2003 17:02:39\n"
-    "\n"
-    "    > timeprint %H:%M:%S\n"
-    "    17:03:17\n"
-    "\n"
-    "    > timeprint -z UTC\n"
-    "    Monday, July 21, 2003 00:03:47\n"
-    "\n"
-    "    > timeprint Building endzones [%Y-%m-%d %#I:%M:%S %p].\n"
-    "    Building endzones [2003-07-20 5:06:09 PM].\n"
-    "\n"
-    "    > echo. >timestamp.txt\n"
-    "\n"
-    "    [about a day and a half later...]\n"
-    "\n"
-    "    > timeprint -m timestamp.txt Elapsed Time: %_dd, %H:%M:%S\n"
-    "    Elapsed Time: 1d, 12:03:47\n"
-    "    > timeprint -m timestamp.txt Elapsed Time: %_h:%M:%S\n"
-    "    Elapsed Time: 36:03:47\n"
-    "    > timeprint -m timestamp.txt Elapsed Time: %_s seconds\n"
-    "    Elapsed Time: 129827 seconds\n"
-    "\n"
-    ;
-
 static auto help_formatCodes =
     "\n"
     "    The following time format codes are supported:\n"
@@ -669,9 +640,7 @@ static auto help_formatCodes =
     "    %z     ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)\n"
     "           If timezone cannot be determined, no characters\n"
     "    %Z     Time-zone name or abbreviation, empty for unrecognized zones *\n"
-    "    %_d    Elapsed whole days\n"
-    "    %_h    Elapsed whole hours\n"
-    "    %_s    Elapsed whole seconds\n"
+    "    %_S    Elapsed whole seconds\n"
     "    %%     Percent sign\n"
     "\n"
     "    * Specifiers marked with an asterisk are locale-dependent.\n"
@@ -732,6 +701,29 @@ static auto help_timeZone =
     "            PST8      Pacific Standard Time\n"
     "            PST8PDT   Pacific Standard Time, daylight savings in effect\n"
     "            GST-1GDT  German Standard Time, daylight savings in effect\n"
+    "\n"
+    ;
+
+static auto help_examples =
+    "\n"
+    "    Examples:\n"
+    "\n"
+    "    > timeprint\n"
+    "    Sunday, July 20, 2003 17:02:39\n"
+    "\n"
+    "    > timeprint %H:%M:%S\n"
+    "    17:03:17\n"
+    "\n"
+    "    > timeprint -z UTC\n"
+    "    Monday, July 21, 2003 00:03:47\n"
+    "\n"
+    "    > timeprint Building endzones [%Y-%m-%d %#I:%M:%S %p].\n"
+    "    Building endzones [2003-07-20 5:06:09 PM].\n"
+    "\n"
+    "    > echo. >timestamp.txt\n"
+    "    [a day and a half later...]\n"
+    "    > timeprint --modification timestamp.txt --now Elapsed Time: %_S seconds\n"
+    "    Elapsed Time: 129600 seconds\n"
     "\n"
     ;
 
