@@ -162,6 +162,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="CHANGELOG.md" />
+    <None Include="README-vNext.md" />
     <None Include="README.md" />
     <None Include="test.cmd" />
   </ItemGroup>

@@ -460,13 +460,16 @@ void printResults (
 }
 
 
+/*==================================================================================================
+Temporary Notes: Delta Formatting
+
+$_[,][Y|T|D|yD|tD|H|yH|tH|dH|M|yM|tM|dM|hM|S|yS|tS|dS|hS|mS][.[#]]
+==================================================================================================*/
+
 void printDelta (
     string::iterator& formatIterator,     // Pointer to delta format after '%_'
     time_t            deltaTimeSeconds)   // Time difference when comparing two times
 {
-    time_t divisor = 1;      // Delta seconds divisor
-    bool   bogus = false;    // True on bogus %_ codes.
-
     if (*formatIterator == 'S') {
         printf ("%I64d", deltaTimeSeconds);
     } else {

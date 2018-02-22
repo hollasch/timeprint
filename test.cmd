@@ -25,7 +25,7 @@ call %0 --run %timePrint% > %testOut%\tests-output.txt
 diff -u3 tests-accepted.txt %testOut%\tests-output.txt
 
 if %errorlevel% equ 0 (
-    echo All tests passed.
+    echo All tests pass.
     goto :eof
 )
 

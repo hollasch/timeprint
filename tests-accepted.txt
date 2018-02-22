@@ -126,9 +126,7 @@ Test 2: [--help FORMATCODES]
     %z     ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)
            If timezone cannot be determined, no characters
     %Z     Time-zone name or abbreviation, empty for unrecognized zones *
-    %_d    Elapsed whole days
-    %_h    Elapsed whole hours
-    %_s    Elapsed whole seconds
+    %_S    Elapsed whole seconds
     %%     Percent sign
 
     * Specifiers marked with an asterisk are locale-dependent.
@@ -209,15 +207,9 @@ Test 5: [--help examples]
     Building endzones [2003-07-20 5:06:09 PM].
 
     > echo. >timestamp.txt
-
-    [about a day and a half later...]
-
-    > timeprint -m timestamp.txt Elapsed Time: %_dd, %H:%M:%S
-    Elapsed Time: 1d, 12:03:47
-    > timeprint -m timestamp.txt Elapsed Time: %_h:%M:%S
-    Elapsed Time: 36:03:47
-    > timeprint -m timestamp.txt Elapsed Time: %_s seconds
-    Elapsed Time: 129827 seconds
+    [a day and a half later...]
+    > timeprint --modification timestamp.txt --now Elapsed Time: %_S seconds
+    Elapsed Time: 129600 seconds
 
 
 --------------------------------------------------------------------------------
