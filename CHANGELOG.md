@@ -1,10 +1,10 @@
 Change Log for timeprint
 ================================================================================
 
-## v2.0.0  In Progress
+## v2.0.0-beta
 - Renamed from currtime to timeprint.
-- Add new -- switch variants (--help, --codeChar, --modTime, --timeZone).
-- -e is now -c/--codeChar to eliminate confusion between escape sequences and
+- Add new -- switch variants (--help, --codeChar, --timeZone, and so on).
+- -e is now -%/--codeChar to eliminate confusion between escape sequences and
   format code sequences.
 - Add help information on new (C++11) format codes.
 - Moved custom elapse codes to use new underscore modifier.
@@ -16,6 +16,11 @@ Change Log for timeprint
     %s is now undefined.
 - Fix crashing bug when the format contained unrecognized %-codes.
 - Fix crashing bug on missing --modTime, --timeZone options.
+- New options `--creation`, `--access`, `--modification`.
+- New option `--now`
+- Deprecate option `--modTime`
+- Help output broken into multiple topics.
+
 
 ## v1.0.0  (original 2013-03-09, released 2018-02-15)
   - Original version snap as of 2013-03-09.
