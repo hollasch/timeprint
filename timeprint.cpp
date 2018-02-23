@@ -10,7 +10,8 @@ It takes an optional format string to control the output.
 #include <sys/stat.h>
 
 #include <string>
-#include <iostream>
+#include <sstream>
+#include <iomanip>
 
 using std::string;
 
@@ -63,12 +64,13 @@ static time_t timeNow;
 
 
 // Function Declarations
-bool calcTime      (Parameters& params, struct tm& timeValue, time_t& deltaTimeSeconds);
-bool getParameters (Parameters& params, int argc, char* argv[]);
-bool getTime       (time_t& result, TimeSpec&);
-void help          (HelpType);
-void printResults  (string format, char codeChar, struct tm& timeValue, time_t deltaTimeSeconds);
-void printDelta    (string::iterator&, time_t deltaTimeSeconds);
+bool calcTime       (const Parameters& params, struct tm& timeValue, time_t& deltaTimeSeconds);
+bool getParameters  (Parameters& params, int argc, char* argv[]);
+bool getTime        (time_t& result, const TimeSpec&);
+void help           (HelpType);
+void printResults   (string format, char codeChar, const struct tm& timeValue, time_t deltaTimeSeconds);
+void printDelta     (string::iterator& formatIterator, const string::iterator& formatEnd, time_t deltaTimeSeconds);
+bool printDeltaFunc (string::iterator& formatIterator, const string::iterator& formatEnd, time_t deltaTimeSeconds);
 
 
 //__________________________________________________________________________________________________
@@ -301,9 +303,9 @@ bool getParameters (Parameters &params, int argc, char* argv[])
 
 //__________________________________________________________________________________________________
 bool calcTime (
-    Parameters& params,            // Command parameters
-    struct tm&  timeValue,         // Output time value
-    time_t&     deltaTimeSeconds)  // Output time delta in seconds
+    const Parameters& params,            // Command parameters
+    struct tm&        timeValue,         // Output time value
+    time_t&           deltaTimeSeconds)  // Output time delta in seconds
 {
     // This function computes the time results and then sets the timeValue and deltaTimeSeconds
     // parameters. This function returns true on success, false on failure.
@@ -334,7 +336,7 @@ bool calcTime (
 
 
 //__________________________________________________________________________________________________
-bool getTime (time_t& result, TimeSpec& spec)
+bool getTime (time_t& result, const TimeSpec& spec)
 {
     // Gets the time according to the spec's type + value.
 
@@ -376,15 +378,17 @@ bool getTime (time_t& result, TimeSpec& spec)
 
 //__________________________________________________________________________________________________
 void printResults (
-    string     format,             // The format string, possibly with escape sequences and format codes
-    char       codeChar,           // The format code character (normally %)
-    struct tm& timeValue,          // The primary time value to use
-    time_t     deltaTimeSeconds)   // Time difference when comparing two times
+    string           format,             // The format string, possibly with escape sequences and format codes
+    char             codeChar,           // The format code character (normally %)
+    const struct tm& timeValue,          // The primary time value to use
+    time_t           deltaTimeSeconds)   // Time difference when comparing two times
 {
     // This procedure scans through the format string, emitting expanded codes and escape sequences
     // along the way.
 
-    for (auto formatIterator = format.begin();  formatIterator != format.end();  ++formatIterator) {
+    auto formatEnd = format.end();
+
+    for (auto formatIterator = format.begin();  formatIterator != formatEnd;  ++formatIterator) {
         const auto buffsize = 1024;
         char       buff [buffsize];        // Intermediate Output Buffer
 
@@ -420,7 +424,8 @@ void printResults (
             ++formatIterator;
 
             if (*formatIterator == '_') {
-                printDelta (++formatIterator, deltaTimeSeconds);
+                printDelta (++formatIterator, formatEnd, deltaTimeSeconds);
+                --formatIterator;  // Reset iterator for loop increment.
             } else if ((*formatIterator != '#') && !strchr(legalCodes, *formatIterator)) {
                 // Print out illegal codes as-is.
                 putchar ('%');
@@ -461,20 +466,184 @@ void printResults (
 
 
 /*==================================================================================================
-Temporary Notes: Delta Formatting
-
-$_[,][Y|T|D|yD|tD|H|yH|tH|dH|M|yM|tM|dM|hM|S|yS|tS|dS|hS|mS][.[#]]
+Delta Formatting
 ==================================================================================================*/
 
+const double secondsPerMinute       = 60;
+const double secondsPerHour         = secondsPerMinute * 60;
+const double secondsPerDay          = secondsPerHour * 24;
+const double secondsPerNominalYear  = secondsPerDay * 365;
+const double secondsPerTropicalYear = secondsPerDay * (365.0 + 97.0/400.0);
+
+
 void printDelta (
-    string::iterator& formatIterator,     // Pointer to delta format after '%_'
-    time_t            deltaTimeSeconds)   // Time difference when comparing two times
+    string::iterator&       formatIterator,     // Pointer to delta format after '%_'
+    const string::iterator& formatEnd,          // Format string end
+    time_t                  deltaTimeSeconds)   // Time difference when comparing two times
 {
-    if (*formatIterator == 'S') {
-        printf ("%I64d", deltaTimeSeconds);
-    } else {
-        printf ("%%_%c", *formatIterator);
+    // This function attempts to print the time delta format. If the format is bad, then print the
+    // format substring as-is and restore the format string pointer to continue.
+
+    auto formatRestart = formatIterator;
+
+    if (!printDeltaFunc(formatIterator, formatEnd, deltaTimeSeconds)) {
+        fputs ("%_", stdout);
+        formatIterator = formatRestart;
     }
+}
+
+
+bool charIn (char c, const char* list)
+{
+    // Return true if the given character is in the zero-terminated array of characters.
+    // Also returns true if c == 0.
+    auto i = 0;
+    while (list[i] && (c != list[i]))
+        ++i;
+    return (c == list[i]);
+}
+
+
+bool printDeltaFunc (
+    string::iterator&       formatIterator,     // Pointer to delta format after '%_'
+    const string::iterator& formatEnd,          // Format string end
+    time_t                  deltaTimeSeconds)   // Time difference when comparing two times
+{
+    double deltaValue;              // Delta value, scaled
+    char   thousandsChar = 0;       // Thousands-separator character, 0=none
+    char   decimalChar = 0;         // Decimal character
+
+    if (formatIterator == formatEnd) return false;
+
+    // Parse thousands separator and decimal point format flag.
+    if (*formatIterator == '\'') {
+        if (++formatIterator == formatEnd) return false;
+        thousandsChar = *formatIterator;
+        if (++formatIterator == formatEnd) return false;
+        decimalChar = *formatIterator;
+        if (++formatIterator == formatEnd) return false;
+
+        if (thousandsChar == '0')
+            thousandsChar = 0;
+    }
+
+    // Parse modulo unit, if one exists.
+    char   moduloUnit  = *formatIterator++;
+    double moduloValue = 0;
+
+    switch (moduloUnit) {
+        case 'y':  moduloValue = secondsPerNominalYear;   break;
+        case 't':  moduloValue = secondsPerTropicalYear;  break;
+        case 'd':  moduloValue = secondsPerDay;           break;
+        case 'h':  moduloValue = secondsPerHour;          break;
+        case 'm':  moduloValue = secondsPerMinute;        break;
+
+        default:
+            moduloUnit = 0;
+            --formatIterator;
+            break;
+    }
+
+    deltaValue = moduloUnit ? fmod(deltaTimeSeconds,moduloValue) : deltaTimeSeconds;
+
+    // Parse delta unit.
+
+    if (formatIterator == formatEnd) return false;
+
+    auto unitType = *formatIterator++;
+
+    switch (unitType) {
+        case 'Y': {
+            if (moduloUnit != 0) return false; // There are no legal modulo unit prefixes for year.
+            deltaValue /= secondsPerNominalYear;
+            break;
+        }
+
+        case 'T': {
+            if (moduloUnit != 0) return false; // There are no legal modulo unit prefixes for year.
+            deltaValue /= secondsPerTropicalYear;
+            break;
+        }
+
+        case 'D': {
+            if (!charIn(moduloUnit, "ty")) return false; // Filter out invalid modulo unit prefixes.
+            deltaValue /= secondsPerDay;
+            break;
+        }
+
+        case 'H': {
+            if (!charIn(moduloUnit, "tyd")) return false; // Filter out invalid modulo unit prefixes.
+            deltaValue /= secondsPerHour;
+            break;
+        }
+
+        case 'M': {
+            if (!charIn(moduloUnit, "tydh")) return false; // Filter out invalid modulo unit prefixes.
+            deltaValue /= secondsPerMinute;
+            break;
+        }
+
+        case 'S': {
+            if (!charIn(moduloUnit, "tydhm")) return false; // Filter out invalid modulo unit prefixes.
+            break;
+        }
+
+        default: return false;
+    }
+
+    // Determine the precision of the output value.
+
+    std::ostringstream output;            // Number value string
+    auto               precision = 0;     // Output decimal precision
+
+    if (unitType == 'S') {
+        // Seconds have no fractional value.
+    } else if ((formatIterator == formatEnd) || (*formatIterator != '.')) {
+        deltaValue = floor(deltaValue);
+    } else {
+        ++formatIterator;
+        if ((formatIterator == formatEnd ) || !isdigit(*formatIterator)) {
+            switch (unitType) {
+                case 'T':
+                case 'Y': precision = 8; break;
+                case 'D': precision = 5; break;
+                case 'H': precision = 4; break;
+                case 'M': precision = 2; break;
+            }
+        } else {
+            while ((formatIterator != formatEnd) && isdigit(*formatIterator))
+                precision = 10*precision + (*formatIterator++ - '0');
+        }
+    }
+
+    // Get the string value of the deltaValue with the requested precision.
+    output << std::fixed << std::setprecision(precision) << deltaValue;
+    string outputString = output.str();
+
+    auto decimalPointIndex = outputString.rfind('.');
+
+    // Replace decimal point if requested.
+    if (decimalChar && (decimalPointIndex != string::npos))
+        outputString.replace(decimalPointIndex, 1, 1, decimalChar);
+
+    // Insert thousands separator character if requested.
+    if (thousandsChar) {
+        auto kGroupIndex = 0;
+
+        if (decimalPointIndex == string::npos)
+            kGroupIndex = static_cast<int>(outputString.length() - 3);
+        else {
+            kGroupIndex = static_cast<int>(decimalPointIndex - 3);
+        }
+        
+        while (kGroupIndex > 0) {
+            outputString.insert (kGroupIndex, 1, thousandsChar);
+            kGroupIndex -= 3;
+        }
+    }
+
+    fputs (outputString.c_str(), stdout);
+    return true;
 }
 
 

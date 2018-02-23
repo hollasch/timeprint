@@ -93,6 +93,20 @@ call :test Percent sign = %%%%%%%%
 call :test Bogus codes: %%%%E%%%%f%%%%i%%%%J%%%%N%%%%P%%%%s%%%%v
 call :test Bogus codes: %%%%_a %%%%_z
 
+call :test --now --creation timeprint.cpp "%%%%_"
+call :test --now --creation timeprint.cpp "%%%%_y"
+call :test --now --creation timeprint.cpp "%%%%_y."
+call :test --now --creation timeprint.cpp "%%%%_yy (bogus delta time value)"
+call :test --now --creation timeprint.cpp "%%%%_tt (bogus delta time value)"
+call :test --now --creation timeprint.cpp "%%%%_xy (bogus delta time modulo unit type)"
+call :test --now --creation timeprint.cpp "%%%%_xt (bogus delta time modulo unit type)"
+call :test --now --creation timeprint.cpp "%%%%_xd (bogus delta time modulo unit type)"
+call :test --now --creation timeprint.cpp "%%%%_xh (bogus delta time modulo unit type)"
+call :test --now --creation timeprint.cpp "%%%%_xm (bogus delta time modulo unit type)"
+call :test --now --creation timeprint.cpp "%%%%_'yM.0 (spurious delta time lead character)"
+
+
+
 echo.--------------------------------------------------------------------------------
 exit /b 0
 

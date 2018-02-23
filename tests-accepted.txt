@@ -306,3 +306,36 @@ Bogus codes: %E%f%i%J%N%P%s%v
 Test 36: [Bogus codes: %_a %_z]
 Bogus codes: %_a %_z
 --------------------------------------------------------------------------------
+Test 37: [--now --creation timeprint.cpp "%_"]
+%_
+--------------------------------------------------------------------------------
+Test 38: [--now --creation timeprint.cpp "%_y"]
+%_y
+--------------------------------------------------------------------------------
+Test 39: [--now --creation timeprint.cpp "%_y."]
+%_y.
+--------------------------------------------------------------------------------
+Test 40: [--now --creation timeprint.cpp "%_yy (bogus delta time value)"]
+%_yy (bogus delta time value)
+--------------------------------------------------------------------------------
+Test 41: [--now --creation timeprint.cpp "%_tt (bogus delta time value)"]
+%_tt (bogus delta time value)
+--------------------------------------------------------------------------------
+Test 42: [--now --creation timeprint.cpp "%_xy (bogus delta time modulo unit type)"]
+%_xy (bogus delta time modulo unit type)
+--------------------------------------------------------------------------------
+Test 43: [--now --creation timeprint.cpp "%_xt (bogus delta time modulo unit type)"]
+%_xt (bogus delta time modulo unit type)
+--------------------------------------------------------------------------------
+Test 44: [--now --creation timeprint.cpp "%_xd (bogus delta time modulo unit type)"]
+%_xd (bogus delta time modulo unit type)
+--------------------------------------------------------------------------------
+Test 45: [--now --creation timeprint.cpp "%_xh (bogus delta time modulo unit type)"]
+%_xh (bogus delta time modulo unit type)
+--------------------------------------------------------------------------------
+Test 46: [--now --creation timeprint.cpp "%_xm (bogus delta time modulo unit type)"]
+%_xm (bogus delta time modulo unit type)
+--------------------------------------------------------------------------------
+Test 47: [--now --creation timeprint.cpp "%_'yM.0 (spurious delta time lead character)"]
+%_'yM.0 (spurious delta time lead character)
+--------------------------------------------------------------------------------
