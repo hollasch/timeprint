@@ -599,7 +599,6 @@ static auto help_general =
     "    - formatCodes\n"
     "    - timeSyntax\n"
     "    - timeZone\n"
-    "\n"
     ;
 
 static auto help_formatCodes =
@@ -664,7 +663,6 @@ static auto help_formatCodes =
     "\n"
     "    All others\n"
     "        The flag is ignored.\n"
-    "\n"
     ;
 
 static auto help_timeSyntax =
@@ -704,7 +702,6 @@ static auto help_timeZone =
     "            PST8      Pacific Standard Time\n"
     "            PST8PDT   Pacific Standard Time, daylight savings in effect\n"
     "            GST-1GDT  German Standard Time, daylight savings in effect\n"
-    "\n"
     ;
 
 static auto help_examples =
@@ -727,7 +724,6 @@ static auto help_examples =
     "    [a day and a half later...]\n"
     "    > timeprint --modification timestamp.txt --now Elapsed Time: %_S seconds\n"
     "    Elapsed Time: 129600 seconds\n"
-    "\n"
     ;
 
 //__________________________________________________________________________________________________

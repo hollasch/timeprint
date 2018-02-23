@@ -83,7 +83,6 @@ For additional help, use '--help <topic>', where <topic> is one of:
     - timeSyntax
     - timeZone
 
-
 --------------------------------------------------------------------------------
 Test 2: [--help FORMATCODES]
 
@@ -148,7 +147,6 @@ case, the meaning of the format code is changed as follows.
     All others
         The flag is ignored.
 
-
 --------------------------------------------------------------------------------
 Test 3: [-H timeSyntax]
 
@@ -188,7 +186,6 @@ Test 4: [/htimezone]
             PST8PDT   Pacific Standard Time, daylight savings in effect
             GST-1GDT  German Standard Time, daylight savings in effect
 
-
 --------------------------------------------------------------------------------
 Test 5: [--help examples]
 
@@ -210,7 +207,6 @@ Test 5: [--help examples]
     [a day and a half later...]
     > timeprint --modification timestamp.txt --now Elapsed Time: %_S seconds
     Elapsed Time: 129600 seconds
-
 
 --------------------------------------------------------------------------------
 Test 6: Output [-h bogusHelpTopic      ] equal to general-help
