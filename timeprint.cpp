@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
 This program prints the current date and time to the standard output stream.
 It takes an optional format string to control the output.
 *******************************************************************************/
@@ -13,7 +13,7 @@ It takes an optional format string to control the output.
 #include <sstream>
 #include <iomanip>
 
-using std::string;
+using std::wstring;
 
 
 enum class HelpType    // Types of usage information for the --help option
@@ -42,7 +42,7 @@ enum class TimeType    // Type of time for an associated time value string
 struct TimeSpec
 {
     TimeType type;     // Type of time
-    string   value;    // String value of specified type
+    wstring  value;    // String value of specified type
 };
 
 
@@ -50,10 +50,10 @@ struct Parameters
 {
     // Describes the parameters for a run of this program.
 
-    char     codeChar;      // Format Code Character (default '%')
+    wchar_t  codeChar;      // Format Code Character (default '%')
     HelpType helpType;      // Type of help information to print & exit
-    string   zone;          // Time zone string
-    string   format;        // Output format string
+    wstring  zone;          // Time zone string
+    wstring  format;        // Output format string
 
     TimeSpec time1;         // Time 1 [required] (either single use, or for time difference)
     TimeSpec time2;         // Time 2 [optional] (for time difference output)
@@ -66,16 +66,16 @@ static time_t timeNow;
 
 // Function Declarations
 bool calcTime       (const Parameters& params, struct tm& timeValue, time_t& deltaTimeSeconds);
-bool getParameters  (Parameters& params, int argc, char* argv[]);
+bool getParameters  (Parameters& params, int argc, wchar_t* argv[]);
 bool getTime        (time_t& result, const TimeSpec&);
 void help           (HelpType);
-void printResults   (string format, char codeChar, const struct tm& timeValue, time_t deltaTimeSeconds);
-void printDelta     (string::iterator& formatIterator, const string::iterator& formatEnd, time_t deltaTimeSeconds);
-bool printDeltaFunc (string::iterator& formatIterator, const string::iterator& formatEnd, time_t deltaTimeSeconds);
+void printResults   (wstring format, wchar_t codeChar, const struct tm& timeValue, time_t deltaTimeSeconds);
+void printDelta     (wstring::iterator& formatIterator, const wstring::iterator& formatEnd, time_t deltaTimeSeconds);
+bool printDeltaFunc (wstring::iterator& formatIterator, const wstring::iterator& formatEnd, time_t deltaTimeSeconds);
 
 
 //__________________________________________________________________________________________________
-int main (int argc, char *argv[])
+int wmain (int argc, wchar_t *argv[])
 {
     time (&timeNow);    // Snapshot the current time.
 
@@ -98,14 +98,14 @@ int main (int argc, char *argv[])
 
 
 //__________________________________________________________________________________________________
-bool getParameters (Parameters &params, int argc, char* argv[])
+bool getParameters (Parameters &params, int argc, wchar_t* argv[])
 {
     // This function processes the command line arguments and sets the corresponding values in the
     // Parameters structure. This function returns true if all arguments were legal and processed
     // properly, otherwise it returns false.
 
     // Set default values.
-    params.codeChar = '%';
+    params.codeChar = L'%';
     params.helpType   = HelpType::None;
     params.time1.type = TimeType::None;
     params.time2.type = TimeType::None;
@@ -114,11 +114,11 @@ bool getParameters (Parameters &params, int argc, char* argv[])
     for (auto i=1;  i < argc;  ++i) {
         auto argptr = argv[i];
 
-        if (!((argv[i][0] == '-') || (argv[i][0] == '/'))) {
+        if (!((argv[i][0] == L'-') || (argv[i][0] == L'/'))) {
             if (params.format.empty())
                 params.format += argptr;
             else {
-                params.format += " ";
+                params.format += L" ";
                 params.format += argptr;
             }
         } else {
@@ -128,39 +128,39 @@ bool getParameters (Parameters &params, int argc, char* argv[])
             auto optChar = argv[i][1];     // Option Character
 
             if (optChar == 0) {
-                fputs ("timeprint: Null option switch.\n", stderr);
+                fputws (L"timeprint: Null option switch.\n", stderr);
                 return false;
             }
 
             // Point argptr to the contents of the switch.  This may be immediately following the
             // option character, or it may be the next token on the command line.
 
-            auto  advanceArg = (argv[i][2] == 0);
-            char* switchWord = nullptr;
+            auto     advanceArg = (argv[i][2] == 0);
+            wchar_t* switchWord = nullptr;
 
-            if (optChar == '-') {
+            if (optChar == L'-') {
                 advanceArg = true;
                 switchWord = argv[i] + 2;
-                if (0 == _stricmp(switchWord, "access"))
-                    optChar = 'a';
-                else if (0 == _stricmp(switchWord, "codeChar"))
-                    optChar = '%';
-                else if (0 == _stricmp(switchWord, "creation"))
-                    optChar = 'c';
-                else if (0 == _stricmp(switchWord, "help"))
-                    optChar = 'h';
-                else if (0 == _stricmp(switchWord, "modification"))
-                    optChar = 'm';
-                else if (0 == _stricmp(switchWord, "now")) {
-                    optChar = 'n';
+                if (0 == _wcsicmp(switchWord, L"access"))
+                    optChar = L'a';
+                else if (0 == _wcsicmp(switchWord, L"codeChar"))
+                    optChar = L'%';
+                else if (0 == _wcsicmp(switchWord, L"creation"))
+                    optChar = L'c';
+                else if (0 == _wcsicmp(switchWord, L"help"))
+                    optChar = L'h';
+                else if (0 == _wcsicmp(switchWord, L"modification"))
+                    optChar = L'm';
+                else if (0 == _wcsicmp(switchWord, L"now")) {
+                    optChar = L'n';
                     advanceArg = false;
                 }
-                else if (0 == _stricmp(switchWord, "time"))
-                    optChar = 't';
-                else if (0 == _stricmp(switchWord, "timeZone"))
-                    optChar = 'z';
+                else if (0 == _wcsicmp(switchWord, L"time"))
+                    optChar = L't';
+                else if (0 == _wcsicmp(switchWord, L"timeZone"))
+                    optChar = L'z';
                 else {
-                    fprintf (stderr, "timeprint: Unrecognized switch (--%s).\n", switchWord);
+                    fwprintf (stderr, L"timeprint: Unrecognized switch (--%s).\n", switchWord);
                     return false;
                 }
             }
@@ -183,47 +183,47 @@ bool getParameters (Parameters &params, int argc, char* argv[])
 
             switch (optChar) {
                 default:
-                    fprintf (stderr, "timeprint: Unrecognized option (-%c).\n", optChar);
+                    fwprintf (stderr, L"timeprint: Unrecognized option (-%c).\n", optChar);
                     return false;
 
                 // File Access Time
-                case 'a':
+                case L'a':
                     if (!argptr) {
-                        fprintf (stderr, "timeprint: Missing argument for --access (-a) option.\n");
+                        fwprintf (stderr, L"timeprint: Missing argument for --access (-a) option.\n");
                         return false;
                     }
                     newTimeType = TimeType::Access;
                     break;
 
                 // File Modification Time
-                case 'c':
+                case L'c':
                     if (!argptr) {
-                        fprintf (stderr, "timeprint: Missing argument for --creation (-c) option.\n");
+                        fwprintf (stderr, L"timeprint: Missing argument for --creation (-c) option.\n");
                         return false;
                     }
                     newTimeType = TimeType::Creation;
                     break;
 
                 // Alternate Code Character
-                case '%':
+                case L'%':
                     if (argptr) params.codeChar = *argptr;
                     break;
 
                 // Command Usage & Help
-                case 'H':
-                case 'h':
-                case '?':
+                case L'H':
+                case L'h':
+                case L'?':
                     if (!argptr) {
                         params.helpType = HelpType::General;
-                    } else if (0 == _stricmp(argptr, "examples")) {
+                    } else if (0 == _wcsicmp(argptr, L"examples")) {
                         params.helpType = HelpType::Examples;
-                    } else if (0 == _stricmp(argptr, "deltaTime")) {
+                    } else if (0 == _wcsicmp(argptr, L"deltaTime")) {
                         params.helpType = HelpType::DeltaTime;
-                    } else if (0 == _stricmp(argptr, "formatCodes")) {
+                    } else if (0 == _wcsicmp(argptr, L"formatCodes")) {
                         params.helpType = HelpType::FormatCodes;
-                    } else if (0 == _stricmp(argptr, "timeSyntax")) {
+                    } else if (0 == _wcsicmp(argptr, L"timeSyntax")) {
                         params.helpType = HelpType::TimeSyntax;
-                    } else if (0 == _stricmp(argptr, "timeZone")) {
+                    } else if (0 == _wcsicmp(argptr, L"timeZone")) {
                         params.helpType = HelpType::TimeZone;
                     } else {
                         params.helpType = HelpType::General;
@@ -231,30 +231,30 @@ bool getParameters (Parameters &params, int argc, char* argv[])
                     return true;
 
                 // File Modification Time
-                case 'm':
+                case L'm':
                     if (!argptr) {
-                        fprintf (stderr, "timeprint: Missing argument for --modification (-m) option.\n");
+                        fwprintf (stderr, L"timeprint: Missing argument for --modification (-m) option.\n");
                         return false;
                     }
                     newTimeType = TimeType::Modification;
                     break;
 
-                case 'n':
+                case L'n':
                     newTimeType = TimeType::Now;
                     break;
 
-                case 't':
+                case L't':
                     if (!argptr) {
-                        fprintf (stderr, "timeprint: Missing argument for --time (-t) option.\n");
+                        fwprintf (stderr, L"timeprint: Missing argument for --time (-t) option.\n");
                         return false;
                     }
                     newTimeType = TimeType::Explicit;
                     break;
 
                 // Timezone
-                case 'z':
+                case L'z':
                     if (!argptr) {
-                        fprintf (stderr, "timeprint: Missing argument for --timeZone (-z) option.\n");
+                        fwprintf (stderr, L"timeprint: Missing argument for --timeZone (-z) option.\n");
                         return false;
                     }
 
@@ -270,11 +270,11 @@ bool getParameters (Parameters &params, int argc, char* argv[])
                     params.time2.type = newTimeType;
                     if (argptr) params.time2.value = argptr;
                 } else {
-                    fprintf (stderr,
-                        "timeprint: Unexpected third time value (%s%s%s).\n",
+                    fwprintf (stderr,
+                        L"timeprint: Unexpected third time value (%s%s%s).\n",
                         argv[timeValWord1],
-                        timeValWord2 ? " " : "",
-                        timeValWord2 ? argv[timeValWord1 + 1] : "");
+                        timeValWord2 ? L" " : L"",
+                        timeValWord2 ? argv[timeValWord1 + 1] : L"");
                     return false;
                 }
             }
@@ -285,11 +285,11 @@ bool getParameters (Parameters &params, int argc, char* argv[])
     // environment variable.  If not available there, then use the default format string.
 
     if (params.format.empty()) {
-        char *timeFormat;
-        _dupenv_s (&timeFormat, nullptr, "TIMEFORMAT");
+        wchar_t* timeFormat;
+        _wdupenv_s (&timeFormat, nullptr, L"TIMEFORMAT");
 
         if (!timeFormat) {
-            params.format = "%#c";
+            params.format = L"%#c";
         } else {
             params.format = timeFormat;
             free (timeFormat);
@@ -317,8 +317,7 @@ bool calcTime (
     // Kludgey, but I couldn't find another way.
 
     if (!params.zone.empty()) {
-        string zoneSet { "TZ=" + params.zone };
-        _putenv (zoneSet.c_str());
+        _wputenv_s (L"TZ", params.zone.c_str());
     }
 
     time_t time1;
@@ -356,8 +355,8 @@ bool getTime (time_t& result, const TimeSpec& spec)
 
         auto fileName = spec.value.c_str();
 
-        if (0 != _stat(fileName, &stat)) {
-            fprintf (stderr, "timeprint: Couldn't get status of \"%s\".\n", fileName);
+        if (0 != _wstat(fileName, &stat)) {
+            fwprintf (stderr, L"timeprint: Couldn't get status of \"%s\".\n", fileName);
             return false;
         }
 
@@ -371,7 +370,7 @@ bool getTime (time_t& result, const TimeSpec& spec)
 
     if (spec.type == TimeType::Explicit) {
         auto timeString = spec.value.c_str();
-        fprintf (stderr, "timeprint: Unrecognized explicit time (%s).\n", timeString);
+        fwprintf (stderr, L"timeprint: Unrecognized explicit time (%s).\n", timeString);
         return false;
     }
 
@@ -381,8 +380,8 @@ bool getTime (time_t& result, const TimeSpec& spec)
 
 //__________________________________________________________________________________________________
 void printResults (
-    string           format,             // The format string, possibly with escape sequences and format codes
-    char             codeChar,           // The format code character (normally %)
+    wstring          format,             // The format string, possibly with escape sequences and format codes
+    wchar_t          codeChar,           // The format code character (normally %)
     const struct tm& timeValue,          // The primary time value to use
     time_t           deltaTimeSeconds)   // Time difference when comparing two times
 {
@@ -393,78 +392,75 @@ void printResults (
 
     for (auto formatIterator = format.begin();  formatIterator != formatEnd;  ++formatIterator) {
         const auto buffsize = 1024;
-        char       buff [buffsize];        // Intermediate Output Buffer
+        wchar_t    buff [buffsize];        // Intermediate Output Buffer
 
         // Handle backslash sequences, unless backslash is the alternate escape character.
 
-        if ((*formatIterator == '\\') && (codeChar != '\\')) {
+        if ((*formatIterator == L'\\') && (codeChar != L'\\')) {
             ++formatIterator;
 
             switch (*formatIterator) {
-                // Unrecognized \-sequences resolve to the escaped character.
-
-                default:   putchar(*formatIterator);  break;
 
                 // If the string ends with a \, then just emit the \.
-
-                case 0:    putchar('\\');  break;
+                case 0:     putwchar(L'\\');  break;
 
                 // Recognized \-sequences are handled here.
+                case L'n':  putwchar(L'\n');  break;
+                case L't':  putwchar(L'\t');  break;
+                case L'b':  putwchar(L'\b');  break;
+                case L'r':  putwchar(L'\r');  break;
+                case L'a':  putwchar(L'\a');  break;
 
-                case 'n':  putchar('\n');  break;
-                case 't':  putchar('\t');  break;
-                case 'b':  putchar('\b');  break;
-                case 'r':  putchar('\r');  break;
-                case 'a':  putchar('\a');  break;
+                // Unrecognized \-sequences resolve to the escaped character.
+                default:
+                    putwchar(*formatIterator);
+                    break;
             }
 
         } else if (*formatIterator == codeChar) {
 
-            const static auto legalCodes = "%aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ";
+            const static auto legalCodes = L"%aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ";
 
-            char token[4];    // Code Token Word
+            wchar_t token[4];    // Code Token Word
 
             ++formatIterator;
 
-            if (*formatIterator == '_') {
+            if (*formatIterator == L'_') {
                 printDelta (++formatIterator, formatEnd, deltaTimeSeconds);
                 --formatIterator;  // Reset iterator for loop increment.
-            } else if ((*formatIterator != '#') && !strchr(legalCodes, *formatIterator)) {
+            } else if ((*formatIterator != L'#') && !wcschr(legalCodes, *formatIterator)) {
                 // Print out illegal codes as-is.
-                putchar ('%');
-                putchar (*formatIterator);
-            } else if ((formatIterator[0] == '#') && !strchr(legalCodes, formatIterator[1])) {
+                putwchar (L'%');
+                putwchar (*formatIterator);
+            } else if ((formatIterator[0] == L'#') && !wcschr(legalCodes, formatIterator[1])) {
                 // Print out illegal '#'-prefixed codes as-is.
                 ++formatIterator;
-                putchar ('%');
-                putchar ('#');
-                putchar (*formatIterator);
+                putwchar (L'%');
+                putwchar (L'#');
+                putwchar (*formatIterator);
             } else {
                 // Standard legal strftime() Code Sequences
-                token[0] = '%';
+                token[0] = L'%';
                 token[1] = *formatIterator;
                 token[2] = 0;
 
-                if (*formatIterator == '#') {
+                if (*formatIterator == L'#') {
                     token[2] = *++formatIterator;
                     token[3] = 0;
                 }
 
-                strftime (buff, sizeof(buff), token, &timeValue);
-                fputs (buff, stdout);
+                wcsftime (buff, sizeof(buff), token, &timeValue);
+                fputws (buff, stdout);
             }
 
         } else {
-
-            // All unescaped character are emitted as-is.
-
-            putchar (*formatIterator);
+            // All unescaped characters are emitted as-is.
+            if (*formatIterator)
+                putwchar (*formatIterator);
         }
     }
 
-    // Print the final newline.
-
-    putchar ('\n');
+    putwchar (L'\n');
 }
 
 
@@ -480,9 +476,9 @@ const double secondsPerTropicalYear = secondsPerDay * (365.0 + 97.0/400.0);
 
 
 void printDelta (
-    string::iterator&       formatIterator,     // Pointer to delta format after '%_'
-    const string::iterator& formatEnd,          // Format string end
-    time_t                  deltaTimeSeconds)   // Time difference when comparing two times
+    wstring::iterator&       formatIterator,     // Pointer to delta format after '%_'
+    const wstring::iterator& formatEnd,          // Format string end
+    time_t                   deltaTimeSeconds)   // Time difference when comparing two times
 {
     // This function attempts to print the time delta format. If the format is bad, then print the
     // format substring as-is and restore the format string pointer to continue.
@@ -490,13 +486,13 @@ void printDelta (
     auto formatRestart = formatIterator;
 
     if (!printDeltaFunc(formatIterator, formatEnd, deltaTimeSeconds)) {
-        fputs ("%_", stdout);
+        fputws (L"%_", stdout);
         formatIterator = formatRestart;
     }
 }
 
 
-bool charIn (char c, const char* list)
+bool charIn (wchar_t c, const wchar_t* list)
 {
     // Return true if the given character is in the zero-terminated array of characters.
     // Also returns true if c == 0.
@@ -508,38 +504,38 @@ bool charIn (char c, const char* list)
 
 
 bool printDeltaFunc (
-    string::iterator&       formatIterator,     // Pointer to delta format after '%_'
-    const string::iterator& formatEnd,          // Format string end
-    time_t                  deltaTimeSeconds)   // Time difference when comparing two times
+    wstring::iterator&       formatIterator,     // Pointer to delta format after '%_'
+    const wstring::iterator& formatEnd,          // Format string end
+    time_t                   deltaTimeSeconds)   // Time difference when comparing two times
 {
-    double deltaValue;              // Delta value, scaled
-    char   thousandsChar = 0;       // Thousands-separator character, 0=none
-    char   decimalChar = 0;         // Decimal character
+    double  deltaValue;              // Delta value, scaled
+    wchar_t thousandsChar = 0;       // Thousands-separator character, 0=none
+    wchar_t decimalChar = 0;         // Decimal character
 
     if (formatIterator == formatEnd) return false;
 
     // Parse thousands separator and decimal point format flag.
-    if (*formatIterator == '\'') {
+    if (*formatIterator == L'\'') {
         if (++formatIterator == formatEnd) return false;
         thousandsChar = *formatIterator;
         if (++formatIterator == formatEnd) return false;
         decimalChar = *formatIterator;
         if (++formatIterator == formatEnd) return false;
 
-        if (thousandsChar == '0')
+        if (thousandsChar == L'0')
             thousandsChar = 0;
     }
 
     // Parse modulo unit, if one exists.
-    char   moduloUnit  = *formatIterator++;
-    double moduloValue = 0;
+    wchar_t moduloUnit  = *formatIterator++;
+    double  moduloValue = 0;
 
     switch (moduloUnit) {
-        case 'y':  moduloValue = secondsPerNominalYear;   break;
-        case 't':  moduloValue = secondsPerTropicalYear;  break;
-        case 'd':  moduloValue = secondsPerDay;           break;
-        case 'h':  moduloValue = secondsPerHour;          break;
-        case 'm':  moduloValue = secondsPerMinute;        break;
+        case L'y':  moduloValue = secondsPerNominalYear;   break;
+        case L't':  moduloValue = secondsPerTropicalYear;  break;
+        case L'd':  moduloValue = secondsPerDay;           break;
+        case L'h':  moduloValue = secondsPerHour;          break;
+        case L'm':  moduloValue = secondsPerMinute;        break;
 
         default:
             moduloUnit = 0;
@@ -556,38 +552,38 @@ bool printDeltaFunc (
     auto unitType = *formatIterator++;
 
     switch (unitType) {
-        case 'Y': {
+        case L'Y': {
             if (moduloUnit != 0) return false; // There are no legal modulo unit prefixes for year.
             deltaValue /= secondsPerNominalYear;
             break;
         }
 
-        case 'T': {
+        case L'T': {
             if (moduloUnit != 0) return false; // There are no legal modulo unit prefixes for year.
             deltaValue /= secondsPerTropicalYear;
             break;
         }
 
-        case 'D': {
-            if (!charIn(moduloUnit, "ty")) return false; // Filter out invalid modulo unit prefixes.
+        case L'D': {
+            if (!charIn(moduloUnit, L"ty")) return false; // Filter out invalid modulo unit prefixes.
             deltaValue /= secondsPerDay;
             break;
         }
 
-        case 'H': {
-            if (!charIn(moduloUnit, "tyd")) return false; // Filter out invalid modulo unit prefixes.
+        case L'H': {
+            if (!charIn(moduloUnit, L"tyd")) return false; // Filter out invalid modulo unit prefixes.
             deltaValue /= secondsPerHour;
             break;
         }
 
-        case 'M': {
-            if (!charIn(moduloUnit, "tydh")) return false; // Filter out invalid modulo unit prefixes.
+        case L'M': {
+            if (!charIn(moduloUnit, L"tydh")) return false; // Filter out invalid modulo unit prefixes.
             deltaValue /= secondsPerMinute;
             break;
         }
 
-        case 'S': {
-            if (!charIn(moduloUnit, "tydhm")) return false; // Filter out invalid modulo unit prefixes.
+        case L'S': {
+            if (!charIn(moduloUnit, L"tydhm")) return false; // Filter out invalid modulo unit prefixes.
             break;
         }
 
@@ -596,44 +592,44 @@ bool printDeltaFunc (
 
     // Determine the precision of the output value.
 
-    std::ostringstream output;            // Number value string
+    std::wostringstream output;            // Number value string
     auto               precision = 0;     // Output decimal precision
 
-    if (unitType == 'S') {
+    if (unitType == L'S') {
         // Seconds have no fractional value.
-    } else if ((formatIterator == formatEnd) || (*formatIterator != '.')) {
+    } else if ((formatIterator == formatEnd) || (*formatIterator != L'.')) {
         deltaValue = floor(deltaValue);
     } else {
         ++formatIterator;
         if ((formatIterator == formatEnd ) || !isdigit(*formatIterator)) {
             switch (unitType) {
-                case 'T':
-                case 'Y': precision = 8; break;
-                case 'D': precision = 5; break;
-                case 'H': precision = 4; break;
-                case 'M': precision = 2; break;
+                case L'T':
+                case L'Y': precision = 8; break;
+                case L'D': precision = 5; break;
+                case L'H': precision = 4; break;
+                case L'M': precision = 2; break;
             }
         } else {
             while ((formatIterator != formatEnd) && isdigit(*formatIterator))
-                precision = 10*precision + (*formatIterator++ - '0');
+                precision = 10*precision + (*formatIterator++ - L'0');
         }
     }
 
     // Get the string value of the deltaValue with the requested precision.
     output << std::fixed << std::setprecision(precision) << deltaValue;
-    string outputString = output.str();
+    wstring outputString = output.str();
 
-    auto decimalPointIndex = outputString.rfind('.');
+    auto decimalPointIndex = outputString.rfind(L'.');
 
     // Replace decimal point if requested.
-    if (decimalChar && (decimalPointIndex != string::npos))
+    if (decimalChar && (decimalPointIndex != wstring::npos))
         outputString.replace(decimalPointIndex, 1, 1, decimalChar);
 
     // Insert thousands separator character if requested.
     if (thousandsChar) {
         auto kGroupIndex = 0;
 
-        if (decimalPointIndex == string::npos)
+        if (decimalPointIndex == wstring::npos)
             kGroupIndex = static_cast<int>(outputString.length() - 3);
         else {
             kGroupIndex = static_cast<int>(decimalPointIndex - 3);
@@ -645,7 +641,7 @@ bool printDeltaFunc (
         }
     }
 
-    fputs (outputString.c_str(), stdout);
+    fputws (outputString.c_str(), stdout);
     return true;
 }
 
@@ -692,306 +688,306 @@ Syntax
 
 //__________________________________________________________________________________________________
 static auto help_general =
-    "timeprint v2.0.0-beta  |  https://github.com/hollasch/timeprint\n"
-    "timeprint - Print time and date information\n"
-    "\n"
-    "usage: timeprint [--codeChar <char>] [-%<char>]\n"
-    "                 [--help [topic]] [-h[topic]] [/?]\n"
-    "                 [--access <fileName>] [-a<fileName>]\n"
-    "                 [--creation <fileName>] [-c<fileName>]\n"
-    "                 [--modification <fileName>] [-m<fileName>]\n"
-    "                 [--timeZone <zone>] [-z<zone>]\n"
-    "                 [--now] [-n]\n"
-    "                 [--time <timeValue>] [-t<timeValue>]\n"
-    "                 [string] ... [string]\n"
-    "\n"
-    "This command prints time information to the standard output stream. All string\n"
-    "fragments will be concatenated with a space, so it's usually unnecessary to\n"
-    "quote the format string.\n"
-    "\n"
-    "timeprint operates in either absolute or differential mode. If one time value\n"
-    "is specified, then values for that absolute time are reported. If two time\n"
-    "values are supplied, then timeprint reports the values for the positive\n"
-    "difference between those two values. If no time values are given, then --now\n"
-    "is implied.\n"
-    "\n"
-    "Command switches may be prefixed with a dash (-) or a slash (/).\n"
-    "\n"
-    "    --access <fileName>, -a<fileName>\n"
-    "        Use the time of last access of the named file for a time value.\n"
-    "\n"
-    "    --codeChar <char>, -%<char>\n"
-    "        The --codeChar switch specifies an alternate code character to the\n"
-    "        default '%' character. If the backslash (\\) is specified as the code\n"
-    "        character, then normal backslash escapes will be disabled. The\n"
-    "        --codeChar switch is ignored unless the format string is specified on\n"
-    "        the command line.\n"
-    "\n"
-    "    --creation <fileName>, -c <fileName>\n"
-    "        Use the creation time of the named file.\n"
-    "\n"
-    "    --help [topic], -h[topic], -?[topic]\n"
-    "        Print help and usage information in general, or for the specified\n"
-    "        topic. Topics include 'examples', 'deltaTime', 'formatCodes',\n"
-    "        'timeSyntax', and 'timezone'.\n"
-    "\n"
-    "    --modification <fileName>, -m<fileName>\n"
-    "        Use the modification time of the named file.\n"
-    "\n"
-    "    --now, -n\n"
-    "        Use the current time.\n"
-    "\n"
-    "    --time <value>, -t<value>\n"
-    "        Specifies an explicit absolute time, using ISO 8601 syntax. For a\n"
-    "        description of supported syntax, use '--help timeSyntax'.\n"
-    "\n"
-    "    --timeZone <zone>, -z<zone>\n"
-    "        The --timeZone argument takes a timezone string of the form used by\n"
-    "        the _tzset function. If no timezone is specified, the system local\n"
-    "        time is used. The timezone can be set in the environment via the TZ\n"
-    "        environment variable. For a description of the time zone format, use\n"
-    "        '--help timeZone'.\n"
-    "\n"
-    "If no output string is supplied, the format specified in the environment\n"
-    "variable TIMEFORMAT is used. If this variable is not set, then the format\n"
-    "defaults to \"%#c\".\n"
-    "\n"
-    "Note that if your format string begins with - or /, you will need to prefix it\n"
-    "with a \\ character so that it is not confused with a command switch.\n"
-    "\n"
-    "Strings take both \\-escaped characters and %-codes in the style of printf.\n"
-    "The escape codes include \\n (newline), \\t (tab), \\b (backspace),\n"
-    "\\r (carriage return), and \\a (alert, or beep).\n"
-    "\n"
-    "For a full description of supported time format codes, use\n"
-    "'--help formatCodes'.\n"
-    "\n"
-    "For additional help, use '--help <topic>', where <topic> is one of:\n"
-    "    - examples\n"
-    "    - deltaTime\n"
-    "    - formatCodes\n"
-    "    - timeSyntax\n"
-    "    - timeZone\n"
+    L"timeprint v2.0.0-beta  |  https://github.com/hollasch/timeprint\n"
+    L"timeprint - Print time and date information\n"
+    L"\n"
+    L"usage: timeprint [--codeChar <char>] [-%<char>]\n"
+    L"                 [--help [topic]] [-h[topic]] [/?]\n"
+    L"                 [--access <fileName>] [-a<fileName>]\n"
+    L"                 [--creation <fileName>] [-c<fileName>]\n"
+    L"                 [--modification <fileName>] [-m<fileName>]\n"
+    L"                 [--timeZone <zone>] [-z<zone>]\n"
+    L"                 [--now] [-n]\n"
+    L"                 [--time <timeValue>] [-t<timeValue>]\n"
+    L"                 [string] ... [string]\n"
+    L"\n"
+    L"This command prints time information to the standard output stream. All string\n"
+    L"fragments will be concatenated with a space, so it's usually unnecessary to\n"
+    L"quote the format string.\n"
+    L"\n"
+    L"timeprint operates in either absolute or differential mode. If one time value\n"
+    L"is specified, then values for that absolute time are reported. If two time\n"
+    L"values are supplied, then timeprint reports the values for the positive\n"
+    L"difference between those two values. If no time values are given, then --now\n"
+    L"is implied.\n"
+    L"\n"
+    L"Command switches may be prefixed with a dash (-) or a slash (/).\n"
+    L"\n"
+    L"    --access <fileName>, -a<fileName>\n"
+    L"        Use the time of last access of the named file for a time value.\n"
+    L"\n"
+    L"    --codeChar <char>, -%<char>\n"
+    L"        The --codeChar switch specifies an alternate code character to the\n"
+    L"        default '%' character. If the backslash (\\) is specified as the code\n"
+    L"        character, then normal backslash escapes will be disabled. The\n"
+    L"        --codeChar switch is ignored unless the format string is specified on\n"
+    L"        the command line.\n"
+    L"\n"
+    L"    --creation <fileName>, -c <fileName>\n"
+    L"        Use the creation time of the named file.\n"
+    L"\n"
+    L"    --help [topic], -h[topic], -?[topic]\n"
+    L"        Print help and usage information in general, or for the specified\n"
+    L"        topic. Topics include 'examples', 'deltaTime', 'formatCodes',\n"
+    L"        'timeSyntax', and 'timezone'.\n"
+    L"\n"
+    L"    --modification <fileName>, -m<fileName>\n"
+    L"        Use the modification time of the named file.\n"
+    L"\n"
+    L"    --now, -n\n"
+    L"        Use the current time.\n"
+    L"\n"
+    L"    --time <value>, -t<value>\n"
+    L"        Specifies an explicit absolute time, using ISO 8601 syntax. For a\n"
+    L"        description of supported syntax, use '--help timeSyntax'.\n"
+    L"\n"
+    L"    --timeZone <zone>, -z<zone>\n"
+    L"        The --timeZone argument takes a timezone string of the form used by\n"
+    L"        the _tzset function. If no timezone is specified, the system local\n"
+    L"        time is used. The timezone can be set in the environment via the TZ\n"
+    L"        environment variable. For a description of the time zone format, use\n"
+    L"        '--help timeZone'.\n"
+    L"\n"
+    L"If no output string is supplied, the format specified in the environment\n"
+    L"variable TIMEFORMAT is used. If this variable is not set, then the format\n"
+    L"defaults to \"%#c\".\n"
+    L"\n"
+    L"Note that if your format string begins with - or /, you will need to prefix it\n"
+    L"with a \\ character so that it is not confused with a command switch.\n"
+    L"\n"
+    L"Strings take both \\-escaped characters and %-codes in the style of printf.\n"
+    L"The escape codes include \\n (newline), \\t (tab), \\b (backspace),\n"
+    L"\\r (carriage return), and \\a (alert, or beep).\n"
+    L"\n"
+    L"For a full description of supported time format codes, use\n"
+    L"'--help formatCodes'.\n"
+    L"\n"
+    L"For additional help, use '--help <topic>', where <topic> is one of:\n"
+    L"    - examples\n"
+    L"    - deltaTime\n"
+    L"    - formatCodes\n"
+    L"    - timeSyntax\n"
+    L"    - timeZone\n"
     ;
 
 static auto help_formatCodes =
-    "\n"
-    "    The following time format codes are supported:\n"
-    "\n"
-    "    %a     Abbreviated weekday name *\n"
-    "    %A     Full weekday name *\n"
-    "    %b     Abbreviated month name *\n"
-    "    %B     Full month name *\n"
-    "    %c     Date and time representation *\n"
-    "    %C     Year divided by 100 and truncated to integer (00-99)\n"
-    "    %d     Day of month as decimal number (01-31)\n"
-    "    %D     Short MM/DD/YY date, equivalent to %m/%d/%y\n"
-    "    %e     Day of the month, space-padded ( 1-31)\n"
-    "    %F     Short YYYY-MM-DD date, equivalent to %Y-%m-%d\n"
-    "    %g     Week-based year, last two digits (00-99)\n"
-    "    %G     Week-based year\n"
-    "    %h     Abbreviated month name (same as %b) *\n"
-    "    %H     Hour in 24-hour format (00-23)\n"
-    "    %I     Hour in 12-hour format (01-12)\n"
-    "    %j     Day of year as decimal number (001-366)\n"
-    "    %m     Month as decimal number (01-12)\n"
-    "    %M     Minute as decimal number (00-59)\n"
-    "    %n     New line character (same as '\\n')\n"
-    "    %p     AM or PM designation\n"
-    "    %r     12-hour clock time *\n"
-    "    %R     24-hour HH:MM time, equivalent to %H:%M\n"
-    "    %S     Seconds as a decimal number (00-59)\n"
-    "    %t     Horizontal tab character (same as '\\t')\n"
-    "    %T     ISO 8601 time format (HH:MM:SS) equivalent to %H:%M:%S\n"
-    "    %u     ISO 8601 weekday as number with Monday=1 (1-7)\n"
-    "    %U     Week number, first Sunday = week 1 day 1 (00-53)\n"
-    "    %V     ISO 8601 week number (01-53)\n"
-    "    %w     Weekday as decimal number, Sunday = 0 (0-6)\n"
-    "    %W     Week of year, decimal, Monday = week 1 day 1(00-51)\n"
-    "    %x     Date representation *\n"
-    "    %X     Time representation *\n"
-    "    %y     Year without century, as decimal number (00-99)\n"
-    "    %Y     Year with century, as decimal number\n"
-    "    %z     ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)\n"
-    "           If timezone cannot be determined, no characters\n"
-    "    %Z     Time-zone name or abbreviation, empty for unrecognized zones *\n"
-    "    %_...  Delta time formats. See `--help deltaTime`.\n"
-    "    %%     Percent sign\n"
-    "\n"
-    "    * Specifiers marked with an asterisk are locale-dependent.\n"
-    "\n"
-    "As in the printf function, the # flag may prefix any formatting code. In that\n"
-    "case, the meaning of the format code is changed as follows.\n"
-    "\n"
-    "    %#c\n"
-    "        Long date and time representation, appropriate for current locale.\n"
-    "        For example: Tuesday, March 14, 1995, 12:41:29.\n"
-    "\n"
-    "    %#x\n"
-    "        Long date representation, appropriate to current locale.\n"
-    "        For example: Tuesday, March 14, 1995.\n"
-    "\n"
-    "    %#d, %#H, %#I, %#j, %#m, %#M, %#S, %#U, %#w, %#W, %#y, %#Y\n"
-    "        Remove any leading zeros.\n"
-    "\n"
-    "    All others\n"
-    "        The flag is ignored.\n"
+    L"\n"
+    L"    The following time format codes are supported:\n"
+    L"\n"
+    L"    %a     Abbreviated weekday name *\n"
+    L"    %A     Full weekday name *\n"
+    L"    %b     Abbreviated month name *\n"
+    L"    %B     Full month name *\n"
+    L"    %c     Date and time representation *\n"
+    L"    %C     Year divided by 100 and truncated to integer (00-99)\n"
+    L"    %d     Day of month as decimal number (01-31)\n"
+    L"    %D     Short MM/DD/YY date, equivalent to %m/%d/%y\n"
+    L"    %e     Day of the month, space-padded ( 1-31)\n"
+    L"    %F     Short YYYY-MM-DD date, equivalent to %Y-%m-%d\n"
+    L"    %g     Week-based year, last two digits (00-99)\n"
+    L"    %G     Week-based year\n"
+    L"    %h     Abbreviated month name (same as %b) *\n"
+    L"    %H     Hour in 24-hour format (00-23)\n"
+    L"    %I     Hour in 12-hour format (01-12)\n"
+    L"    %j     Day of year as decimal number (001-366)\n"
+    L"    %m     Month as decimal number (01-12)\n"
+    L"    %M     Minute as decimal number (00-59)\n"
+    L"    %n     New line character (same as '\\n')\n"
+    L"    %p     AM or PM designation\n"
+    L"    %r     12-hour clock time *\n"
+    L"    %R     24-hour HH:MM time, equivalent to %H:%M\n"
+    L"    %S     Seconds as a decimal number (00-59)\n"
+    L"    %t     Horizontal tab character (same as '\\t')\n"
+    L"    %T     ISO 8601 time format (HH:MM:SS) equivalent to %H:%M:%S\n"
+    L"    %u     ISO 8601 weekday as number with Monday=1 (1-7)\n"
+    L"    %U     Week number, first Sunday = week 1 day 1 (00-53)\n"
+    L"    %V     ISO 8601 week number (01-53)\n"
+    L"    %w     Weekday as decimal number, Sunday = 0 (0-6)\n"
+    L"    %W     Week of year, decimal, Monday = week 1 day 1(00-51)\n"
+    L"    %x     Date representation *\n"
+    L"    %X     Time representation *\n"
+    L"    %y     Year without century, as decimal number (00-99)\n"
+    L"    %Y     Year with century, as decimal number\n"
+    L"    %z     ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)\n"
+    L"           If timezone cannot be determined, no characters\n"
+    L"    %Z     Time-zone name or abbreviation, empty for unrecognized zones *\n"
+    L"    %_...  Delta time formats. See `--help deltaTime`.\n"
+    L"    %%     Percent sign\n"
+    L"\n"
+    L"    * Specifiers marked with an asterisk are locale-dependent.\n"
+    L"\n"
+    L"As in the printf function, the # flag may prefix any formatting code. In that\n"
+    L"case, the meaning of the format code is changed as follows.\n"
+    L"\n"
+    L"    %#c\n"
+    L"        Long date and time representation, appropriate for current locale.\n"
+    L"        For example: Tuesday, March 14, 1995, 12:41:29.\n"
+    L"\n"
+    L"    %#x\n"
+    L"        Long date representation, appropriate to current locale.\n"
+    L"        For example: Tuesday, March 14, 1995.\n"
+    L"\n"
+    L"    %#d, %#H, %#I, %#j, %#m, %#M, %#S, %#U, %#w, %#W, %#y, %#Y\n"
+    L"        Remove any leading zeros.\n"
+    L"\n"
+    L"    All others\n"
+    L"        The flag is ignored.\n"
     ;
 
 static auto help_deltaTime =
-    "    Delta Time Formatting\n"
-    "\n"
-    "    Time differences are reported using the delta time formats. The delta time\n"
-    "    format has the following syntax:\n"
-    "\n"
-    "                               %_['kd][p]<u>[.[#]]\n"
-    "                                  -v-  v  v  --v-\n"
-    "            Numeric Format --------'   |  |    |\n"
-    "            Next Greater Unit ---------'  |    |\n"
-    "            Units ------------------------'    |\n"
-    "            Decimal Precision -----------------'\n"
-    "\n"
-    "    Numeric Format ['kd] (optional)\n"
-    "        The optional ' character is followed by two characters, k and d.\n"
-    "        k represents the character to use for the thousand's separator, with\n"
-    "        the special case that '0' indicates that there is to be no thousands\n"
-    "        separator. The d character is the character to use for the decimal\n"
-    "        point, if one is present. So, for example, \"'0.\" specifies no\n"
-    "        thousands separator, and the American '.' decimal point. \"'.,\" would\n"
-    "        specify European formatting, with '.' for the thousands separator, and\n"
-    "        ',' as the decimal point.\n"
-    "\n"
-    "    Next Greater Unit [p] (optional)\n"
-    "        This single lowercase letter indicates any preceding units used in the\n"
-    "        delta time printing. For example, if the unit is hours, and the next\n"
-    "        greater unit is years, then the hours reported are the remainder\n"
-    "        (modulo) after the number of years. Supported next greater units\n"
-    "        include the following:\n"
-    "\n"
-    "            y - Nominal years (see units below for definition)\n"
-    "            t - Tropical years (see units below for definition)\n"
-    "            d - Days\n"
-    "            h - Hours\n"
-    "            m - Minutes\n"
-    "\n"
-    "    Units <u> (required)\n"
-    "        The unit of time (single uppercase letter) to report for the time\n"
-    "        delta. This is the remainder after the (optional) next greater unit.\n"
-    "        The following units are supported:\n"
-    "\n"
-    "            Y - Nominal years\n"
-    "            T - Tropical years\n"
-    "            D - Days\n"
-    "            H - Hours\n"
-    "            M - Minutes\n"
-    "            S - Whole seconds\n"
-    "\n"
-    "        Nominal years are 365 days in length.\n"
-    "\n"
-    "        Tropical (or solar) years are approximately equal to one trip around\n"
-    "        the sun. These are useful to approximate the effect of leap years when\n"
-    "        reporting multi-year durations.\n"
-    "\n"
-    "        The following are the supported combinations of next greater unit and\n"
-    "        unit:\n"
-    "\n"
-    "            Y\n"
-    "            T\n"
-    "            D yD tD\n"
-    "            H yH tH dH\n"
-    "            M yM tM dM hM\n"
-    "            S yS tS dS hS mS\n"
-    "\n"
-    "    Decimal Precision [.[#]] (optional)\n"
-    "        With the exception of seconds, all units will have a fractional value\n"
-    "        for time differences. If the decimal precision format is omitted, the\n"
-    "        then rounded whole value is printed.\n"
-    "        \n"
-    "        If the decimal point and number is specified, then the fractional\n"
-    "        value will be printed with the number of requested digits.\n"
-    "\n"
-    "        If a decimal point is specified but without subsequent digits, then\n"
-    "        the number of digits will depend on the units. Enough digits will be\n"
-    "        printed to maintain full resolution of the unit to within one second.\n"
-    "        Thus, years: 8 digits, days: 5, hours: 4, minutes: 2.\n"
-    "\n"
-    "    Examples\n"
-    "         Given a delta time of 547,991,463 seconds, the following delta format\n"
-    "         strings will yield the following output:\n"
-    "\n"
-    "            %_S\n"
-    "                \"547991463\"\n"
-    "\n"
-    "            %_',.S\n"
-    "                \"547,991,463\"\n"
-    "\n"
-    "            %_Y years, %_yD days, %_dH. hours\n"
-    "                \"17 years, 137 days, 11.8508 hours\"\n"
-    "\n"
-    "    See `--time examples` for more example uses of delta time formats.\n"
+    L"    Delta Time Formatting\n"
+    L"\n"
+    L"    Time differences are reported using the delta time formats. The delta time\n"
+    L"    format has the following syntax:\n"
+    L"\n"
+    L"                               %_['kd][p]<u>[.[#]]\n"
+    L"                                  -v-  v  v  --v-\n"
+    L"            Numeric Format --------'   |  |    |\n"
+    L"            Next Greater Unit ---------'  |    |\n"
+    L"            Units ------------------------'    |\n"
+    L"            Decimal Precision -----------------'\n"
+    L"\n"
+    L"    Numeric Format ['kd] (optional)\n"
+    L"        The optional ' character is followed by two characters, k and d.\n"
+    L"        k represents the character to use for the thousand's separator, with\n"
+    L"        the special case that '0' indicates that there is to be no thousands\n"
+    L"        separator. The d character is the character to use for the decimal\n"
+    L"        point, if one is present. So, for example, \"'0.\" specifies no\n"
+    L"        thousands separator, and the American '.' decimal point. \"'.,\" would\n"
+    L"        specify European formatting, with '.' for the thousands separator, and\n"
+    L"        ',' as the decimal point.\n"
+    L"\n"
+    L"    Next Greater Unit [p] (optional)\n"
+    L"        This single lowercase letter indicates any preceding units used in the\n"
+    L"        delta time printing. For example, if the unit is hours, and the next\n"
+    L"        greater unit is years, then the hours reported are the remainder\n"
+    L"        (modulo) after the number of years. Supported next greater units\n"
+    L"        include the following:\n"
+    L"\n"
+    L"            y - Nominal years (see units below for definition)\n"
+    L"            t - Tropical years (see units below for definition)\n"
+    L"            d - Days\n"
+    L"            h - Hours\n"
+    L"            m - Minutes\n"
+    L"\n"
+    L"    Units <u> (required)\n"
+    L"        The unit of time (single uppercase letter) to report for the time\n"
+    L"        delta. This is the remainder after the (optional) next greater unit.\n"
+    L"        The following units are supported:\n"
+    L"\n"
+    L"            Y - Nominal years\n"
+    L"            T - Tropical years\n"
+    L"            D - Days\n"
+    L"            H - Hours\n"
+    L"            M - Minutes\n"
+    L"            S - Whole seconds\n"
+    L"\n"
+    L"        Nominal years are 365 days in length.\n"
+    L"\n"
+    L"        Tropical (or solar) years are approximately equal to one trip around\n"
+    L"        the sun. These are useful to approximate the effect of leap years when\n"
+    L"        reporting multi-year durations.\n"
+    L"\n"
+    L"        The following are the supported combinations of next greater unit and\n"
+    L"        unit:\n"
+    L"\n"
+    L"            Y\n"
+    L"            T\n"
+    L"            D yD tD\n"
+    L"            H yH tH dH\n"
+    L"            M yM tM dM hM\n"
+    L"            S yS tS dS hS mS\n"
+    L"\n"
+    L"    Decimal Precision [.[#]] (optional)\n"
+    L"        With the exception of seconds, all units will have a fractional value\n"
+    L"        for time differences. If the decimal precision format is omitted, the\n"
+    L"        then rounded whole value is printed.\n"
+    L"        \n"
+    L"        If the decimal point and number is specified, then the fractional\n"
+    L"        value will be printed with the number of requested digits.\n"
+    L"\n"
+    L"        If a decimal point is specified but without subsequent digits, then\n"
+    L"        the number of digits will depend on the units. Enough digits will be\n"
+    L"        printed to maintain full resolution of the unit to within one second.\n"
+    L"        Thus, years: 8 digits, days: 5, hours: 4, minutes: 2.\n"
+    L"\n"
+    L"    Examples\n"
+    L"         Given a delta time of 547,991,463 seconds, the following delta format\n"
+    L"         strings will yield the following output:\n"
+    L"\n"
+    L"            %_S\n"
+    L"                \"547991463\"\n"
+    L"\n"
+    L"            %_',.S\n"
+    L"                \"547,991,463\"\n"
+    L"\n"
+    L"            %_Y years, %_yD days, %_dH. hours\n"
+    L"                \"17 years, 137 days, 11.8508 hours\"\n"
+    L"\n"
+    L"    See `--time examples` for more example uses of delta time formats.\n"
     ;
 
 static auto help_timeSyntax =
-    "\n"
-    "    The explicit '--time' option supports a variety of different formats,\n"
-    "    using the ISO 8601 date/time format.\n"
-    "\n"
-    "    <To be completed>\n"
+    L"\n"
+    L"    The explicit '--time' option supports a variety of different formats,\n"
+    L"    using the ISO 8601 date/time format.\n"
+    L"\n"
+    L"    <To be completed>\n"
     ;
 
 static auto help_timeZone =
-    "\n"
-    "    Time zones have the format \"tzn[+|-]hh[:mm[:ss]][dzn]\", where\n"
-    "\n"
-    "        tzn\n"
-    "            Three-letter time-zone name, such as PST. You must specify the\n"
-    "            correct offset from local time to UTC.\n"
-    "\n"
-    "        hh\n"
-    "            Difference in hours between UTC and local time. Optionally signed.\n"
-    "\n"
-    "        mm\n"
-    "            Minutes, separated with a colon (:).\n"
-    "\n"
-    "        ss\n"
-    "            Seconds, separated with a colon (:).\n"
-    "\n"
-    "        dzn\n"
-    "            Three-letter daylight-saving-time zone such as PDT. If daylight\n"
-    "            saving time is never in effect in the locality, omit dzn. The C\n"
-    "            run-time library assumes the US rules for implementing the\n"
-    "            calculation of Daylight Saving Time (DST).\n"
-    "\n"
-    "        Examples of the timezone string include the following:\n"
-    "\n"
-    "            UTC       Universal Coordinated Time\n"
-    "            PST8      Pacific Standard Time\n"
-    "            PST8PDT   Pacific Standard Time, daylight savings in effect\n"
-    "            GST-1GDT  German Standard Time, daylight savings in effect\n"
+    L"\n"
+    L"    Time zones have the format \"tzn[+|-]hh[:mm[:ss]][dzn]\", where\n"
+    L"\n"
+    L"        tzn\n"
+    L"            Three-letter time-zone name, such as PST. You must specify the\n"
+    L"            correct offset from local time to UTC.\n"
+    L"\n"
+    L"        hh\n"
+    L"            Difference in hours between UTC and local time. Optionally signed.\n"
+    L"\n"
+    L"        mm\n"
+    L"            Minutes, separated with a colon (:).\n"
+    L"\n"
+    L"        ss\n"
+    L"            Seconds, separated with a colon (:).\n"
+    L"\n"
+    L"        dzn\n"
+    L"            Three-letter daylight-saving-time zone such as PDT. If daylight\n"
+    L"            saving time is never in effect in the locality, omit dzn. The C\n"
+    L"            run-time library assumes the US rules for implementing the\n"
+    L"            calculation of Daylight Saving Time (DST).\n"
+    L"\n"
+    L"        Examples of the timezone string include the following:\n"
+    L"\n"
+    L"            UTC       Universal Coordinated Time\n"
+    L"            PST8      Pacific Standard Time\n"
+    L"            PST8PDT   Pacific Standard Time, daylight savings in effect\n"
+    L"            GST-1GDT  German Standard Time, daylight savings in effect\n"
     ;
 
 static auto help_examples =
-    "\n"
-    "    Examples:\n"
-    "\n"
-    "    > timeprint\n"
-    "    Sunday, July 20, 2003 17:02:39\n"
-    "\n"
-    "    > timeprint %H:%M:%S\n"
-    "    17:03:17\n"
-    "\n"
-    "    > timeprint -z UTC\n"
-    "    Monday, July 21, 2003 00:03:47\n"
-    "\n"
-    "    > timeprint Building endzones [%Y-%m-%d %#I:%M:%S %p].\n"
-    "    Building endzones [2003-07-20 5:06:09 PM].\n"
-    "\n"
-    "    > echo. >timestamp.txt\n"
-    "    [a day and a half later...]\n"
-    "    > timeprint --modification timestamp.txt --now Elapsed Time: %_S seconds\n"
-    "    Elapsed Time: 129797 seconds\n"
-    "    > timeprint --modification timestamp.txt --now Elapsed Time: %_H:%_hM:%_mS\n"
-    "    Elapsed Time: 36:3:17\n"
+    L"\n"
+    L"    Examples:\n"
+    L"\n"
+    L"    > timeprint\n"
+    L"    Sunday, July 20, 2003 17:02:39\n"
+    L"\n"
+    L"    > timeprint %H:%M:%S\n"
+    L"    17:03:17\n"
+    L"\n"
+    L"    > timeprint -z UTC\n"
+    L"    Monday, July 21, 2003 00:03:47\n"
+    L"\n"
+    L"    > timeprint Building endzones [%Y-%m-%d %#I:%M:%S %p].\n"
+    L"    Building endzones [2003-07-20 5:06:09 PM].\n"
+    L"\n"
+    L"    > echo. >timestamp.txt\n"
+    L"    [a day and a half later...]\n"
+    L"    > timeprint --modification timestamp.txt --now Elapsed Time: %_S seconds\n"
+    L"    Elapsed Time: 129797 seconds\n"
+    L"    > timeprint --modification timestamp.txt --now Elapsed Time: %_H:%_hM:%_mS\n"
+    L"    Elapsed Time: 36:3:17\n"
     ;
 
 //__________________________________________________________________________________________________
@@ -1003,12 +999,12 @@ void help (HelpType type)
     switch (type) {
         default: return;
 
-        case HelpType::General:      puts(help_general);      break;
-        case HelpType::Examples:     puts(help_examples);     break;
-        case HelpType::DeltaTime:    puts(help_deltaTime);    break;
-        case HelpType::FormatCodes:  puts(help_formatCodes);  break;
-        case HelpType::TimeSyntax:   puts(help_timeSyntax);   break;
-        case HelpType::TimeZone:     puts(help_timeZone);     break;
+        case HelpType::General:      _putws(help_general);      break;
+        case HelpType::Examples:     _putws(help_examples);     break;
+        case HelpType::DeltaTime:    _putws(help_deltaTime);    break;
+        case HelpType::FormatCodes:  _putws(help_formatCodes);  break;
+        case HelpType::TimeSyntax:   _putws(help_timeSyntax);   break;
+        case HelpType::TimeZone:     _putws(help_timeZone);     break;
     }
 
     exit (0);
