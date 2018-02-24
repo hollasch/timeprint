@@ -21,6 +21,7 @@ enum class HelpType    // Types of usage information for the --help option
     None,         // No help information requested
     General,      // General usage information
     Examples,     // Illustrative examples
+    DeltaTime,    // Delta time formats
     FormatCodes,  // Output format time codes
     TimeSyntax,   // ISO 8601 explicit time format
     TimeZone      // Time zone formats
@@ -216,6 +217,8 @@ bool getParameters (Parameters &params, int argc, char* argv[])
                         params.helpType = HelpType::General;
                     } else if (0 == _stricmp(argptr, "examples")) {
                         params.helpType = HelpType::Examples;
+                    } else if (0 == _stricmp(argptr, "deltaTime")) {
+                        params.helpType = HelpType::DeltaTime;
                     } else if (0 == _stricmp(argptr, "formatCodes")) {
                         params.helpType = HelpType::FormatCodes;
                     } else if (0 == _stricmp(argptr, "timeSyntax")) {
@@ -729,8 +732,8 @@ static auto help_general =
     "\n"
     "    --help [topic], -h[topic], -?[topic]\n"
     "        Print help and usage information in general, or for the specified\n"
-    "        topic. Topics include 'examples', 'formatCodes', 'timeSyntax', and\n"
-    "        'timezone'.\n"
+    "        topic. Topics include 'examples', 'deltaTime', 'formatCodes',\n"
+    "        'timeSyntax', and 'timezone'.\n"
     "\n"
     "    --modification <fileName>, -m<fileName>\n"
     "        Use the modification time of the named file.\n"
@@ -765,6 +768,7 @@ static auto help_general =
     "\n"
     "For additional help, use '--help <topic>', where <topic> is one of:\n"
     "    - examples\n"
+    "    - deltaTime\n"
     "    - formatCodes\n"
     "    - timeSyntax\n"
     "    - timeZone\n"
@@ -811,7 +815,7 @@ static auto help_formatCodes =
     "    %z     ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)\n"
     "           If timezone cannot be determined, no characters\n"
     "    %Z     Time-zone name or abbreviation, empty for unrecognized zones *\n"
-    "    %_S    Elapsed whole seconds\n"
+    "    %_...  Delta time formats. See `--help deltaTime`.\n"
     "    %%     Percent sign\n"
     "\n"
     "    * Specifiers marked with an asterisk are locale-dependent.\n"
@@ -832,6 +836,99 @@ static auto help_formatCodes =
     "\n"
     "    All others\n"
     "        The flag is ignored.\n"
+    ;
+
+static auto help_deltaTime =
+    "    Delta Time Formatting\n"
+    "\n"
+    "    Time differences are reported using the delta time formats. The delta time\n"
+    "    format has the following syntax:\n"
+    "\n"
+    "                               %_['kd][p]<u>[.[#]]\n"
+    "                                  -v-  v  v  --v-\n"
+    "            Numeric Format --------'   |  |    |\n"
+    "            Next Greater Unit ---------'  |    |\n"
+    "            Units ------------------------'    |\n"
+    "            Decimal Precision -----------------'\n"
+    "\n"
+    "    Numeric Format ['kd] (optional)\n"
+    "        The optional ' character is followed by two characters, k and d.\n"
+    "        k represents the character to use for the thousand's separator, with\n"
+    "        the special case that '0' indicates that there is to be no thousands\n"
+    "        separator. The d character is the character to use for the decimal\n"
+    "        point, if one is present. So, for example, \"'0.\" specifies no\n"
+    "        thousands separator, and the American '.' decimal point. \"'.,\" would\n"
+    "        specify European formatting, with '.' for the thousands separator, and\n"
+    "        ',' as the decimal point.\n"
+    "\n"
+    "    Next Greater Unit [p] (optional)\n"
+    "        This single lowercase letter indicates any preceding units used in the\n"
+    "        delta time printing. For example, if the unit is hours, and the next\n"
+    "        greater unit is years, then the hours reported are the remainder\n"
+    "        (modulo) after the number of years. Supported next greater units\n"
+    "        include the following:\n"
+    "\n"
+    "            y - Nominal years (see units below for definition)\n"
+    "            t - Tropical years (see units below for definition)\n"
+    "            d - Days\n"
+    "            h - Hours\n"
+    "            m - Minutes\n"
+    "\n"
+    "    Units <u> (required)\n"
+    "        The unit of time (single uppercase letter) to report for the time\n"
+    "        delta. This is the remainder after the (optional) next greater unit.\n"
+    "        The following units are supported:\n"
+    "\n"
+    "            Y - Nominal years\n"
+    "            T - Tropical years\n"
+    "            D - Days\n"
+    "            H - Hours\n"
+    "            M - Minutes\n"
+    "            S - Whole seconds\n"
+    "\n"
+    "        Nominal years are 365 days in length.\n"
+    "\n"
+    "        Tropical (or solar) years are approximately equal to one trip around\n"
+    "        the sun. These are useful to approximate the effect of leap years when\n"
+    "        reporting multi-year durations.\n"
+    "\n"
+    "        The following are the supported combinations of next greater unit and\n"
+    "        unit:\n"
+    "\n"
+    "            Y\n"
+    "            T\n"
+    "            D yD tD\n"
+    "            H yH tH dH\n"
+    "            M yM tM dM hM\n"
+    "            S yS tS dS hS mS\n"
+    "\n"
+    "    Decimal Precision [.[#]] (optional)\n"
+    "        With the exception of seconds, all units will have a fractional value\n"
+    "        for time differences. If the decimal precision format is omitted, the\n"
+    "        then rounded whole value is printed.\n"
+    "        \n"
+    "        If the decimal point and number is specified, then the fractional\n"
+    "        value will be printed with the number of requested digits.\n"
+    "\n"
+    "        If a decimal point is specified but without subsequent digits, then\n"
+    "        the number of digits will depend on the units. Enough digits will be\n"
+    "        printed to maintain full resolution of the unit to within one second.\n"
+    "        Thus, years: 8 digits, days: 5, hours: 4, minutes: 2.\n"
+    "\n"
+    "    Examples\n"
+    "         Given a delta time of 547,991,463 seconds, the following delta format\n"
+    "         strings will yield the following output:\n"
+    "\n"
+    "            %_S\n"
+    "                \"547991463\"\n"
+    "\n"
+    "            %_',.S\n"
+    "                \"547,991,463\"\n"
+    "\n"
+    "            %_Y years, %_yD days, %_dH. hours\n"
+    "                \"17 years, 137 days, 11.8508 hours\"\n"
+    "\n"
+    "    See `--time examples` for more example uses of delta time formats.\n"
     ;
 
 static auto help_timeSyntax =
@@ -892,7 +989,9 @@ static auto help_examples =
     "    > echo. >timestamp.txt\n"
     "    [a day and a half later...]\n"
     "    > timeprint --modification timestamp.txt --now Elapsed Time: %_S seconds\n"
-    "    Elapsed Time: 129600 seconds\n"
+    "    Elapsed Time: 129797 seconds\n"
+    "    > timeprint --modification timestamp.txt --now Elapsed Time: %_H:%_hM:%_mS\n"
+    "    Elapsed Time: 36:3:17\n"
     ;
 
 //__________________________________________________________________________________________________
@@ -906,6 +1005,7 @@ void help (HelpType type)
 
         case HelpType::General:      puts(help_general);      break;
         case HelpType::Examples:     puts(help_examples);     break;
+        case HelpType::DeltaTime:    puts(help_deltaTime);    break;
         case HelpType::FormatCodes:  puts(help_formatCodes);  break;
         case HelpType::TimeSyntax:   puts(help_timeSyntax);   break;
         case HelpType::TimeZone:     puts(help_timeZone);     break;

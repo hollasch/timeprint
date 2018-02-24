@@ -13,6 +13,7 @@ C++ standard `strftime` function, with some additional functionality.
 - [Description](#description)
 - [Time Zones](#time-zones)
 - [Format Codes](#format-codes)
+- [Delta Time Formatting](#delta-time-formatting)
 - [Time Syntax](#time-syntax)
 - [Examples](#examples)
 - [Building](#building)
@@ -131,6 +132,7 @@ Examples of the timezone string include the following:
 | `PST8PDT`  | Pacific Standard Time, daylight savings in effect
 | `GST-1GDT` | German Standard Time, daylight savings in effect
 
+
 Format Codes
 --------------
 The following time format codes are supported:
@@ -197,9 +199,107 @@ Remove any leading zeros.
 The flag is ignored.
 
 
+Delta Time Formatting
+-----------------------
+Time differences are reported using the delta time formats. The delta time
+format has the following syntax:
+
+                       %_['kd][p]<u>[.[#]]
+                          -v-  v  v  --v-
+    Numeric Format --------'   |  |    |
+    Next Greater Unit ---------'  |    |
+    Units ------------------------'    |
+    Decimal Precision -----------------'
+
+### Numeric Format ['kd] (_optional_)
+The optional `'` character is followed by two characters, k and d.
+k represents the character to use for the thousand's separator, with
+the special case that `0` indicates that there is to be no thousands
+separator.
+
+The d character is the character to use for the decimal point, if one
+is present. So, for example, `'0.` specifies no thousands separator,
+and the American `.` decimal point. `'.,` would specify European
+formatting, with `.` for the thousands separator, and `,` as the
+decimal point.
+
+### Next Greater Unit [p] (_optional_)
+This single lowercase letter indicates any preceding units used in the
+delta time printing. For example, if the unit is hours, and the next
+greater unit is years, then the hours reported are the remainder
+(modulo) after the number of years. Supported next greater units
+include the following:
+
+|Letter| Meaning
+|:----:|:------------------------------------------------
+| `y`  | Nominal years (see units below for definition)
+| `t`  | Tropical years (see units below for definition)
+| `d`  | Days
+| `h`  | Hours
+| `m`  | Minutes
+
+### Units <u> (_required_)
+The unit of time (single uppercase letter) to report for the time
+delta. This is the remainder after the (optional) next greater unit.
+The following units are supported:
+
+|Letter| Meaning
+|:----:|:---------------
+| `Y`  | Nominal years
+| `T`  | Tropical years
+| `D`  | Days
+| `H`  | Hours
+| `M`  | Minutes
+| `S`  | Whole seconds
+
+Nominal years are 365 days in length.
+
+Tropical (or solar) years are approximately equal to one trip around
+the sun. These are useful to approximate the effect of leap years when
+reporting multi-year durations.
+
+The following are the supported combinations of next greater unit and
+unit:
+
+    Y
+    T
+    D yD tD
+    H yH tH dH
+    M yM tM dM hM
+    S yS tS dS hS mS
+
+### Decimal Precision [.[#]] (_optional_)
+With the exception of seconds, all units will have a fractional value
+for time differences. If the decimal precision format is omitted, the
+then rounded whole value is printed.
+
+If the decimal point and number is specified, then the fractional
+value will be printed with the number of requested digits.
+
+If a decimal point is specified but without subsequent digits, then
+the number of digits will depend on the units. Enough digits will be
+printed to maintain full resolution of the unit to within one second.
+Thus, years: 8 digits, days: 5, hours: 4, minutes: 2.
+
+### Examples
+Given a delta time of 547,991,463 seconds, the following delta format
+strings will yield the following output:
+
+    %_S
+        "547991463"
+
+    %_',.S
+        "547,991,463"
+
+    %_Y years, %_yD days, %_dH. hours
+        "17 years, 137 days, 11.8508 hours"
+
+See `--time examples` for more example uses of delta time formats.
+
+
 Time Syntax
 -------------
-The explicit '--time' option supports a variety of different formats, using the
+The explicit `--time` option supports a variety of different formats, using the
 ISO 8601 date/time format.
 
 (_To be completed._)
@@ -223,7 +323,9 @@ Building levels [2003-07-20 5:06:09 PM].
 > echo. >timestamp.txt
 [a day and a half later...]
 > timeprint --modification timestamp.txt --now Elapsed Time: %_S seconds
-Elapsed Time: 129600 seconds
+Elapsed Time: 129797 seconds
+> timeprint --modification timestamp.txt --now Elapsed Time: %_H:%_hM:%_mS
+Elapsed Time: 36:3:17
 ```
 
 

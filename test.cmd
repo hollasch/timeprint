@@ -57,6 +57,7 @@ call :test --help FORMATCODES
 call :test -H timeSyntax
 call :test /htimezone
 call :test --help examples
+call :test --help deltaTime
 
 call :testCapture general-help --help
 call :testEqual   general-help -h bogusHelpTopic
@@ -115,7 +116,7 @@ exit /b 0
 
 :test
     echo.--------------------------------------------------------------------------------
-    echo Test %testNum%: [%*]
+    echo [%*]
     %timePrint% %*
     set /a testNum = testNum + 1
     goto :eof
@@ -126,7 +127,7 @@ exit /b 0
 
 :testEqual
     echo.--------------------------------------------------------------------------------
-    echo Test %testNum%: Output [%2 %3 %4 %5 %6 %7 %8 %9] equal to %1
+    echo Output [%2 %3 %4 %5 %6 %7 %8 %9] equal to %1
     %timePrint% %2 %3 %4 %5 %6 %7 %8 %9 > %testOut%\test-output-%testNum%.txt
     fc >nul %testOut%\test-output-%testNum%.txt %testOut%\test-output-%1.txt
     if %ERRORLEVEL% equ 0 (
@@ -140,7 +141,7 @@ exit /b 0
 
 :errTest
     echo.--------------------------------------------------------------------------------
-    echo Test %testNum%: Error Test [%*]
+    echo Error Test [%*]
     %timePrint% %* 1>nul 2>%TEMP%\timeprint-test-error-output.txt
     type %TEMP%\timeprint-test-error-output.txt
     del  %TEMP%\timeprint-test-error-output.txt

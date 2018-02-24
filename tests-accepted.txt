@@ -43,8 +43,8 @@ Command switches may be prefixed with a dash (-) or a slash (/).
 
     --help [topic], -h[topic], -?[topic]
         Print help and usage information in general, or for the specified
-        topic. Topics include 'examples', 'formatCodes', 'timeSyntax', and
-        'timezone'.
+        topic. Topics include 'examples', 'deltaTime', 'formatCodes',
+        'timeSyntax', and 'timezone'.
 
     --modification <fileName>, -m<fileName>
         Use the modification time of the named file.
@@ -79,12 +79,13 @@ For a full description of supported time format codes, use
 
 For additional help, use '--help <topic>', where <topic> is one of:
     - examples
+    - deltaTime
     - formatCodes
     - timeSyntax
     - timeZone
 
 --------------------------------------------------------------------------------
-Test 2: [--help FORMATCODES]
+[--help FORMATCODES]
 
     The following time format codes are supported:
 
@@ -125,7 +126,7 @@ Test 2: [--help FORMATCODES]
     %z     ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)
            If timezone cannot be determined, no characters
     %Z     Time-zone name or abbreviation, empty for unrecognized zones *
-    %_S    Elapsed whole seconds
+    %_...  Delta time formats. See `--help deltaTime`.
     %%     Percent sign
 
     * Specifiers marked with an asterisk are locale-dependent.
@@ -148,7 +149,7 @@ case, the meaning of the format code is changed as follows.
         The flag is ignored.
 
 --------------------------------------------------------------------------------
-Test 3: [-H timeSyntax]
+[-H timeSyntax]
 
     The explicit '--time' option supports a variety of different formats,
     using the ISO 8601 date/time format.
@@ -156,7 +157,7 @@ Test 3: [-H timeSyntax]
     <To be completed>
 
 --------------------------------------------------------------------------------
-Test 4: [/htimezone]
+[/htimezone]
 
     Time zones have the format "tzn[+|-]hh[:mm[:ss]][dzn]", where
 
@@ -187,7 +188,7 @@ Test 4: [/htimezone]
             GST-1GDT  German Standard Time, daylight savings in effect
 
 --------------------------------------------------------------------------------
-Test 5: [--help examples]
+[--help examples]
 
     Examples:
 
@@ -206,136 +207,231 @@ Test 5: [--help examples]
     > echo. >timestamp.txt
     [a day and a half later...]
     > timeprint --modification timestamp.txt --now Elapsed Time: %_S seconds
-    Elapsed Time: 129600 seconds
+    Elapsed Time: 129797 seconds
+    > timeprint --modification timestamp.txt --now Elapsed Time: %_H:%_hM:%_mS
+    Elapsed Time: 36:3:17
 
 --------------------------------------------------------------------------------
-Test 6: Output [-h bogusHelpTopic      ] equal to general-help
+[--help deltaTime]
+    Delta Time Formatting
+
+    Time differences are reported using the delta time formats. The delta time
+    format has the following syntax:
+
+                               %_['kd][p]<u>[.[#]]
+                                  -v-  v  v  --v-
+            Numeric Format --------'   |  |    |
+            Next Greater Unit ---------'  |    |
+            Units ------------------------'    |
+            Decimal Precision -----------------'
+
+    Numeric Format ['kd] (optional)
+        The optional ' character is followed by two characters, k and d.
+        k represents the character to use for the thousand's separator, with
+        the special case that '0' indicates that there is to be no thousands
+        separator. The d character is the character to use for the decimal
+        point, if one is present. So, for example, "'0." specifies no
+        thousands separator, and the American '.' decimal point. "'.," would
+        specify European formatting, with '.' for the thousands separator, and
+        ',' as the decimal point.
+
+    Next Greater Unit [p] (optional)
+        This single lowercase letter indicates any preceding units used in the
+        delta time printing. For example, if the unit is hours, and the next
+        greater unit is years, then the hours reported are the remainder
+        (modulo) after the number of years. Supported next greater units
+        include the following:
+
+            y - Nominal years (see units below for definition)
+            t - Tropical years (see units below for definition)
+            d - Days
+            h - Hours
+            m - Minutes
+
+    Units <u> (required)
+        The unit of time (single uppercase letter) to report for the time
+        delta. This is the remainder after the (optional) next greater unit.
+        The following units are supported:
+
+            Y - Nominal years
+            T - Tropical years
+            D - Days
+            H - Hours
+            M - Minutes
+            S - Whole seconds
+
+        Nominal years are 365 days in length.
+
+        Tropical (or solar) years are approximately equal to one trip around
+        the sun. These are useful to approximate the effect of leap years when
+        reporting multi-year durations.
+
+        The following are the supported combinations of next greater unit and
+        unit:
+
+            Y
+            T
+            D yD tD
+            H yH tH dH
+            M yM tM dM hM
+            S yS tS dS hS mS
+
+    Decimal Precision [.[#]] (optional)
+        With the exception of seconds, all units will have a fractional value
+        for time differences. If the decimal precision format is omitted, the
+        then rounded whole value is printed.
+        
+        If the decimal point and number is specified, then the fractional
+        value will be printed with the number of requested digits.
+
+        If a decimal point is specified but without subsequent digits, then
+        the number of digits will depend on the units. Enough digits will be
+        printed to maintain full resolution of the unit to within one second.
+        Thus, years: 8 digits, days: 5, hours: 4, minutes: 2.
+
+    Examples
+         Given a delta time of 547,991,463 seconds, the following delta format
+         strings will yield the following output:
+
+            %_S
+                "547991463"
+
+            %_',.S
+                "547,991,463"
+
+            %_Y years, %_yD days, %_dH. hours
+                "17 years, 137 days, 11.8508 hours"
+
+    See `--time examples` for more example uses of delta time formats.
+
+--------------------------------------------------------------------------------
+Output [-h bogusHelpTopic      ] equal to general-help
 Test passed.
 --------------------------------------------------------------------------------
-Test 7: Output [-hbogusHelpTopic       ] equal to general-help
+Output [-hbogusHelpTopic       ] equal to general-help
 Test passed.
 --------------------------------------------------------------------------------
-Test 8: Output [--help bogusHelpTopic      ] equal to general-help
+Output [--help bogusHelpTopic      ] equal to general-help
 Test passed.
 --------------------------------------------------------------------------------
-Test 9: Error Test [--]
+Error Test [--]
 timeprint: Unrecognized switch (--).
 --------------------------------------------------------------------------------
-Test 10: Error Test [-]
+Error Test [-]
 timeprint: Null option switch.
 --------------------------------------------------------------------------------
-Test 11: Error Test [--bogusSwitch]
+Error Test [--bogusSwitch]
 timeprint: Unrecognized switch (--bogusSwitch).
 --------------------------------------------------------------------------------
-Test 12: Error Test [-a]
+Error Test [-a]
 timeprint: Missing argument for --access (-a) option.
 --------------------------------------------------------------------------------
-Test 13: Error Test [--access]
+Error Test [--access]
 timeprint: Missing argument for --access (-a) option.
 --------------------------------------------------------------------------------
-Test 14: Error Test [--access someBogusFile]
+Error Test [--access someBogusFile]
 timeprint: Couldn't get status of "someBogusFile".
 --------------------------------------------------------------------------------
-Test 15: Error Test [-c]
+Error Test [-c]
 timeprint: Missing argument for --creation (-c) option.
 --------------------------------------------------------------------------------
-Test 16: Error Test [--creation]
+Error Test [--creation]
 timeprint: Missing argument for --creation (-c) option.
 --------------------------------------------------------------------------------
-Test 17: Error Test [--creation someBogusFile]
+Error Test [--creation someBogusFile]
 timeprint: Couldn't get status of "someBogusFile".
 --------------------------------------------------------------------------------
-Test 18: Error Test [-m]
+Error Test [-m]
 timeprint: Missing argument for --modification (-m) option.
 --------------------------------------------------------------------------------
-Test 19: Error Test [--modification]
+Error Test [--modification]
 timeprint: Missing argument for --modification (-m) option.
 --------------------------------------------------------------------------------
-Test 20: Error Test [--modification someBogusFile]
+Error Test [--modification someBogusFile]
 timeprint: Couldn't get status of "someBogusFile".
 --------------------------------------------------------------------------------
-Test 21: Error Test [--time]
+Error Test [--time]
 timeprint: Missing argument for --time (-t) option.
 --------------------------------------------------------------------------------
-Test 22: Error Test [--time 12:00 --access file1 --modification file2]
+Error Test [--time 12:00 --access file1 --modification file2]
 timeprint: Unexpected third time value (--modification file2).
 --------------------------------------------------------------------------------
-Test 23: Error Test [--now --access file1 --modification file2]
+Error Test [--now --access file1 --modification file2]
 timeprint: Unexpected third time value (--modification file2).
 --------------------------------------------------------------------------------
-Test 24: Error Test [--access file1 --modification file2 --now]
+Error Test [--access file1 --modification file2 --now]
 timeprint: Unexpected third time value (--now).
 --------------------------------------------------------------------------------
-Test 25: Error Test [--modification file2 --now --time 12:00]
+Error Test [--modification file2 --now --time 12:00]
 timeprint: Unexpected third time value (--time 12:00).
 --------------------------------------------------------------------------------
-Test 26: Error Test [-z]
+Error Test [-z]
 timeprint: Missing argument for --timeZone (-z) option.
 --------------------------------------------------------------------------------
-Test 27: Error Test [--timezone]
+Error Test [--timezone]
 timeprint: Missing argument for --timeZone (-z) option.
 --------------------------------------------------------------------------------
-Test 28: [A b c d e Hello world f g h i j]
+[A b c d e Hello world f g h i j]
 A b c d e Hello world f g h i j
 --------------------------------------------------------------------------------
-Test 29: ["A b c d e Hello world f g h i j"]
+["A b c d e Hello world f g h i j"]
 A b c d e Hello world f g h i j
 --------------------------------------------------------------------------------
-Test 30: ["A\nB\nC"]
+["A\nB\nC"]
 A
 B
 C
 --------------------------------------------------------------------------------
-Test 31: ["A\tB\tC"]
+["A\tB\tC"]
 A	B	C
 --------------------------------------------------------------------------------
-Test 32: ["A%nB%nC"]
+["A%nB%nC"]
 A
 B
 C
 --------------------------------------------------------------------------------
-Test 33: ["A%tB%tC"]
+["A%tB%tC"]
 A	B	C
 --------------------------------------------------------------------------------
-Test 34: [Percent sign = %%]
+[Percent sign = %%]
 Percent sign = %
 --------------------------------------------------------------------------------
-Test 35: [Bogus codes: %E%f%i%J%N%P%s%v]
+[Bogus codes: %E%f%i%J%N%P%s%v]
 Bogus codes: %E%f%i%J%N%P%s%v
 --------------------------------------------------------------------------------
-Test 36: [Bogus codes: %_a %_z]
+[Bogus codes: %_a %_z]
 Bogus codes: %_a %_z
 --------------------------------------------------------------------------------
-Test 37: [--now --creation timeprint.cpp "%_"]
+[--now --creation timeprint.cpp "%_"]
 %_
 --------------------------------------------------------------------------------
-Test 38: [--now --creation timeprint.cpp "%_y"]
+[--now --creation timeprint.cpp "%_y"]
 %_y
 --------------------------------------------------------------------------------
-Test 39: [--now --creation timeprint.cpp "%_y."]
+[--now --creation timeprint.cpp "%_y."]
 %_y.
 --------------------------------------------------------------------------------
-Test 40: [--now --creation timeprint.cpp "%_yy (bogus delta time value)"]
+[--now --creation timeprint.cpp "%_yy (bogus delta time value)"]
 %_yy (bogus delta time value)
 --------------------------------------------------------------------------------
-Test 41: [--now --creation timeprint.cpp "%_tt (bogus delta time value)"]
+[--now --creation timeprint.cpp "%_tt (bogus delta time value)"]
 %_tt (bogus delta time value)
 --------------------------------------------------------------------------------
-Test 42: [--now --creation timeprint.cpp "%_xy (bogus delta time modulo unit type)"]
+[--now --creation timeprint.cpp "%_xy (bogus delta time modulo unit type)"]
 %_xy (bogus delta time modulo unit type)
 --------------------------------------------------------------------------------
-Test 43: [--now --creation timeprint.cpp "%_xt (bogus delta time modulo unit type)"]
+[--now --creation timeprint.cpp "%_xt (bogus delta time modulo unit type)"]
 %_xt (bogus delta time modulo unit type)
 --------------------------------------------------------------------------------
-Test 44: [--now --creation timeprint.cpp "%_xd (bogus delta time modulo unit type)"]
+[--now --creation timeprint.cpp "%_xd (bogus delta time modulo unit type)"]
 %_xd (bogus delta time modulo unit type)
 --------------------------------------------------------------------------------
-Test 45: [--now --creation timeprint.cpp "%_xh (bogus delta time modulo unit type)"]
+[--now --creation timeprint.cpp "%_xh (bogus delta time modulo unit type)"]
 %_xh (bogus delta time modulo unit type)
 --------------------------------------------------------------------------------
-Test 46: [--now --creation timeprint.cpp "%_xm (bogus delta time modulo unit type)"]
+[--now --creation timeprint.cpp "%_xm (bogus delta time modulo unit type)"]
 %_xm (bogus delta time modulo unit type)
 --------------------------------------------------------------------------------
-Test 47: [--now --creation timeprint.cpp "%_'yM.0 (spurious delta time lead character)"]
+[--now --creation timeprint.cpp "%_'yM.0 (spurious delta time lead character)"]
 %_'yM.0 (spurious delta time lead character)
 --------------------------------------------------------------------------------
