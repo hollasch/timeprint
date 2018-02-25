@@ -299,10 +299,55 @@ See `--time examples` for more example uses of delta time formats.
 
 Time Syntax
 -------------
-The explicit `--time` option supports a variety of different formats, using the
-ISO 8601 date/time format.
+The explicit `--time` option supports a variety of different formats,
+based on the ISO 8601 date/time format.
 
-(_To be completed._)
+An explicit date-time may have a date, a time, or both. In the case of
+both, they must be separated by the letter `T`. No spaces are allowed in
+the string.
+
+The date can take one of the following patterns, where a `=` character
+denotes a required dash, and a `-` denotes an optional dash:
+
+    YYYY-MM-DD
+    YYYY=MM
+    YYYY
+    ==MM-DD
+    YYYY-DDD   (DDD = day of the year)
+
+The time can take one of the following patterns, where the `:` characters
+are optional:
+
+    HH:MM:SS
+    HH:MM
+    HH
+
+The time may be followed by an optional time zone, which has the following
+pattern, where `+` represents a required `+` or `-` character.
+
+    +HHMM    (Offset from UTC)
+    +HH      (Offset from UTC)
+    Z        (Zulu, or UTC)
+
+Parsing the explicit time value takes place as follows: if the string
+contains a `T`, then the date is parsed before the `T`, and the time is
+parsed after. If the string contains no `T`, then time parsing is first
+attempted, and on failure date parsing is attempted. Again, parsing is
+strict, and no other characters may included anywhere.
+
+Any unspecified units get the current time value for that unit.
+
+Example explicit time values include the following:
+
+    2018-02-24T20:58:46-0800
+    2018-02-25T04:58:46Z
+    17:57
+    --05-07
+    120000Z
+    1997-183
+    19731217T113618-0700
+
+See `--help examples` for other examples.
 
 
 Examples

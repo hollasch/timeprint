@@ -87,79 +87,136 @@ For additional help, use '--help <topic>', where <topic> is one of:
 --------------------------------------------------------------------------------
 [--help FORMATCODES]
 
+
+    Format Codes
+    --------------
+
     The following time format codes are supported:
 
-    %a     Abbreviated weekday name *
-    %A     Full weekday name *
-    %b     Abbreviated month name *
-    %B     Full month name *
-    %c     Date and time representation *
-    %C     Year divided by 100 and truncated to integer (00-99)
-    %d     Day of month as decimal number (01-31)
-    %D     Short MM/DD/YY date, equivalent to %m/%d/%y
-    %e     Day of the month, space-padded ( 1-31)
-    %F     Short YYYY-MM-DD date, equivalent to %Y-%m-%d
-    %g     Week-based year, last two digits (00-99)
-    %G     Week-based year
-    %h     Abbreviated month name (same as %b) *
-    %H     Hour in 24-hour format (00-23)
-    %I     Hour in 12-hour format (01-12)
-    %j     Day of year as decimal number (001-366)
-    %m     Month as decimal number (01-12)
-    %M     Minute as decimal number (00-59)
-    %n     New line character (same as '\n')
-    %p     AM or PM designation
-    %r     12-hour clock time *
-    %R     24-hour HH:MM time, equivalent to %H:%M
-    %S     Seconds as a decimal number (00-59)
-    %t     Horizontal tab character (same as '\t')
-    %T     ISO 8601 time format (HH:MM:SS) equivalent to %H:%M:%S
-    %u     ISO 8601 weekday as number with Monday=1 (1-7)
-    %U     Week number, first Sunday = week 1 day 1 (00-53)
-    %V     ISO 8601 week number (01-53)
-    %w     Weekday as decimal number, Sunday = 0 (0-6)
-    %W     Week of year, decimal, Monday = week 1 day 1(00-51)
-    %x     Date representation *
-    %X     Time representation *
-    %y     Year without century, as decimal number (00-99)
-    %Y     Year with century, as decimal number
-    %z     ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)
-           If timezone cannot be determined, no characters
-    %Z     Time-zone name or abbreviation, empty for unrecognized zones *
-    %_...  Delta time formats. See `--help deltaTime`.
-    %%     Percent sign
+        %a     Abbreviated weekday name *
+        %A     Full weekday name *
+        %b     Abbreviated month name *
+        %B     Full month name *
+        %c     Date and time representation *
+        %C     Year divided by 100 and truncated to integer (00-99)
+        %d     Day of month as decimal number (01-31)
+        %D     Short MM/DD/YY date, equivalent to %m/%d/%y
+        %e     Day of the month, space-padded ( 1-31)
+        %F     Short YYYY-MM-DD date, equivalent to %Y-%m-%d
+        %g     Week-based year, last two digits (00-99)
+        %G     Week-based year
+        %h     Abbreviated month name (same as %b) *
+        %H     Hour in 24-hour format (00-23)
+        %I     Hour in 12-hour format (01-12)
+        %j     Day of year as decimal number (001-366)
+        %m     Month as decimal number (01-12)
+        %M     Minute as decimal number (00-59)
+        %n     New line character (same as '\n')
+        %p     AM or PM designation
+        %r     12-hour clock time *
+        %R     24-hour HH:MM time, equivalent to %H:%M
+        %S     Seconds as a decimal number (00-59)
+        %t     Horizontal tab character (same as '\t')
+        %T     ISO 8601 time format (HH:MM:SS) equivalent to %H:%M:%S
+        %u     ISO 8601 weekday as number with Monday=1 (1-7)
+        %U     Week number, first Sunday = week 1 day 1 (00-53)
+        %V     ISO 8601 week number (01-53)
+        %w     Weekday as decimal number, Sunday = 0 (0-6)
+        %W     Week of year, decimal, Monday = week 1 day 1(00-51)
+        %x     Date representation *
+        %X     Time representation *
+        %y     Year without century, as decimal number (00-99)
+        %Y     Year with century, as decimal number
+        %z     ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)
+               If timezone cannot be determined, no characters
+        %Z     Time-zone name or abbreviation, empty for unrecognized zones *
+        %_...  Delta time formats. See `--help deltaTime`.
+        %%     Percent sign
 
-    * Specifiers marked with an asterisk are locale-dependent.
+        * Specifiers marked with an asterisk are locale-dependent.
 
-As in the printf function, the # flag may prefix any formatting code. In that
-case, the meaning of the format code is changed as follows.
+    As in the printf function, the # flag may prefix any formatting code. In
+    that case, the meaning of the format code is changed as follows.
 
-    %#c
-        Long date and time representation, appropriate for current locale.
-        For example: Tuesday, March 14, 1995, 12:41:29.
+        %#c
+            Long date and time representation, appropriate for current locale.
+            For example: Tuesday, March 14, 1995, 12:41:29.
 
-    %#x
-        Long date representation, appropriate to current locale.
-        For example: Tuesday, March 14, 1995.
+        %#x
+            Long date representation, appropriate to current locale.
+            For example: Tuesday, March 14, 1995.
 
-    %#d, %#H, %#I, %#j, %#m, %#M, %#S, %#U, %#w, %#W, %#y, %#Y
-        Remove any leading zeros.
+        %#d, %#H, %#I, %#j, %#m, %#M, %#S, %#U, %#w, %#W, %#y, %#Y
+            Remove any leading zeros.
 
-    All others
-        The flag is ignored.
+        All others
+            The flag is ignored.
 
 --------------------------------------------------------------------------------
 [-H timeSyntax]
 
-    The explicit '--time' option supports a variety of different formats,
-    using the ISO 8601 date/time format.
 
-    <To be completed>
+    Time Syntax
+    -------------
+
+    The explicit `--time` option supports a variety of different formats,
+    based on the ISO 8601 date/time format.
+
+    An explicit date-time may have a date, a time, or both. In the case of
+    both, they must be separated by the letter `T`. No spaces are allowed in
+    the string.
+
+    The date can take one of the following patterns, where a `=` character
+    denotes a required dash, and a `-` denotes an optional dash:
+
+        YYYY-MM-DD
+        YYYY=MM
+        YYYY
+        ==MM-DD
+        YYYY-DDD   (DDD = day of the year)
+
+    The time can take one of the following patterns, where the `:` characters
+    are optional:
+
+        HH:MM:SS
+        HH:MM
+        HH
+
+    The time may be followed by an optional time zone, which has the following
+    pattern, where `+` represents a required `+` or `-` character.
+
+        +HHMM    (Offset from UTC)
+        +HH      (Offset from UTC)
+        Z        (Zulu, or UTC)
+
+    Parsing the explicit time value takes place as follows: if the string
+    contains a `T`, then the date is parsed before the `T`, and the time is
+    parsed after. If the string contains no `T`, then time parsing is first
+    attempted, and on failure date parsing is attempted. Again, parsing is
+    strict, and no other characters may included anywhere.
+
+    Any unspecified units get the current time value for that unit.
+
+    Example explicit time values include the following:
+
+        2018-02-24T20:58:46-0800
+        2018-02-25T04:58:46Z
+        17:57
+        --05-07
+        120000Z
+        1997-183
+        19731217T113618-0700
+
+    See `--help examples` for other examples.
 
 --------------------------------------------------------------------------------
 [/htimezone]
 
-    Time zones have the format "tzn[+|-]hh[:mm[:ss]][dzn]", where
+
+    Time Zones
+    ------------
+
+    Time zones have the format `tzn[+|-]hh[:mm[:ss]][dzn]`, where
 
         tzn
             Three-letter time-zone name, such as PST. You must specify the
@@ -169,10 +226,10 @@ case, the meaning of the format code is changed as follows.
             Difference in hours between UTC and local time. Optionally signed.
 
         mm
-            Minutes, separated with a colon (:).
+            Minutes, separated with a colon (`:`).
 
         ss
-            Seconds, separated with a colon (:).
+            Seconds, separated with a colon (`:`).
 
         dzn
             Three-letter daylight-saving-time zone such as PDT. If daylight
@@ -190,7 +247,9 @@ case, the meaning of the format code is changed as follows.
 --------------------------------------------------------------------------------
 [--help examples]
 
-    Examples:
+
+    Examples
+    ----------
 
     > timeprint
     Sunday, July 20, 2003 17:02:39
@@ -201,8 +260,8 @@ case, the meaning of the format code is changed as follows.
     > timeprint -z UTC
     Monday, July 21, 2003 00:03:47
 
-    > timeprint Building endzones [%Y-%m-%d %#I:%M:%S %p].
-    Building endzones [2003-07-20 5:06:09 PM].
+    > timeprint Starting build at %Y-%m-%d %#I:%M:%S %p.
+    Starting build at 2003-07-20 5:06:09 PM.
 
     > echo. >timestamp.txt
     [a day and a half later...]
@@ -213,7 +272,10 @@ case, the meaning of the format code is changed as follows.
 
 --------------------------------------------------------------------------------
 [--help deltaTime]
+
+
     Delta Time Formatting
+    -----------------------
 
     Time differences are reported using the delta time formats. The delta time
     format has the following syntax:
@@ -225,17 +287,17 @@ case, the meaning of the format code is changed as follows.
             Units ------------------------'    |
             Decimal Precision -----------------'
 
-    Numeric Format ['kd] (optional)
-        The optional ' character is followed by two characters, k and d.
+    Numeric Format ['kd] (_optional_)
+        The optional `'` character is followed by two characters, k and d.
         k represents the character to use for the thousand's separator, with
-        the special case that '0' indicates that there is to be no thousands
+        the special case that `0` indicates that there is to be no thousands
         separator. The d character is the character to use for the decimal
-        point, if one is present. So, for example, "'0." specifies no
-        thousands separator, and the American '.' decimal point. "'.," would
-        specify European formatting, with '.' for the thousands separator, and
-        ',' as the decimal point.
+        point, if one is present. So, for example, `'0.` specifies no
+        thousands separator, and the American `.` decimal point. `'.,` would
+        specify European formatting, with `.` for the thousands separator, and
+        `,` as the decimal point.
 
-    Next Greater Unit [p] (optional)
+    Next Greater Unit [p] (_optional_)
         This single lowercase letter indicates any preceding units used in the
         delta time printing. For example, if the unit is hours, and the next
         greater unit is years, then the hours reported are the remainder
@@ -248,7 +310,7 @@ case, the meaning of the format code is changed as follows.
             h - Hours
             m - Minutes
 
-    Units <u> (required)
+    Units <u> (_required_)
         The unit of time (single uppercase letter) to report for the time
         delta. This is the remainder after the (optional) next greater unit.
         The following units are supported:
@@ -276,11 +338,11 @@ case, the meaning of the format code is changed as follows.
             M yM tM dM hM
             S yS tS dS hS mS
 
-    Decimal Precision [.[#]] (optional)
+    Decimal Precision [.[#]] (_optional_)
         With the exception of seconds, all units will have a fractional value
         for time differences. If the decimal precision format is omitted, the
         then rounded whole value is printed.
-        
+
         If the decimal point and number is specified, then the fractional
         value will be printed with the number of requested digits.
 
@@ -294,13 +356,13 @@ case, the meaning of the format code is changed as follows.
          strings will yield the following output:
 
             %_S
-                "547991463"
+                '547991463'
 
             %_',.S
-                "547,991,463"
+                '547,991,463'
 
             %_Y years, %_yD days, %_dH. hours
-                "17 years, 137 days, 11.8508 hours"
+                '17 years, 137 days, 11.8508 hours'
 
     See `--time examples` for more example uses of delta time formats.
 

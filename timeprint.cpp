@@ -388,93 +388,6 @@ bool getTime (time_t& result, const TimeSpec& spec)
 }
 
 
-/*==================================================================================================
-Temporary Notes: Legal ISO-8601 Formats for timeprint
-
-Syntax
-    Done   Syntax                            Missing Values
-    -----  --------------------------------  -------------------------------------------------------
-    [ ]    <timeValue> = <date>              time = current time
-    [ ]    <timeValue> = <time>              date = current date
-    [ ]    <timeValue> = <date>T<time>
-
-    [ ]    <date> = <YYYY>-?<MM>-?<DD>
-    [ ]    <date> = <YYYY>                   month = current month, day = current day
-    [ ]    <date> = <YYYY>-<MM>              day = current day
-    [ ]    <date> = --<MM>-?<DD>             year = current year
-    [ ]    <date> = <YYYY>-?<DDD>
-
-    [ ]    <YYYY> = 0000-9999
-    [ ]    <MM>   = 01-12
-    [ ]    <DD>   = 01-31
-    [ ]    <DDD>  = 001-366
-
-    [ ]    <time> = <HH>:?<MM>:?<SS><zone>
-    [ ]    <time> = <HH>:?<MM><zone>         seconds = current seconds
-    [ ]    <time> = <HH><zone>               minutes = current minutes, seconds = current seconds
-
-    [ ]    -?     = - | <null>
-    [ ]    :?     = : | <null>
-    [ ]    +-     = + | -
-    [ ]    <HH>   = 00-24                    24 = midnight / 00 of next day
-    [ ]    <MM>   = 00-59
-    [ ]    <SS>   = 00-60                    Accomodates leap seconds
-
-    [ ]    <zone> = <null>                   use current local time zone
-    [ ]    <zone> = Z
-    [ ]    <zone> = [+-]<HH>:?<MM>
-    [ ]    <zone> = [+-]<HH>
-
-    [ ]  6 --####       --MMDD
-    [ ]  7 ####-##      YYYY-MM
-    [ ]  7 --##-##      --MM-DD
-    [ ]  7 #######      YYYYDDD
-    [ ]  8 ########     YYYYMMDD
-    [ ]  8 ####-###     YYYY-DDD
-    [ ] 10 ####-##-##   YYYY-MM-DD
-
-    [x]  2 ##           hh
-    [x]  4 ####         hhmm
-    [x]  5 ##:##        hh:mm
-    [x]  6 ######       hhmmss
-    [x]  8 ##:##:##     hh:mm:ss
-
-    [x]         ...#Z   +0000
-    [x]       ...#-##   -HH00
-    [x]     ...#-####   -hhmm
-    [x]    ...#-##:##   -hhmm
-    [x]       ...#+##   +hh00
-    [x]     ...#+####   +hhmm
-    [x]    ...#+##:##   +hhmm
-
-    No T:
-        try time
-        try date
-
-    No T:
-        has :|+|Z   = time
-        multiple -  = date
-        end -####   = time
-        len 7,8     = date
-        else        = time
-
-==================================================================================================*/
-
-/*
-struct tm
-{
-    int tm_sec;   // seconds after the minute - [0, 60] including leap second
-    int tm_min;   // minutes after the hour - [0, 59]
-    int tm_hour;  // hours since midnight - [0, 23]
-    int tm_mday;  // day of the month - [1, 31]
-    int tm_mon;   // months since January - [0, 11]
-    int tm_year;  // years since 1900
-    int tm_wday;  // days since Sunday - [0, 6]
-    int tm_yday;  // days since January 1 - [0, 365]
-    int tm_isdst; // daylight savings time flag
-};
-*/
-
 bool getExplicitDateTime (time_t& result, wstring timeSpec)
 {
     struct tm timeStruct;
@@ -586,34 +499,6 @@ bool parseDateTimePattern (
 }
 
 
-/*
-    [ ]    <time> = <HH>:?<MM>:?<SS><zone>
-    [ ]    <time> = <HH>:?<MM><zone>         seconds = current seconds
-    [ ]    <time> = <HH><zone>               minutes = current minutes, seconds = current seconds
-    [ ]    -?     = - | <null>
-    [ ]    :?     = : | <null>
-    [ ]    +-     = + | -
-    [ ]    <HH>   = 00-24                    24 = midnight / 00 of next day
-    [ ]    <MM>   = 00-59
-    [ ]    <SS>   = 00-60                    Accomodates leap seconds
-    [ ]    <zone> = <null>                   use current local time zone
-    [ ]    <zone> = Z
-    [ ]    <zone> = [+-]<HH>:?<MM>
-    [ ]    <zone> = [+-]<HH>
-    [ ]  2 ##           hh          ##
-    [ ]  4 ####         hhmm        ##:##
-    [ ]  5 ##:##        hh:mm       ##:##
-    [ ]  6 ######       hhmmss      ##:##:##
-    [ ]  8 ##:##:##     hh:mm:ss    ##:##:##
-    [ ]         ...#Z   +0000       Z
-    [ ]       ...#-##   -HH00       +##
-    [ ]     ...#-####   -hhmm       +##:##
-    [ ]    ...#-##:##   -hhmm       +##:##
-    [ ]       ...#+##   +hh00       +##
-    [ ]     ...#+####   +hhmm       +##:##
-    [ ]    ...#+##:##   +hhmm       +##:##
-*/
-
 bool getExplicitTime (struct tm& resultTime, wstring::iterator specBegin, wstring::iterator specEnd)
 {
     bool gotTime = false;
@@ -654,27 +539,6 @@ bool getExplicitTime (struct tm& resultTime, wstring::iterator specBegin, wstrin
 }
 
 
-/*
-    [ ]    <timeValue> = <date>              time = current time
-    [ ]    <timeValue> = <time>              date = current date
-    [ ]    <timeValue> = <date>T<time>
-    [ ]    <date> = <YYYY>-?<MM>-?<DD>
-    [ ]    <date> = <YYYY>                   month = current month, day = current day
-    [ ]    <date> = <YYYY>-<MM>              day = current day
-    [ ]    <date> = --<MM>-?<DD>             year = current year
-    [ ]    <date> = <YYYY>-?<DDD>
-    [ ]    <YYYY> = 0000-9999
-    [ ]    <MM>   = 01-12
-    [ ]    <DD>   = 01-31
-    [ ]    <DDD>  = 001-366
-    [ ]  6 --####       --MMDD        ==##-##
-    [ ]  7 ####-##      YYYY-MM       ####=##
-    [ ]  7 --##-##      --MM-DD       ==##-##
-    [ ]  7 #######      YYYYDDD       ####-###
-    [ ]  8 ########     YYYYMMDD      ####-##-##
-    [ ]  8 ####-###     YYYY-DDD      ####-###
-    [ ] 10 ####-##-##   YYYY-MM-DD    ####-##-##
-*/
 bool getExplicitDate (struct tm& resultTime, wstring::iterator specBegin, wstring::iterator specEnd)
 {
     auto gotDate = false;
@@ -1062,70 +926,77 @@ static auto help_general =
 
 static auto help_formatCodes =
     L"\n"
+    L"\n"
+    L"    Format Codes\n"
+    L"    --------------\n"
+    L"\n"
     L"    The following time format codes are supported:\n"
     L"\n"
-    L"    %a     Abbreviated weekday name *\n"
-    L"    %A     Full weekday name *\n"
-    L"    %b     Abbreviated month name *\n"
-    L"    %B     Full month name *\n"
-    L"    %c     Date and time representation *\n"
-    L"    %C     Year divided by 100 and truncated to integer (00-99)\n"
-    L"    %d     Day of month as decimal number (01-31)\n"
-    L"    %D     Short MM/DD/YY date, equivalent to %m/%d/%y\n"
-    L"    %e     Day of the month, space-padded ( 1-31)\n"
-    L"    %F     Short YYYY-MM-DD date, equivalent to %Y-%m-%d\n"
-    L"    %g     Week-based year, last two digits (00-99)\n"
-    L"    %G     Week-based year\n"
-    L"    %h     Abbreviated month name (same as %b) *\n"
-    L"    %H     Hour in 24-hour format (00-23)\n"
-    L"    %I     Hour in 12-hour format (01-12)\n"
-    L"    %j     Day of year as decimal number (001-366)\n"
-    L"    %m     Month as decimal number (01-12)\n"
-    L"    %M     Minute as decimal number (00-59)\n"
-    L"    %n     New line character (same as '\\n')\n"
-    L"    %p     AM or PM designation\n"
-    L"    %r     12-hour clock time *\n"
-    L"    %R     24-hour HH:MM time, equivalent to %H:%M\n"
-    L"    %S     Seconds as a decimal number (00-59)\n"
-    L"    %t     Horizontal tab character (same as '\\t')\n"
-    L"    %T     ISO 8601 time format (HH:MM:SS) equivalent to %H:%M:%S\n"
-    L"    %u     ISO 8601 weekday as number with Monday=1 (1-7)\n"
-    L"    %U     Week number, first Sunday = week 1 day 1 (00-53)\n"
-    L"    %V     ISO 8601 week number (01-53)\n"
-    L"    %w     Weekday as decimal number, Sunday = 0 (0-6)\n"
-    L"    %W     Week of year, decimal, Monday = week 1 day 1(00-51)\n"
-    L"    %x     Date representation *\n"
-    L"    %X     Time representation *\n"
-    L"    %y     Year without century, as decimal number (00-99)\n"
-    L"    %Y     Year with century, as decimal number\n"
-    L"    %z     ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)\n"
-    L"           If timezone cannot be determined, no characters\n"
-    L"    %Z     Time-zone name or abbreviation, empty for unrecognized zones *\n"
-    L"    %_...  Delta time formats. See `--help deltaTime`.\n"
-    L"    %%     Percent sign\n"
+    L"        %a     Abbreviated weekday name *\n"
+    L"        %A     Full weekday name *\n"
+    L"        %b     Abbreviated month name *\n"
+    L"        %B     Full month name *\n"
+    L"        %c     Date and time representation *\n"
+    L"        %C     Year divided by 100 and truncated to integer (00-99)\n"
+    L"        %d     Day of month as decimal number (01-31)\n"
+    L"        %D     Short MM/DD/YY date, equivalent to %m/%d/%y\n"
+    L"        %e     Day of the month, space-padded ( 1-31)\n"
+    L"        %F     Short YYYY-MM-DD date, equivalent to %Y-%m-%d\n"
+    L"        %g     Week-based year, last two digits (00-99)\n"
+    L"        %G     Week-based year\n"
+    L"        %h     Abbreviated month name (same as %b) *\n"
+    L"        %H     Hour in 24-hour format (00-23)\n"
+    L"        %I     Hour in 12-hour format (01-12)\n"
+    L"        %j     Day of year as decimal number (001-366)\n"
+    L"        %m     Month as decimal number (01-12)\n"
+    L"        %M     Minute as decimal number (00-59)\n"
+    L"        %n     New line character (same as '\\n')\n"
+    L"        %p     AM or PM designation\n"
+    L"        %r     12-hour clock time *\n"
+    L"        %R     24-hour HH:MM time, equivalent to %H:%M\n"
+    L"        %S     Seconds as a decimal number (00-59)\n"
+    L"        %t     Horizontal tab character (same as '\\t')\n"
+    L"        %T     ISO 8601 time format (HH:MM:SS) equivalent to %H:%M:%S\n"
+    L"        %u     ISO 8601 weekday as number with Monday=1 (1-7)\n"
+    L"        %U     Week number, first Sunday = week 1 day 1 (00-53)\n"
+    L"        %V     ISO 8601 week number (01-53)\n"
+    L"        %w     Weekday as decimal number, Sunday = 0 (0-6)\n"
+    L"        %W     Week of year, decimal, Monday = week 1 day 1(00-51)\n"
+    L"        %x     Date representation *\n"
+    L"        %X     Time representation *\n"
+    L"        %y     Year without century, as decimal number (00-99)\n"
+    L"        %Y     Year with century, as decimal number\n"
+    L"        %z     ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)\n"
+    L"               If timezone cannot be determined, no characters\n"
+    L"        %Z     Time-zone name or abbreviation, empty for unrecognized zones *\n"
+    L"        %_...  Delta time formats. See `--help deltaTime`.\n"
+    L"        %%     Percent sign\n"
     L"\n"
-    L"    * Specifiers marked with an asterisk are locale-dependent.\n"
+    L"        * Specifiers marked with an asterisk are locale-dependent.\n"
     L"\n"
-    L"As in the printf function, the # flag may prefix any formatting code. In that\n"
-    L"case, the meaning of the format code is changed as follows.\n"
+    L"    As in the printf function, the # flag may prefix any formatting code. In\n"
+    L"    that case, the meaning of the format code is changed as follows.\n"
     L"\n"
-    L"    %#c\n"
-    L"        Long date and time representation, appropriate for current locale.\n"
-    L"        For example: Tuesday, March 14, 1995, 12:41:29.\n"
+    L"        %#c\n"
+    L"            Long date and time representation, appropriate for current locale.\n"
+    L"            For example: Tuesday, March 14, 1995, 12:41:29.\n"
     L"\n"
-    L"    %#x\n"
-    L"        Long date representation, appropriate to current locale.\n"
-    L"        For example: Tuesday, March 14, 1995.\n"
+    L"        %#x\n"
+    L"            Long date representation, appropriate to current locale.\n"
+    L"            For example: Tuesday, March 14, 1995.\n"
     L"\n"
-    L"    %#d, %#H, %#I, %#j, %#m, %#M, %#S, %#U, %#w, %#W, %#y, %#Y\n"
-    L"        Remove any leading zeros.\n"
+    L"        %#d, %#H, %#I, %#j, %#m, %#M, %#S, %#U, %#w, %#W, %#y, %#Y\n"
+    L"            Remove any leading zeros.\n"
     L"\n"
-    L"    All others\n"
-    L"        The flag is ignored.\n"
+    L"        All others\n"
+    L"            The flag is ignored.\n"
     ;
 
 static auto help_deltaTime =
+    L"\n"
+    L"\n"
     L"    Delta Time Formatting\n"
+    L"    -----------------------\n"
     L"\n"
     L"    Time differences are reported using the delta time formats. The delta time\n"
     L"    format has the following syntax:\n"
@@ -1137,17 +1008,17 @@ static auto help_deltaTime =
     L"            Units ------------------------'    |\n"
     L"            Decimal Precision -----------------'\n"
     L"\n"
-    L"    Numeric Format ['kd] (optional)\n"
-    L"        The optional ' character is followed by two characters, k and d.\n"
+    L"    Numeric Format ['kd] (_optional_)\n"
+    L"        The optional `'` character is followed by two characters, k and d.\n"
     L"        k represents the character to use for the thousand's separator, with\n"
-    L"        the special case that '0' indicates that there is to be no thousands\n"
+    L"        the special case that `0` indicates that there is to be no thousands\n"
     L"        separator. The d character is the character to use for the decimal\n"
-    L"        point, if one is present. So, for example, \"'0.\" specifies no\n"
-    L"        thousands separator, and the American '.' decimal point. \"'.,\" would\n"
-    L"        specify European formatting, with '.' for the thousands separator, and\n"
-    L"        ',' as the decimal point.\n"
+    L"        point, if one is present. So, for example, `'0.` specifies no\n"
+    L"        thousands separator, and the American `.` decimal point. `'.,` would\n"
+    L"        specify European formatting, with `.` for the thousands separator, and\n"
+    L"        `,` as the decimal point.\n"
     L"\n"
-    L"    Next Greater Unit [p] (optional)\n"
+    L"    Next Greater Unit [p] (_optional_)\n"
     L"        This single lowercase letter indicates any preceding units used in the\n"
     L"        delta time printing. For example, if the unit is hours, and the next\n"
     L"        greater unit is years, then the hours reported are the remainder\n"
@@ -1160,7 +1031,7 @@ static auto help_deltaTime =
     L"            h - Hours\n"
     L"            m - Minutes\n"
     L"\n"
-    L"    Units <u> (required)\n"
+    L"    Units <u> (_required_)\n"
     L"        The unit of time (single uppercase letter) to report for the time\n"
     L"        delta. This is the remainder after the (optional) next greater unit.\n"
     L"        The following units are supported:\n"
@@ -1188,11 +1059,11 @@ static auto help_deltaTime =
     L"            M yM tM dM hM\n"
     L"            S yS tS dS hS mS\n"
     L"\n"
-    L"    Decimal Precision [.[#]] (optional)\n"
+    L"    Decimal Precision [.[#]] (_optional_)\n"
     L"        With the exception of seconds, all units will have a fractional value\n"
     L"        for time differences. If the decimal precision format is omitted, the\n"
     L"        then rounded whole value is printed.\n"
-    L"        \n"
+    L"\n"
     L"        If the decimal point and number is specified, then the fractional\n"
     L"        value will be printed with the number of requested digits.\n"
     L"\n"
@@ -1206,28 +1077,81 @@ static auto help_deltaTime =
     L"         strings will yield the following output:\n"
     L"\n"
     L"            %_S\n"
-    L"                \"547991463\"\n"
+    L"                '547991463'\n"
     L"\n"
     L"            %_',.S\n"
-    L"                \"547,991,463\"\n"
+    L"                '547,991,463'\n"
     L"\n"
     L"            %_Y years, %_yD days, %_dH. hours\n"
-    L"                \"17 years, 137 days, 11.8508 hours\"\n"
+    L"                '17 years, 137 days, 11.8508 hours'\n"
     L"\n"
     L"    See `--time examples` for more example uses of delta time formats.\n"
     ;
 
 static auto help_timeSyntax =
     L"\n"
-    L"    The explicit '--time' option supports a variety of different formats,\n"
-    L"    using the ISO 8601 date/time format.\n"
     L"\n"
-    L"    <To be completed>\n"
+    L"    Time Syntax\n"
+    L"    -------------\n"
+    L"\n"
+    L"    The explicit `--time` option supports a variety of different formats,\n"
+    L"    based on the ISO 8601 date/time format.\n"
+    L"\n"
+    L"    An explicit date-time may have a date, a time, or both. In the case of\n"
+    L"    both, they must be separated by the letter `T`. No spaces are allowed in\n"
+    L"    the string.\n"
+    L"\n"
+    L"    The date can take one of the following patterns, where a `=` character\n"
+    L"    denotes a required dash, and a `-` denotes an optional dash:\n"
+    L"\n"
+    L"        YYYY-MM-DD\n"
+    L"        YYYY=MM\n"
+    L"        YYYY\n"
+    L"        ==MM-DD\n"
+    L"        YYYY-DDD   (DDD = day of the year)\n"
+    L"\n"
+    L"    The time can take one of the following patterns, where the `:` characters\n"
+    L"    are optional:\n"
+    L"\n"
+    L"        HH:MM:SS\n"
+    L"        HH:MM\n"
+    L"        HH\n"
+    L"\n"
+    L"    The time may be followed by an optional time zone, which has the following\n"
+    L"    pattern, where `+` represents a required `+` or `-` character.\n"
+    L"\n"
+    L"        +HHMM    (Offset from UTC)\n"
+    L"        +HH      (Offset from UTC)\n"
+    L"        Z        (Zulu, or UTC)\n"
+    L"\n"
+    L"    Parsing the explicit time value takes place as follows: if the string\n"
+    L"    contains a `T`, then the date is parsed before the `T`, and the time is\n"
+    L"    parsed after. If the string contains no `T`, then time parsing is first\n"
+    L"    attempted, and on failure date parsing is attempted. Again, parsing is\n"
+    L"    strict, and no other characters may included anywhere.\n"
+    L"\n"
+    L"    Any unspecified units get the current time value for that unit.\n"
+    L"\n"
+    L"    Example explicit time values include the following:\n"
+    L"\n"
+    L"        2018-02-24T20:58:46-0800\n"
+    L"        2018-02-25T04:58:46Z\n"
+    L"        17:57\n"
+    L"        --05-07\n"
+    L"        120000Z\n"
+    L"        1997-183\n"
+    L"        19731217T113618-0700\n"
+    L"\n"
+    L"    See `--help examples` for other examples.\n"
     ;
 
 static auto help_timeZone =
     L"\n"
-    L"    Time zones have the format \"tzn[+|-]hh[:mm[:ss]][dzn]\", where\n"
+    L"\n"
+    L"    Time Zones\n"
+    L"    ------------\n"
+    L"\n"
+    L"    Time zones have the format `tzn[+|-]hh[:mm[:ss]][dzn]`, where\n"
     L"\n"
     L"        tzn\n"
     L"            Three-letter time-zone name, such as PST. You must specify the\n"
@@ -1237,10 +1161,10 @@ static auto help_timeZone =
     L"            Difference in hours between UTC and local time. Optionally signed.\n"
     L"\n"
     L"        mm\n"
-    L"            Minutes, separated with a colon (:).\n"
+    L"            Minutes, separated with a colon (`:`).\n"
     L"\n"
     L"        ss\n"
-    L"            Seconds, separated with a colon (:).\n"
+    L"            Seconds, separated with a colon (`:`).\n"
     L"\n"
     L"        dzn\n"
     L"            Three-letter daylight-saving-time zone such as PDT. If daylight\n"
@@ -1258,7 +1182,9 @@ static auto help_timeZone =
 
 static auto help_examples =
     L"\n"
-    L"    Examples:\n"
+    L"\n"
+    L"    Examples\n"
+    L"    ----------\n"
     L"\n"
     L"    > timeprint\n"
     L"    Sunday, July 20, 2003 17:02:39\n"
@@ -1269,8 +1195,8 @@ static auto help_examples =
     L"    > timeprint -z UTC\n"
     L"    Monday, July 21, 2003 00:03:47\n"
     L"\n"
-    L"    > timeprint Building endzones [%Y-%m-%d %#I:%M:%S %p].\n"
-    L"    Building endzones [2003-07-20 5:06:09 PM].\n"
+    L"    > timeprint Starting build at %Y-%m-%d %#I:%M:%S %p.\n"
+    L"    Starting build at 2003-07-20 5:06:09 PM.\n"
     L"\n"
     L"    > echo. >timestamp.txt\n"
     L"    [a day and a half later...]\n"
@@ -1279,6 +1205,7 @@ static auto help_examples =
     L"    > timeprint --modification timestamp.txt --now Elapsed Time: %_H:%_hM:%_mS\n"
     L"    Elapsed Time: 36:3:17\n"
     ;
+
 
 //__________________________________________________________________________________________________
 void help (HelpType type)
