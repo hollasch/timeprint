@@ -643,9 +643,6 @@ bool getExplicitTime (struct tm& resultTime, wstring::iterator specBegin, wstrin
         return true;
     }
 
-    auto zoneShiftHours = 0;
-    auto zoneShiftMinutes = 0;
-
     if (parseDateTimePattern (L"+##:##", specIt, specEnd, results)) {
         resultTime.tm_hour += results[0] * results[1];
         resultTime.tm_min  += results[0] * results[1];
@@ -672,15 +669,42 @@ bool getExplicitTime (struct tm& resultTime, wstring::iterator specBegin, wstrin
     [ ]    <DDD>  = 001-366
     [ ]  6 --####       --MMDD        ==##-##
     [ ]  7 ####-##      YYYY-MM       ####=##
-    [ ]  7 --##-##      --MM-DD       --##-##
+    [ ]  7 --##-##      --MM-DD       ==##-##
     [ ]  7 #######      YYYYDDD       ####-###
     [ ]  8 ########     YYYYMMDD      ####-##-##
     [ ]  8 ####-###     YYYY-DDD      ####-###
     [ ] 10 ####-##-##   YYYY-MM-DD    ####-##-##
 */
-bool getExplicitDate (struct tm& result, wstring::iterator specBegin, wstring::iterator specEnd)
+bool getExplicitDate (struct tm& resultTime, wstring::iterator specBegin, wstring::iterator specEnd)
 {
-    return false;
+    auto gotDate = false;
+    vector<int> results;
+    wstring::iterator specIt = specBegin;
+
+    if (parseDateTimePattern (L"==##-##", specIt, specEnd, results)) {
+        resultTime.tm_mon  = results[0] - 1;
+        resultTime.tm_mday = results[1];
+        gotDate = true;
+    } else if (parseDateTimePattern (L"####-##-##", specIt, specEnd, results)) {
+        resultTime.tm_year = results[0] - 1900;
+        resultTime.tm_mon  = results[1] - 1;
+        resultTime.tm_mday = results[2];
+        gotDate = true;
+    } else if (parseDateTimePattern (L"####-###", specIt, specEnd, results)) {
+        resultTime.tm_year = results[0] - 1900;
+        resultTime.tm_mon  = 0;
+        resultTime.tm_mday = results[1];
+        gotDate = true;
+    } else if (parseDateTimePattern (L"####=##", specIt, specEnd, results)) {
+        resultTime.tm_year = results[0] - 1900;
+        resultTime.tm_mon  = results[1] - 1;
+        gotDate = true;
+    } else if (parseDateTimePattern (L"####", specIt, specEnd, results)) {
+        resultTime.tm_year = results[0] - 1900;
+        gotDate = true;
+    }
+
+    return gotDate && (specIt == specEnd);
 }
 
 
