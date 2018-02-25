@@ -9,11 +9,15 @@ It takes an optional format string to control the output.
 #include <ctype.h>
 #include <sys/stat.h>
 
+#include <iostream>
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <vector>
 
 using std::wstring;
+using std::vector;
+using std::wcout;
 
 
 enum class HelpType    // Types of usage information for the --help option
@@ -65,13 +69,16 @@ static time_t timeNow;
 
 
 // Function Declarations
-bool calcTime       (const Parameters& params, struct tm& timeValue, time_t& deltaTimeSeconds);
-bool getParameters  (Parameters& params, int argc, wchar_t* argv[]);
-bool getTime        (time_t& result, const TimeSpec&);
-void help           (HelpType);
-void printResults   (wstring format, wchar_t codeChar, const struct tm& timeValue, time_t deltaTimeSeconds);
-void printDelta     (wstring::iterator& formatIterator, const wstring::iterator& formatEnd, time_t deltaTimeSeconds);
-bool printDeltaFunc (wstring::iterator& formatIterator, const wstring::iterator& formatEnd, time_t deltaTimeSeconds);
+bool calcTime            (const Parameters& params, struct tm& timeValue, time_t& deltaTimeSeconds);
+bool getParameters       (Parameters& params, int argc, wchar_t* argv[]);
+bool getTime             (time_t& result, const TimeSpec&);
+bool getExplicitDateTime (time_t& result, wstring timeSpec);
+bool getExplicitTime     (struct tm& result, wstring::iterator specBegin, wstring::iterator specEnd);
+bool getExplicitDate     (struct tm& result, wstring::iterator specBegin, wstring::iterator specEnd);
+void help                (HelpType);
+void printResults        (wstring format, wchar_t codeChar, const struct tm& timeValue, time_t deltaTimeSeconds);
+void printDelta          (wstring::iterator& formatIterator, const wstring::iterator& formatEnd, time_t deltaTimeSeconds);
+bool printDeltaFunc      (wstring::iterator& formatIterator, const wstring::iterator& formatEnd, time_t deltaTimeSeconds);
 
 
 //__________________________________________________________________________________________________
@@ -369,12 +376,311 @@ bool getTime (time_t& result, const TimeSpec& spec)
     }
 
     if (spec.type == TimeType::Explicit) {
-        auto timeString = spec.value.c_str();
-        fwprintf (stderr, L"timeprint: Unrecognized explicit time (%s).\n", timeString);
+        auto timeString = spec.value;
+        if (getExplicitDateTime(result, timeString))
+            return true;
+
+        fwprintf (stderr, L"timeprint: Unrecognized explicit time: \"%s\".\n", timeString.c_str());
         return false;
     }
 
     return false;   // Unrecognized time type
+}
+
+
+/*==================================================================================================
+Temporary Notes: Legal ISO-8601 Formats for timeprint
+
+Syntax
+    Done   Syntax                            Missing Values
+    -----  --------------------------------  -------------------------------------------------------
+    [ ]    <timeValue> = <date>              time = current time
+    [ ]    <timeValue> = <time>              date = current date
+    [ ]    <timeValue> = <date>T<time>
+
+    [ ]    <date> = <YYYY>-?<MM>-?<DD>
+    [ ]    <date> = <YYYY>                   month = current month, day = current day
+    [ ]    <date> = <YYYY>-<MM>              day = current day
+    [ ]    <date> = --<MM>-?<DD>             year = current year
+    [ ]    <date> = <YYYY>-?<DDD>
+
+    [ ]    <YYYY> = 0000-9999
+    [ ]    <MM>   = 01-12
+    [ ]    <DD>   = 01-31
+    [ ]    <DDD>  = 001-366
+
+    [ ]    <time> = <HH>:?<MM>:?<SS><zone>
+    [ ]    <time> = <HH>:?<MM><zone>         seconds = current seconds
+    [ ]    <time> = <HH><zone>               minutes = current minutes, seconds = current seconds
+
+    [ ]    -?     = - | <null>
+    [ ]    :?     = : | <null>
+    [ ]    +-     = + | -
+    [ ]    <HH>   = 00-24                    24 = midnight / 00 of next day
+    [ ]    <MM>   = 00-59
+    [ ]    <SS>   = 00-60                    Accomodates leap seconds
+
+    [ ]    <zone> = <null>                   use current local time zone
+    [ ]    <zone> = Z
+    [ ]    <zone> = [+-]<HH>:?<MM>
+    [ ]    <zone> = [+-]<HH>
+
+    [ ]  6 --####       --MMDD
+    [ ]  7 ####-##      YYYY-MM
+    [ ]  7 --##-##      --MM-DD
+    [ ]  7 #######      YYYYDDD
+    [ ]  8 ########     YYYYMMDD
+    [ ]  8 ####-###     YYYY-DDD
+    [ ] 10 ####-##-##   YYYY-MM-DD
+
+    [x]  2 ##           hh
+    [x]  4 ####         hhmm
+    [x]  5 ##:##        hh:mm
+    [x]  6 ######       hhmmss
+    [x]  8 ##:##:##     hh:mm:ss
+
+    [x]         ...#Z   +0000
+    [x]       ...#-##   -HH00
+    [x]     ...#-####   -hhmm
+    [x]    ...#-##:##   -hhmm
+    [x]       ...#+##   +hh00
+    [x]     ...#+####   +hhmm
+    [x]    ...#+##:##   +hhmm
+
+    No T:
+        try time
+        try date
+
+    No T:
+        has :|+|Z   = time
+        multiple -  = date
+        end -####   = time
+        len 7,8     = date
+        else        = time
+
+==================================================================================================*/
+
+/*
+struct tm
+{
+    int tm_sec;   // seconds after the minute - [0, 60] including leap second
+    int tm_min;   // minutes after the hour - [0, 59]
+    int tm_hour;  // hours since midnight - [0, 23]
+    int tm_mday;  // day of the month - [1, 31]
+    int tm_mon;   // months since January - [0, 11]
+    int tm_year;  // years since 1900
+    int tm_wday;  // days since Sunday - [0, 6]
+    int tm_yday;  // days since January 1 - [0, 365]
+    int tm_isdst; // daylight savings time flag
+};
+*/
+
+bool getExplicitDateTime (time_t& result, wstring timeSpec)
+{
+    struct tm timeStruct;
+    gmtime_s (&timeStruct, &timeNow);
+
+    auto dateTimeSep = std::find (timeSpec.begin(), timeSpec.end(), 'T');
+    bool successResult;
+
+    if (dateTimeSep != timeSpec.end()) {
+        successResult = getExplicitTime (timeStruct, std::next(dateTimeSep), timeSpec.end())
+                     && getExplicitDate (timeStruct, timeSpec.begin(), dateTimeSep);
+    } else {
+        successResult = getExplicitTime (timeStruct, timeSpec.begin(), timeSpec.end())
+                     || getExplicitDate (timeStruct, timeSpec.begin(), timeSpec.end());
+    }
+
+    if (successResult)
+        result = mktime (&timeStruct);
+
+    return successResult;
+}
+
+
+bool parseDateTimePatternCore (
+    wchar_t*           pattern,
+    wstring::iterator& sourceIt,
+    wstring::iterator  sourceEnd,
+    vector<int>&       results)
+{
+    results.clear();
+
+    auto sourceStart = sourceIt;
+    auto numberValue = 0;
+    auto capturingNumber = false;
+
+    for (auto patternChar=pattern;  *patternChar;  ++patternChar, ++sourceIt) {
+
+        if (sourceIt == sourceEnd) return false;
+
+        if (capturingNumber && (*patternChar != '#')) {
+            results.push_back (numberValue);
+            numberValue = 0;
+            capturingNumber = false;
+        }
+
+        switch (*patternChar) {
+            // Captured elements
+            case L'#': {
+                if (!isdigit(*sourceIt)) return false;
+                numberValue = (10 * numberValue) + (*sourceIt - '0');
+                capturingNumber = true;
+                break;
+            }
+
+            case L'+': {
+                if (*sourceIt == L'-')
+                    results.push_back (-1);
+                else if (*sourceIt == L'+')
+                    results.push_back (1);
+                else
+                    return false;
+                break;
+            }
+
+            // Non-captured elements
+            case L'-': {
+                if (*sourceIt != L'-') --sourceIt;
+                break;
+            }
+
+            case L'=': {
+                if (*sourceIt != L'-') return false;
+                break;
+            }
+
+            case L':': {
+                if (*sourceIt != L':') --sourceIt;
+                break;
+            }
+
+            default: {
+                if (*sourceIt != *patternChar) return false;
+                break;
+            }
+        }
+    }
+
+    if (capturingNumber)
+        results.push_back (numberValue);
+
+    return true;
+}
+
+
+bool parseDateTimePattern (
+    wchar_t*           pattern,
+    wstring::iterator& sourceIt,
+    wstring::iterator  sourceEnd,
+    vector<int>&       results)
+{
+    wstring::iterator sourceReset = sourceIt;
+
+    if (!parseDateTimePatternCore (pattern, sourceIt, sourceEnd, results)) {
+        sourceIt = sourceReset;
+        return false;
+    }
+
+    return true;
+}
+
+
+/*
+    [ ]    <time> = <HH>:?<MM>:?<SS><zone>
+    [ ]    <time> = <HH>:?<MM><zone>         seconds = current seconds
+    [ ]    <time> = <HH><zone>               minutes = current minutes, seconds = current seconds
+    [ ]    -?     = - | <null>
+    [ ]    :?     = : | <null>
+    [ ]    +-     = + | -
+    [ ]    <HH>   = 00-24                    24 = midnight / 00 of next day
+    [ ]    <MM>   = 00-59
+    [ ]    <SS>   = 00-60                    Accomodates leap seconds
+    [ ]    <zone> = <null>                   use current local time zone
+    [ ]    <zone> = Z
+    [ ]    <zone> = [+-]<HH>:?<MM>
+    [ ]    <zone> = [+-]<HH>
+    [ ]  2 ##           hh          ##
+    [ ]  4 ####         hhmm        ##:##
+    [ ]  5 ##:##        hh:mm       ##:##
+    [ ]  6 ######       hhmmss      ##:##:##
+    [ ]  8 ##:##:##     hh:mm:ss    ##:##:##
+    [ ]         ...#Z   +0000       Z
+    [ ]       ...#-##   -HH00       +##
+    [ ]     ...#-####   -hhmm       +##:##
+    [ ]    ...#-##:##   -hhmm       +##:##
+    [ ]       ...#+##   +hh00       +##
+    [ ]     ...#+####   +hhmm       +##:##
+    [ ]    ...#+##:##   +hhmm       +##:##
+*/
+
+bool getExplicitTime (struct tm& resultTime, wstring::iterator specBegin, wstring::iterator specEnd)
+{
+    bool gotTime = false;
+    vector<int> results;
+    wstring::iterator specIt = specBegin;
+
+    if (parseDateTimePattern (L"##:##:##", specIt, specEnd, results)) {
+        resultTime.tm_hour = results[0];
+        resultTime.tm_min  = results[1];
+        resultTime.tm_sec  = results[2];
+        gotTime = true;
+    } else if (parseDateTimePattern (L"##:##", specIt, specEnd, results)) {
+        resultTime.tm_hour = results[0];
+        resultTime.tm_min  = results[1];
+        gotTime = true;
+    } else if (parseDateTimePattern (L"##", specIt, specEnd, results)) {
+        resultTime.tm_hour = results[0];
+        gotTime = true;
+    }
+
+    if (!gotTime) return false;
+
+    // Parse timezone, if any.
+
+    if ((specIt == specEnd) || ((specIt[0] == L'Z') && (std::next(specIt) == specEnd))) {
+        // UTC time, no adjustment needed.
+        return true;
+    }
+
+    auto zoneShiftHours = 0;
+    auto zoneShiftMinutes = 0;
+
+    if (parseDateTimePattern (L"+##:##", specIt, specEnd, results)) {
+        resultTime.tm_hour += results[0] * results[1];
+        resultTime.tm_min  += results[0] * results[1];
+    } else if (parseDateTimePattern (L"+##", specIt, specEnd, results)) {
+        resultTime.tm_hour += results[0] * results[1];
+    }
+
+    return (specIt == specEnd);
+}
+
+
+/*
+    [ ]    <timeValue> = <date>              time = current time
+    [ ]    <timeValue> = <time>              date = current date
+    [ ]    <timeValue> = <date>T<time>
+    [ ]    <date> = <YYYY>-?<MM>-?<DD>
+    [ ]    <date> = <YYYY>                   month = current month, day = current day
+    [ ]    <date> = <YYYY>-<MM>              day = current day
+    [ ]    <date> = --<MM>-?<DD>             year = current year
+    [ ]    <date> = <YYYY>-?<DDD>
+    [ ]    <YYYY> = 0000-9999
+    [ ]    <MM>   = 01-12
+    [ ]    <DD>   = 01-31
+    [ ]    <DDD>  = 001-366
+    [ ]  6 --####       --MMDD        ==##-##
+    [ ]  7 ####-##      YYYY-MM       ####=##
+    [ ]  7 --##-##      --MM-DD       --##-##
+    [ ]  7 #######      YYYYDDD       ####-###
+    [ ]  8 ########     YYYYMMDD      ####-##-##
+    [ ]  8 ####-###     YYYY-DDD      ####-###
+    [ ] 10 ####-##-##   YYYY-MM-DD    ####-##-##
+*/
+bool getExplicitDate (struct tm& result, wstring::iterator specBegin, wstring::iterator specEnd)
+{
+    return false;
 }
 
 
@@ -644,46 +950,6 @@ bool printDeltaFunc (
     fputws (outputString.c_str(), stdout);
     return true;
 }
-
-
-/*==================================================================================================
-Temporary Notes: Legal ISO-8601 Formats for timeprint
-
-Syntax
-    Done   Syntax                            Missing Values
-    -----  --------------------------------  -------------------------------------------------------
-    [ ]    <timeValue> = now                 use current date + time + zone
-    [ ]    <timeValue> = <date>              time = current time
-    [ ]    <timeValue> = <time>              date = current date
-    [ ]    <timeValue> = <date>T<time>
-
-    [ ]    <date> = <YYYY>-?<MM>-?<DD>
-    [ ]    <date> = <YYYY>                   month = current month, day = current day
-    [ ]    <date> = <YYYY>-<MM>              day = current day
-    [ ]    <date> = --<MM>-?<DD>             year = current year
-    [ ]    <date> = <YYYY>-?<DDD>
-
-    [ ]    <time> = <HH>:?<MM>:?<SS><zone>
-    [ ]    <time> = <HH>:?<MM><zone>         seconds = current seconds
-    [ ]    <time> = <HH><zone>               minutes = current minutes, seconds = current seconds
-
-    [ ]    <zone> = <null>                   use current local time zone
-    [ ]    <zone> = Z
-    [ ]    <zone> = [+-]<HH>:?<MM>
-    [ ]    <zone> = [+-]<HH>
-
-    [ ]    -?     = - | <null>
-    [ ]    :?     = : | <null>
-    [ ]    +-     = + | -
-    [ ]    <YYYY> = 0000-9999
-    [ ]    <MM>   = 01-12
-    [ ]    <DD>   = 01-31
-    [ ]    <DDD>  = 001-366
-    [ ]    <HH>   = 00-24                    24 = midnight / 00 of next day
-    [ ]    <MM>   = 00-59
-    [ ]    <SS>   = 00-60                    Accomodates leap seconds
-
-==================================================================================================*/
 
 
 //__________________________________________________________________________________________________
