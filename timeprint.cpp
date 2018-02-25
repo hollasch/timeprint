@@ -15,9 +15,11 @@ It takes an optional format string to control the output.
 #include <iomanip>
 #include <vector>
 
-using std::wstring;
+using std::time_t;
+using std::tm;
 using std::vector;
 using std::wcout;
+using std::wstring;
 
 
 enum class HelpType    // Types of usage information for the --help option
@@ -69,14 +71,14 @@ static time_t timeNow;
 
 
 // Function Declarations
-bool calcTime            (const Parameters& params, struct tm& timeValue, time_t& deltaTimeSeconds);
+bool calcTime            (const Parameters& params, tm& timeValue, time_t& deltaTimeSeconds);
 bool getParameters       (Parameters& params, int argc, wchar_t* argv[]);
 bool getTime             (time_t& result, const TimeSpec&);
 bool getExplicitDateTime (time_t& result, wstring timeSpec);
-bool getExplicitTime     (struct tm& result, wstring::iterator specBegin, wstring::iterator specEnd);
-bool getExplicitDate     (struct tm& result, wstring::iterator specBegin, wstring::iterator specEnd);
+bool getExplicitTime     (tm& result, wstring::iterator specBegin, wstring::iterator specEnd);
+bool getExplicitDate     (tm& result, wstring::iterator specBegin, wstring::iterator specEnd);
 void help                (HelpType);
-void printResults        (wstring format, wchar_t codeChar, const struct tm& timeValue, time_t deltaTimeSeconds);
+void printResults        (wstring format, wchar_t codeChar, const tm& timeValue, time_t deltaTimeSeconds);
 void printDelta          (wstring::iterator& formatIterator, const wstring::iterator& formatEnd, time_t deltaTimeSeconds);
 bool printDeltaFunc      (wstring::iterator& formatIterator, const wstring::iterator& formatEnd, time_t deltaTimeSeconds);
 
@@ -92,7 +94,7 @@ int wmain (int argc, wchar_t *argv[])
 
     help (params.helpType);
 
-    struct tm currentTime;
+    tm currentTime;
     time_t    deltaTimeSeconds;
 
     if (calcTime (params, currentTime, deltaTimeSeconds)) {
@@ -314,7 +316,7 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
 //__________________________________________________________________________________________________
 bool calcTime (
     const Parameters& params,            // Command parameters
-    struct tm&        timeValue,         // Output time value
+    tm&               timeValue,         // Output time value
     time_t&           deltaTimeSeconds)  // Output time delta in seconds
 {
     // This function computes the time results and then sets the timeValue and deltaTimeSeconds
@@ -388,9 +390,11 @@ bool getTime (time_t& result, const TimeSpec& spec)
 }
 
 
+//__________________________________________________________________________________________________
 bool getExplicitDateTime (time_t& result, wstring timeSpec)
 {
-    struct tm timeStruct;
+    tm timeStruct;
+
     gmtime_s (&timeStruct, &timeNow);
 
     auto dateTimeSep = std::find (timeSpec.begin(), timeSpec.end(), 'T');
@@ -411,6 +415,7 @@ bool getExplicitDateTime (time_t& result, wstring timeSpec)
 }
 
 
+//__________________________________________________________________________________________________
 bool parseDateTimePatternCore (
     wchar_t*           pattern,
     wstring::iterator& sourceIt,
@@ -482,6 +487,7 @@ bool parseDateTimePatternCore (
 }
 
 
+//__________________________________________________________________________________________________
 bool parseDateTimePattern (
     wchar_t*           pattern,
     wstring::iterator& sourceIt,
@@ -499,7 +505,8 @@ bool parseDateTimePattern (
 }
 
 
-bool getExplicitTime (struct tm& resultTime, wstring::iterator specBegin, wstring::iterator specEnd)
+//__________________________________________________________________________________________________
+bool getExplicitTime (tm& resultTime, wstring::iterator specBegin, wstring::iterator specEnd)
 {
     bool gotTime = false;
     vector<int> results;
@@ -539,7 +546,8 @@ bool getExplicitTime (struct tm& resultTime, wstring::iterator specBegin, wstrin
 }
 
 
-bool getExplicitDate (struct tm& resultTime, wstring::iterator specBegin, wstring::iterator specEnd)
+//__________________________________________________________________________________________________
+bool getExplicitDate (tm& resultTime, wstring::iterator specBegin, wstring::iterator specEnd)
 {
     auto gotDate = false;
     vector<int> results;
@@ -574,10 +582,10 @@ bool getExplicitDate (struct tm& resultTime, wstring::iterator specBegin, wstrin
 
 //__________________________________________________________________________________________________
 void printResults (
-    wstring          format,             // The format string, possibly with escape sequences and format codes
-    wchar_t          codeChar,           // The format code character (normally %)
-    const struct tm& timeValue,          // The primary time value to use
-    time_t           deltaTimeSeconds)   // Time difference when comparing two times
+    wstring   format,             // The format string, possibly with escape sequences and format codes
+    wchar_t   codeChar,           // The format code character (normally %)
+    const tm& timeValue,          // The primary time value to use
+    time_t    deltaTimeSeconds)   // Time difference when comparing two times
 {
     // This procedure scans through the format string, emitting expanded codes and escape sequences
     // along the way.
@@ -669,6 +677,7 @@ const double secondsPerNominalYear  = secondsPerDay * 365;
 const double secondsPerTropicalYear = secondsPerDay * (365.0 + 97.0/400.0);
 
 
+//__________________________________________________________________________________________________
 void printDelta (
     wstring::iterator&       formatIterator,     // Pointer to delta format after '%_'
     const wstring::iterator& formatEnd,          // Format string end
@@ -686,6 +695,7 @@ void printDelta (
 }
 
 
+//__________________________________________________________________________________________________
 bool charIn (wchar_t c, const wchar_t* list)
 {
     // Return true if the given character is in the zero-terminated array of characters.
@@ -697,6 +707,7 @@ bool charIn (wchar_t c, const wchar_t* list)
 }
 
 
+//__________________________________________________________________________________________________
 bool printDeltaFunc (
     wstring::iterator&       formatIterator,     // Pointer to delta format after '%_'
     const wstring::iterator& formatEnd,          // Format string end
