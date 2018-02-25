@@ -594,7 +594,7 @@ void printResults (
 
     for (auto formatIterator = format.begin();  formatIterator != formatEnd;  ++formatIterator) {
         const auto buffSize = 1024;
-        wchar_t    buff [buffSize];        // Intermediate Output Buffer
+        wchar_t    outputBuffer [buffSize];     // Intermediate Output Buffer
 
         // Handle backslash sequences, unless backslash is the alternate escape character.
 
@@ -651,8 +651,8 @@ void printResults (
                     token[3] = 0;
                 }
 
-                wcsftime (buff, buffSize, token, &timeValue);
-                fputws (buff, stdout);
+                wcsftime (outputBuffer, std::size(outputBuffer), token, &timeValue);
+                fputws (outputBuffer, stdout);
             }
 
         } else {
