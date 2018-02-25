@@ -593,8 +593,8 @@ void printResults (
     auto formatEnd = format.end();
 
     for (auto formatIterator = format.begin();  formatIterator != formatEnd;  ++formatIterator) {
-        const auto buffsize = 1024;
-        wchar_t    buff [buffsize];        // Intermediate Output Buffer
+        const auto buffSize = 1024;
+        wchar_t    buff [buffSize];        // Intermediate Output Buffer
 
         // Handle backslash sequences, unless backslash is the alternate escape character.
 
@@ -621,7 +621,7 @@ void printResults (
 
         } else if (*formatIterator == codeChar) {
 
-            const static auto legalCodes = L"%aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ";
+            const static auto legalCodes = L"aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ%";
 
             wchar_t token[4];    // Code Token Word
 
@@ -651,7 +651,7 @@ void printResults (
                     token[3] = 0;
                 }
 
-                wcsftime (buff, sizeof(buff), token, &timeValue);
+                wcsftime (buff, buffSize, token, &timeValue);
                 fputws (buff, stdout);
             }
 
