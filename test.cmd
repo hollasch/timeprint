@@ -94,6 +94,17 @@ call :test Percent sign = %%%%%%%%
 call :test Bogus codes: %%%%E%%%%f%%%%i%%%%J%%%%N%%%%P%%%%s%%%%v
 call :test Bogus codes: %%%%_a %%%%_z
 
+call :test --timezone UTC    --time 2000-01-01T00:00:00Z
+call :test --timezone UTC    --time 2000-01-02T03:04:05+67
+call :test --timezone UTC    --time 2000-01-02T03:04:05-67:89
+call :test --timezone UTC    --time 2000-01-02T03:04:05-6789
+call :test --timezone PST+08 --time 2000-01-01T00:00:00Z "%%%%#c %%%%z %%%%Z"
+
+call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T00:00:00Z "%%%%_S"
+call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%%%%_Dd %%%%_dH:%%%%_hM:%%%%_mS"
+call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%%%%_D."
+call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%%%%_D.8"
+
 call :test --now --creation timeprint.cpp "%%%%_"
 call :test --now --creation timeprint.cpp "%%%%_y"
 call :test --now --creation timeprint.cpp "%%%%_y."
