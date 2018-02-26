@@ -29,7 +29,7 @@
     <None Include="README.md">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="README-vNext.md">
+    <None Include="timeprint.md">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

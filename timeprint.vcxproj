@@ -174,9 +174,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="CHANGELOG.md" />
-    <None Include="README-vNext.md" />
     <None Include="README.md" />
     <None Include="test.cmd" />
+    <None Include="timeprint.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
