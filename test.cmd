@@ -102,6 +102,7 @@ call :test --timezone PST+08 --time 2000-01-01T00:00:00Z "%%%%#c %%%%z %%%%Z"
 
 call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T00:00:00Z "%%%%_S"
 call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%%%%_Dd %%%%_dH:%%%%_hM:%%%%_mS"
+call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%%%%_Dd %%%%_d0H:%%%%_h0M:%%%%_m0S"
 call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%%%%_D."
 call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%%%%_D.8"
 

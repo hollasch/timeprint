@@ -227,9 +227,10 @@ For additional help, use `--help <topic>`, where <topic> is one of:
             CAREFUL: Unfortunately, this value is negated from how time zones
             are normally specified. For example, PDT is specified as -0800,
             but in the time zone string, will be specified as `PDT+08`.
-            You can play with the string "%#c %Z %z" and the `--timezone`
-            option to ensure you understand how these work together. If
-            offset hours are omitted, they are assumed to be zero.
+            You can experiment with the string "%#c %Z %z" and the
+            `--timezone` option to ensure you understand how these work
+            together. If offset hours are omitted, they are assumed to be
+            zero.
 
         [:mm]
             Minutes, prefixed with mandatory colon.
@@ -247,8 +248,8 @@ For additional help, use `--help <topic>`, where <topic> is one of:
 
             UTC       Universal Coordinated Time
             PST8      Pacific Standard Time
-            PDT+08    Pacific Daylight Time
-            PDT+08:00 Pacific Daylight Time
+            PDT+07    Pacific Daylight Time
+            NST+03:30 Newfoundland Standard Time
             PST8PDT   Pacific Standard Time, daylight savings in effect
             GST-1GDT  German Standard Time, daylight savings in effect
 
@@ -288,12 +289,12 @@ For additional help, use `--help <topic>`, where <topic> is one of:
     Time differences are reported using the delta time formats. The delta time
     format has the following syntax:
 
-                               %_['kd][p]<u>[.[#]]
-                                  -v-  v  v  --v-
-            Numeric Format --------'   |  |    |
-            Next Greater Unit ---------'  |    |
-            Units ------------------------'    |
-            Decimal Precision -----------------'
+                               %_['kd][u[0]]<U>[.[#]]
+                                  -v-  -v--  v  --v-
+            Numeric Format --------'    |    |    |
+            Next Greater Unit ----------'    |    |
+            Units ---------------------------'    |
+            Decimal Precision --------------------'
 
     Numeric Format ['kd] (_optional_)
         The optional `'` character is followed by two characters, k and d.
@@ -305,7 +306,7 @@ For additional help, use `--help <topic>`, where <topic> is one of:
         specify European formatting, with `.` for the thousands separator, and
         `,` as the decimal point.
 
-    Next Greater Unit [p] (_optional_)
+    Next Greater Unit [u[0]] (_optional_)
         This single lowercase letter indicates any preceding units used in the
         delta time printing. For example, if the unit is hours, and the next
         greater unit is years, then the hours reported are the remainder
@@ -318,7 +319,10 @@ For additional help, use `--help <topic>`, where <topic> is one of:
             h - Hours
             m - Minutes
 
-    Units <u> (_required_)
+        If the next greater unit is followed by a zero, then the result is
+        zero-padded to the appropriate width for the range of possible values.
+
+    Units <U> (_required_)
         The unit of time (single uppercase letter) to report for the time
         delta. This is the remainder after the (optional) next greater unit.
         The following units are supported:
@@ -334,7 +338,8 @@ For additional help, use `--help <topic>`, where <topic> is one of:
 
         Tropical (or solar) years are approximately equal to one trip around
         the sun. These are useful to approximate the effect of leap years when
-        reporting multi-year durations.
+        reporting multi-year durations. For this program, a tropical year is
+        defined as 365 + 97/400 days.
 
         The following are the supported combinations of next greater unit and
         unit:
@@ -492,6 +497,9 @@ Friday, December 31, 1999 16:00:00 -0800 PST
 --------------------------------------------------------------------------------
 [--time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%_Dd %_dH:%_hM:%_mS"]
 1d 3:4:5
+--------------------------------------------------------------------------------
+[--time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%_Dd %_d0H:%_h0M:%_m0S"]
+1d 03:04:05
 --------------------------------------------------------------------------------
 [--time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%_D."]
 1.12784

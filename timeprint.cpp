@@ -460,6 +460,17 @@ bool parseDateTimePatternCore (
     wstring::iterator  sourceEnd,
     vector<int>&       results)
 {
+    // This is the core functionality of the explicit date & time parsing. Returns true if the given
+    // pattern matches the source, and places the parsed integer results in the results vector.
+    // Patterns may include the following characters:
+    //
+    //     #...    A sequence of digits yielding one number
+    //     +       A sign character, either '+' or '-'. Yields +1 or -1, respectively.
+    //     -       An optional dash.
+    //     =       A mandatory dash.
+    //     :       An optional colon.
+    //     ...     Anything else must match exactly.
+
     results.clear();
 
     auto sourceStart = sourceIt;
@@ -532,6 +543,9 @@ bool parseDateTimePattern (
     wstring::iterator  sourceEnd,
     vector<int>&       results)
 {
+    // Parses a date/time pattern. On failure, restores the sourceIt iterator and returns false,
+    // otherwise on success leaves the sourceIt where it ended and returns true.
+
     wstring::iterator sourceReset = sourceIt;
 
     if (!parseDateTimePatternCore (pattern, sourceIt, sourceEnd, results)) {
@@ -756,6 +770,19 @@ bool charIn (wchar_t c, const wchar_t* list)
 }
 
 
+int getNumIntDigits (double x)
+{
+    // Returns the number of digits in the given integer value.
+
+    int n = static_cast<int>(x);
+    int nDigits = 1;
+    while (n /= 10)
+        ++ nDigits;
+
+    return nDigits;
+}
+
+
 //__________________________________________________________________________________________________
 bool printDeltaFunc (
     wstring::iterator&       formatIterator,     // Pointer to delta format after '%_'
@@ -804,6 +831,12 @@ bool printDeltaFunc (
     if (formatIterator == formatEnd) return false;
 
     auto unitType = *formatIterator++;
+    auto leadingZeros = (moduloUnit && (unitType == '0')) ? 1 : 0;
+
+    if (leadingZeros) {
+        if (formatIterator == formatEnd) return false;
+        unitType = *formatIterator++;
+    }
 
     switch (unitType) {
         case L'Y': {
@@ -821,23 +854,31 @@ bool printDeltaFunc (
         case L'D': {
             if (!charIn(moduloUnit, L"ty")) return false; // Filter out invalid modulo unit prefixes.
             deltaValue /= secondsPerDay;
+            if (leadingZeros)
+                leadingZeros = getNumIntDigits (moduloValue/secondsPerDay);
             break;
         }
 
         case L'H': {
             if (!charIn(moduloUnit, L"tyd")) return false; // Filter out invalid modulo unit prefixes.
             deltaValue /= secondsPerHour;
+            if (leadingZeros)
+                leadingZeros = getNumIntDigits (moduloValue/secondsPerHour);
             break;
         }
 
         case L'M': {
             if (!charIn(moduloUnit, L"tydh")) return false; // Filter out invalid modulo unit prefixes.
             deltaValue /= secondsPerMinute;
+            if (leadingZeros)
+                leadingZeros = getNumIntDigits (moduloValue/secondsPerMinute);
             break;
         }
 
         case L'S': {
             if (!charIn(moduloUnit, L"tydhm")) return false; // Filter out invalid modulo unit prefixes.
+            if (leadingZeros)
+                leadingZeros = getNumIntDigits (moduloValue);
             break;
         }
 
@@ -870,7 +911,10 @@ bool printDeltaFunc (
     }
 
     // Get the string value of the deltaValue with the requested precision.
-    output << std::fixed << std::setprecision(precision) << deltaValue;
+    output << std::fixed << std::setprecision(precision);
+    if (leadingZeros)
+        output << std::setfill(L'0') << std::setw(leadingZeros);
+    output << deltaValue;
     wstring outputString = output.str();
 
     auto decimalPointIndex = outputString.rfind(L'.');
@@ -1061,12 +1105,12 @@ static auto help_deltaTime =
     L"    Time differences are reported using the delta time formats. The delta time\n"
     L"    format has the following syntax:\n"
     L"\n"
-    L"                               %_['kd][p]<u>[.[#]]\n"
-    L"                                  -v-  v  v  --v-\n"
-    L"            Numeric Format --------'   |  |    |\n"
-    L"            Next Greater Unit ---------'  |    |\n"
-    L"            Units ------------------------'    |\n"
-    L"            Decimal Precision -----------------'\n"
+    L"                               %_['kd][u[0]]<U>[.[#]]\n"
+    L"                                  -v-  -v--  v  --v-\n"
+    L"            Numeric Format --------'    |    |    |\n"
+    L"            Next Greater Unit ----------'    |    |\n"
+    L"            Units ---------------------------'    |\n"
+    L"            Decimal Precision --------------------'\n"
     L"\n"
     L"    Numeric Format ['kd] (_optional_)\n"
     L"        The optional `'` character is followed by two characters, k and d.\n"
@@ -1078,7 +1122,7 @@ static auto help_deltaTime =
     L"        specify European formatting, with `.` for the thousands separator, and\n"
     L"        `,` as the decimal point.\n"
     L"\n"
-    L"    Next Greater Unit [p] (_optional_)\n"
+    L"    Next Greater Unit [u[0]] (_optional_)\n"
     L"        This single lowercase letter indicates any preceding units used in the\n"
     L"        delta time printing. For example, if the unit is hours, and the next\n"
     L"        greater unit is years, then the hours reported are the remainder\n"
@@ -1091,7 +1135,10 @@ static auto help_deltaTime =
     L"            h - Hours\n"
     L"            m - Minutes\n"
     L"\n"
-    L"    Units <u> (_required_)\n"
+    L"        If the next greater unit is followed by a zero, then the result is\n"
+    L"        zero-padded to the appropriate width for the range of possible values.\n"
+    L"\n"
+    L"    Units <U> (_required_)\n"
     L"        The unit of time (single uppercase letter) to report for the time\n"
     L"        delta. This is the remainder after the (optional) next greater unit.\n"
     L"        The following units are supported:\n"
@@ -1107,7 +1154,8 @@ static auto help_deltaTime =
     L"\n"
     L"        Tropical (or solar) years are approximately equal to one trip around\n"
     L"        the sun. These are useful to approximate the effect of leap years when\n"
-    L"        reporting multi-year durations.\n"
+    L"        reporting multi-year durations. For this program, a tropical year is\n"
+    L"        defined as 365 + 97/400 days.\n"
     L"\n"
     L"        The following are the supported combinations of next greater unit and\n"
     L"        unit:\n"

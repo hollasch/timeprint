@@ -213,14 +213,14 @@ Delta Time Formatting
 Time differences are reported using the delta time formats. The delta time
 format has the following syntax:
 
-                       %_['kd][p]<u>[.[#]]
-                          -v-  v  v  --v-
-    Numeric Format --------'   |  |    |
-    Next Greater Unit ---------'  |    |
-    Units ------------------------'    |
-    Decimal Precision -----------------'
+                       %_['kd][u[0]]<U>[.[#]]
+                          -v-  -v--  v  -v--
+    Numeric Format --------'    |    |   |
+    Next Greater Unit ----------'    |   |
+    Units ---------------------------'   |
+    Decimal Precision -------------------'
 
-### Numeric Format ['kd] (_optional_)
+### Numeric Format `['kd]` (_optional_)
 The optional `'` character is followed by two characters, k and d.
 k represents the character to use for the thousand's separator, with
 the special case that `0` indicates that there is to be no thousands
@@ -232,7 +232,7 @@ and the American `.` decimal point. `'.,` would specify European
 formatting, with `.` for the thousands separator, and `,` as the
 decimal point.
 
-### Next Greater Unit [p] (_optional_)
+### Next Greater Unit `[u[0]]` (_optional_)
 This single lowercase letter indicates any preceding units used in the
 delta time printing. For example, if the unit is hours, and the next
 greater unit is years, then the hours reported are the remainder
@@ -247,7 +247,10 @@ include the following:
 | `h`  | Hours
 | `m`  | Minutes
 
-### Units <u> (_required_)
+If the next greater unit is followed by a zero, then the result is
+zero-padded to the appropriate width for the range of possible values.
+
+### Units `<U>` (_required_)
 The unit of time (single uppercase letter) to report for the time
 delta. This is the remainder after the (optional) next greater unit.
 The following units are supported:
@@ -265,7 +268,8 @@ Nominal years are 365 days in length.
 
 Tropical (or solar) years are approximately equal to one trip around
 the sun. These are useful to approximate the effect of leap years when
-reporting multi-year durations.
+reporting multi-year durations. For this program, a tropical year is
+defined as 365 + 97/400 days.
 
 The following are the supported combinations of next greater unit and
 unit:
@@ -277,7 +281,7 @@ unit:
     M yM tM dM hM
     S yS tS dS hS mS
 
-### Decimal Precision [.[#]] (_optional_)
+### Decimal Precision `[.[#]]` (_optional_)
 With the exception of seconds, all units will have a fractional value
 for time differences. If the decimal precision format is omitted, the
 then rounded whole value is printed.
