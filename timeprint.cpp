@@ -66,14 +66,28 @@ struct Parameters
 };
 
 
+// Global Constants
+
+static const int secondsPerMinute       = 60;
+static const int secondsPerHour         = secondsPerMinute * 60;
+static const int secondsPerDay          = secondsPerHour * 24;
+static const int secondsPerNominalYear  = secondsPerDay * 365;
+static const int secondsPerTropicalYear = secondsPerNominalYear + (secondsPerDay / 400) * 497;   // 365+97/400 days
+
+
 // Global Variables
-static time_t timeNow;
+static time_t currentTime;
+static tm     currentTimeLocal;
+static tm     currentTimeUTC;
+static int    timeZoneOffsetHours;      // Signed hours offset from UTC
+static int    timeZoneOffsetMinutes;    // Signed minutes offset from UTC
 
 
 // Function Declarations
 bool calcTime            (const Parameters& params, tm& timeValue, time_t& deltaTimeSeconds);
+void getCurrentTime      ();
 bool getParameters       (Parameters& params, int argc, wchar_t* argv[]);
-bool getTime             (time_t& result, const TimeSpec&);
+bool getTimeFromSpec     (time_t& result, const TimeSpec&);
 bool getExplicitDateTime (time_t& result, wstring timeSpec);
 bool getExplicitTime     (tm& result, wstring::iterator specBegin, wstring::iterator specEnd);
 bool getExplicitDate     (tm& result, wstring::iterator specBegin, wstring::iterator specEnd);
@@ -86,8 +100,6 @@ bool printDeltaFunc      (wstring::iterator& formatIterator, const wstring::iter
 //__________________________________________________________________________________________________
 int wmain (int argc, wchar_t *argv[])
 {
-    time (&timeNow);    // Snapshot the current time.
-
     Parameters params;
 
     if (!getParameters(params, argc, argv)) return -1;
@@ -103,6 +115,34 @@ int wmain (int argc, wchar_t *argv[])
     }
 
     return 1;
+}
+
+
+void getCurrentTime ()
+{
+    // This function gets the current local time, and the corresponding local and UTC time structs.
+    // It also gets the current time zone's hour & minute offsets from UTC.
+
+    currentTime = std::time(nullptr);
+    localtime_s (&currentTimeLocal, &currentTime);
+    gmtime_s (&currentTimeUTC, &currentTime);
+
+    // Figure out the local time zone's offset. Computing the difference between local and UTC times
+    // is problematic, particularly when the local time zone is changing in or out of daylight
+    // saving time. Given this, the best approach is to get the actual time zone offset from the
+    // system ftime() function family. This returns a string of the form "[+|-]HHMM".
+
+    wchar_t buffer[8];
+
+    wcsftime (buffer, std::size(buffer), L"%z", &currentTimeLocal);
+    timeZoneOffsetHours   = 10*(buffer[1]-L'0') + (buffer[2]-L'0');  // Parse out unsigned offset hours
+    timeZoneOffsetMinutes = 10*(buffer[3]-L'0') + (buffer[4]-L'0');  // Parse out unsigned offset minutes
+
+    // Handle possible negative sign.
+    if (buffer[0] == L'-') {
+        timeZoneOffsetHours   = -timeZoneOffsetHours;
+        timeZoneOffsetMinutes = -timeZoneOffsetMinutes;
+    }
 }
 
 
@@ -323,21 +363,21 @@ bool calcTime (
     // parameters. This function returns true on success, false on failure.
 
     // If an alternate time zone was specified, then we need to set the TZ environment variable.
-    // Kludgey, but I couldn't find another way.
-
     if (!params.zone.empty()) {
         _wputenv_s (L"TZ", params.zone.c_str());
     }
 
+    getCurrentTime();    // Snapshot current time data to global variables.
+
     time_t time1;
-    if (!getTime (time1, params.time1)) return false;
+    if (!getTimeFromSpec (time1, params.time1)) return false;
 
     if (params.time2.type == TimeType::None) {      // Reporting a single absolute time.
         deltaTimeSeconds = 0;
         localtime_s (&timeValue, &time1);
     } else {                                        // Reporting a time diffence
         time_t time2;
-        if (!getTime (time2, params.time2)) return false;
+        if (!getTimeFromSpec (time2, params.time2)) return false;
         deltaTimeSeconds = (time1 < time2) ? (time2 - time1) : (time1 - time2);
         gmtime_s (&timeValue, &deltaTimeSeconds);
     }
@@ -347,12 +387,12 @@ bool calcTime (
 
 
 //__________________________________________________________________________________________________
-bool getTime (time_t& result, const TimeSpec& spec)
+bool getTimeFromSpec (time_t& result, const TimeSpec& spec)
 {
-    // Gets the time according to the spec's type + value.
+    // Gets the time according to the given time spec.
 
     if (spec.type == TimeType::Now) {
-        result = timeNow;
+        result = currentTime;
         return true;
     }
 
@@ -393,9 +433,7 @@ bool getTime (time_t& result, const TimeSpec& spec)
 //__________________________________________________________________________________________________
 bool getExplicitDateTime (time_t& result, wstring timeSpec)
 {
-    tm timeStruct;
-
-    gmtime_s (&timeStruct, &timeNow);
+    tm timeStruct = currentTimeLocal;
 
     auto dateTimeSep = std::find (timeSpec.begin(), timeSpec.end(), 'T');
     bool successResult;
@@ -506,23 +544,23 @@ bool parseDateTimePattern (
 
 
 //__________________________________________________________________________________________________
-bool getExplicitTime (tm& resultTime, wstring::iterator specBegin, wstring::iterator specEnd)
+bool getExplicitTime (tm& resultTimeLocal, wstring::iterator specBegin, wstring::iterator specEnd)
 {
     bool gotTime = false;
     vector<int> results;
     wstring::iterator specIt = specBegin;
 
     if (parseDateTimePattern (L"##:##:##", specIt, specEnd, results)) {
-        resultTime.tm_hour = results[0];
-        resultTime.tm_min  = results[1];
-        resultTime.tm_sec  = results[2];
+        resultTimeLocal.tm_hour = results[0];
+        resultTimeLocal.tm_min  = results[1];
+        resultTimeLocal.tm_sec  = results[2];
         gotTime = true;
     } else if (parseDateTimePattern (L"##:##", specIt, specEnd, results)) {
-        resultTime.tm_hour = results[0];
-        resultTime.tm_min  = results[1];
+        resultTimeLocal.tm_hour = results[0];
+        resultTimeLocal.tm_min  = results[1];
         gotTime = true;
     } else if (parseDateTimePattern (L"##", specIt, specEnd, results)) {
-        resultTime.tm_hour = results[0];
+        resultTimeLocal.tm_hour = results[0];
         gotTime = true;
     }
 
@@ -530,19 +568,36 @@ bool getExplicitTime (tm& resultTime, wstring::iterator specBegin, wstring::iter
 
     // Parse timezone, if any.
 
-    if ((specIt == specEnd) || ((specIt[0] == L'Z') && (std::next(specIt) == specEnd))) {
-        // UTC time, no adjustment needed.
+    if (specIt == specEnd) {
+        // Time was specified in local time, no conversion needed.
         return true;
     }
 
-    if (parseDateTimePattern (L"+##:##", specIt, specEnd, results)) {
-        resultTime.tm_hour += results[0] * results[1];
-        resultTime.tm_min  += results[0] * results[1];
-    } else if (parseDateTimePattern (L"+##", specIt, specEnd, results)) {
-        resultTime.tm_hour += results[0] * results[1];
+    if ((specIt[0] == L'Z') && (std::next(specIt) == specEnd)) {
+        // UTC time; convert to local. We just do this manually by applying the offset.
+        resultTimeLocal.tm_hour += timeZoneOffsetHours;
+        resultTimeLocal.tm_min  += timeZoneOffsetMinutes;
+        return true;
     }
 
-    return (specIt == specEnd);
+    // Attempt to parse the explicit timezone from the spec.
+    auto specOffsetHours   = 0;
+    auto specOffsetMinutes = 0;
+
+    if (parseDateTimePattern (L"+##:##", specIt, specEnd, results)) {
+        specOffsetHours   = results[0] * results[1];
+        specOffsetMinutes = results[0] * results[2];
+    } else if (parseDateTimePattern (L"+##", specIt, specEnd, results)) {
+        specOffsetHours = results[0] * results[1];
+    }
+
+    if (specIt != specEnd) return false;
+
+    // Convert from specified time zone to UTC, then to local time.
+    resultTimeLocal.tm_hour += -specOffsetHours   + timeZoneOffsetHours;
+    resultTimeLocal.tm_min  += -specOffsetMinutes + timeZoneOffsetMinutes;
+
+    return true;
 }
 
 
@@ -669,12 +724,6 @@ void printResults (
 /*==================================================================================================
 Delta Formatting
 ==================================================================================================*/
-
-const double secondsPerMinute       = 60;
-const double secondsPerHour         = secondsPerMinute * 60;
-const double secondsPerDay          = secondsPerHour * 24;
-const double secondsPerNominalYear  = secondsPerDay * 365;
-const double secondsPerTropicalYear = secondsPerDay * (365.0 + 97.0/400.0);
 
 
 //__________________________________________________________________________________________________
@@ -904,14 +953,14 @@ static auto help_general =
     L"\n"
     L"    --time <value>, -t<value>\n"
     L"        Specifies an explicit absolute time, using ISO 8601 syntax. For a\n"
-    L"        description of supported syntax, use '--help timeSyntax'.\n"
+    L"        description of supported syntax, use `--help timeSyntax`.\n"
     L"\n"
     L"    --timeZone <zone>, -z<zone>\n"
     L"        The --timeZone argument takes a timezone string of the form used by\n"
-    L"        the _tzset function. If no timezone is specified, the system local\n"
-    L"        time is used. The timezone can be set in the environment via the TZ\n"
-    L"        environment variable. For a description of the time zone format, use\n"
-    L"        '--help timeZone'.\n"
+    L"        the TZ environment variable. If no timezone is specified, the value\n"
+    L"        in the TZ environment variable is used. If the environment variable\n"
+    L"        TZ is unset, the system local time is used. For a description of the\n"
+    L"        time zone format, use `--help timeZone`.\n"
     L"\n"
     L"If no output string is supplied, the format specified in the environment\n"
     L"variable TIMEFORMAT is used. If this variable is not set, then the format\n"
@@ -925,9 +974,9 @@ static auto help_general =
     L"\\r (carriage return), and \\a (alert, or beep).\n"
     L"\n"
     L"For a full description of supported time format codes, use\n"
-    L"'--help formatCodes'.\n"
+    L"`--help formatCodes`.\n"
     L"\n"
-    L"For additional help, use '--help <topic>', where <topic> is one of:\n"
+    L"For additional help, use `--help <topic>`, where <topic> is one of:\n"
     L"    - examples\n"
     L"    - deltaTime\n"
     L"    - formatCodes\n"
@@ -1161,23 +1210,30 @@ static auto help_timeZone =
     L"\n"
     L"    Time Zones\n"
     L"    ------------\n"
-    L"\n"
-    L"    Time zones have the format `tzn[+|-]hh[:mm[:ss]][dzn]`, where\n"
+    L"    The time zone value may be specified with the TZ environment variable,\n"
+    L"    or using the `--timezone` option. Time zones have the format\n"
+    L"    `tzn[+|-]hh[:mm[:ss]][dzn]`, where\n"
     L"\n"
     L"        tzn\n"
-    L"            Three-letter time-zone name, such as PST. You must specify the\n"
-    L"            correct offset from local time to UTC.\n"
+    L"            Time-zone name, three letters or more, such as PST.\n"
     L"\n"
-    L"        hh\n"
-    L"            Difference in hours between UTC and local time. Optionally signed.\n"
+    L"        [+|-]hh\n"
+    L"            The time that must be ADDED to local time to get UTC.\n"
+    L"            CAREFUL: Unfortunately, this value is negated from how time zones\n"
+    L"            are normally specified. For example, PDT is specified as -0800,\n"
+    L"            but in the time zone string, will be specified as `PDT+08`.\n"
+    L"            You can experiment with the string \"%#c %Z %z\" and the\n"
+    L"            `--timezone` option to ensure you understand how these work\n"
+    L"            together. If offset hours are omitted, they are assumed to be\n"
+    L"            zero.\n"
     L"\n"
-    L"        mm\n"
-    L"            Minutes, separated with a colon (`:`).\n"
+    L"        [:mm]\n"
+    L"            Minutes, prefixed with mandatory colon.\n"
     L"\n"
-    L"        ss\n"
-    L"            Seconds, separated with a colon (`:`).\n"
+    L"        [:ss]\n"
+    L"            Seconds, prefixed with mandatory colon.\n"
     L"\n"
-    L"        dzn\n"
+    L"        [dzn]\n"
     L"            Three-letter daylight-saving-time zone such as PDT. If daylight\n"
     L"            saving time is never in effect in the locality, omit dzn. The C\n"
     L"            run-time library assumes the US rules for implementing the\n"
@@ -1187,6 +1243,8 @@ static auto help_timeZone =
     L"\n"
     L"            UTC       Universal Coordinated Time\n"
     L"            PST8      Pacific Standard Time\n"
+    L"            PDT+07    Pacific Daylight Time\n"
+    L"            NST+03:30 Newfoundland Standard Time\n"
     L"            PST8PDT   Pacific Standard Time, daylight savings in effect\n"
     L"            GST-1GDT  German Standard Time, daylight savings in effect\n"
     ;

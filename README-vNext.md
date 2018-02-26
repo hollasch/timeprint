@@ -78,11 +78,11 @@ Specifies an explicit absolute time, using ISO 8601 syntax. For a
 description of supported syntax, use `--help timeSyntax`.
 
 `--timeZone <zone>`, `-z<zone>`<br>
-The `--timeZone` argument takes a timezone string of the form used by
-the `_tzset()` function. If no timezone is specified, the system local
-time is used. The timezone can be set in the environment via the `TZ`
-environment variable. For a description of the time zone format, use
-`--help timeZone`.
+The --timeZone argument takes a timezone string of the form used by
+the TZ environment variable. If no timezone is specified, the value
+in the TZ environment variable is used. If the environment variable
+TZ is unset, the system local time is used. For a description of the
+time zone format, use `--help timeZone`.\n"
 
 If no output string is supplied, the format specified in the environment
 variable `TIMEFORMAT` is used. If this variable is not set, then the format
@@ -107,30 +107,40 @@ For additional help, use `--help <topic>`, where <topic> is one of
 
 Time Zones
 ------------
-Time zones have the format `tzn[+|-]hh[:mm[:ss]][dzn]`, where
+The time zone value may be specified with the TZ environment variable,
+or using the `--timezone` option. Time zones have the format
+`tzn[+|-]hh[:mm[:ss]][dzn]`, where
 
-`tzn` — Three-letter time-zone name, such as PST. You must specify the correct
-offset from local time to UTC.
+`tzn` — Time-zone name, three letters or more, such as `PST`.
 
-`hh` — Difference in hours between UTC and local time. Optionally signed.
+`[+|-]hh` — The time that must be ADDED to local time to get UTC.
+*CAREFUL*: Unfortunately, this value is negated from how time zones
+are normally specified. For example, PDT is specified as `-0800`,
+but in the time zone string, will be specified as `PDT+08`.
+You can experiment with the string \"%#c %Z %z\" and the
+`--timezone` option to ensure you understand how these work
+together. If offset hours are omitted, they are assumed to be
+zero.
 
-`mm` — Minutes, separated with a colon (:).
+`[:mm]` — Minutes, prefixed with mandatory colon.
 
-`ss` — Seconds, separated with a colon (:).
+`[:ss]` — Seconds, prefixed with mandatory colon.
 
-`dzn` — Three-letter daylight-saving-time zone such as PDT. If daylight saving
+`[dzn]` — Three-letter daylight-saving-time zone such as PDT. If daylight saving
 time is never in effect in the locality, omit dzn. The C run-time library
 assumes the US rules for implementing the calculation of Daylight Saving Time
 (DST).
 
 Examples of the timezone string include the following:
 
-| Zone       | Meaning
-|:-----------|:--------------------------------------------------
-| `UTC`      | Universal Coordinated Time
-| `PST8`     | Pacific Standard Time
-| `PST8PDT`  | Pacific Standard Time, daylight savings in effect
-| `GST-1GDT` | German Standard Time, daylight savings in effect
+| Zone        | Meaning
+|:------------|:--------------------------------------------------
+| `UTC`       | Universal Coordinated Time
+| `PST8`      | Pacific Standard Time
+| `PDT+07`    | Pacific Daylight Time
+| `NST+03:30` | Newfoundland Standard Time
+| `PST8PDT`   | Pacific Standard Time, daylight savings in effect
+| `GST-1GDT`  | German Standard Time, daylight savings in effect
 
 
 Format Codes
