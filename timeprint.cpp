@@ -106,11 +106,11 @@ int wmain (int argc, wchar_t *argv[])
 
     help (params.helpType);
 
-    tm currentTime;
-    time_t    deltaTimeSeconds;
+    tm     calculatedTime;
+    time_t deltaTimeSeconds;
 
-    if (calcTime (params, currentTime, deltaTimeSeconds)) {
-        printResults (params.format, params.codeChar, currentTime, deltaTimeSeconds);
+    if (calcTime (params, calculatedTime, deltaTimeSeconds)) {
+        printResults (params.format, params.codeChar, calculatedTime, deltaTimeSeconds);
         return 0;
     }
 
@@ -946,7 +946,7 @@ bool printDeltaFunc (
 
 //__________________________________________________________________________________________________
 static auto help_general =
-    L"timeprint v2.0.0-beta  |  https://github.com/hollasch/timeprint\n"
+    L"timeprint v2.0.0  |  https://github.com/hollasch/timeprint\n"
     L"timeprint - Print time and date information\n"
     L"\n"
     L"usage: timeprint [--codeChar <char>] [-%<char>]\n"

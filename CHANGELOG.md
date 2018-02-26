@@ -1,7 +1,7 @@
-Change Log for timeprint
+Change Log for `timeprint`
 ================================================================================
 
-## v2.0.0-beta
+## v2.0.0 (2018-02-26)
 - Renamed from currtime to timeprint.
 - Add new -- switch variants (--help, --codeChar, --timeZone, and so on).
 - -e is now -%/--codeChar to eliminate confusion between escape sequences and

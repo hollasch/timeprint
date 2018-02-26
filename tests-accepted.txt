@@ -3,7 +3,7 @@ Acceptance Tests for `timeprint`
 
 --------------------------------------------------------------------------------
 Test 1: [/?]
-timeprint v2.0.0-beta  |  https://github.com/hollasch/timeprint
+timeprint v2.0.0  |  https://github.com/hollasch/timeprint
 timeprint - Print time and date information
 
 usage: timeprint [--codeChar <char>] [-%<char>]
