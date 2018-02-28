@@ -6,14 +6,14 @@
 : NOTE: This test requires the `diff` tool to be on your path.
 : ==================================================================================================
 
-set testOut=x64
+set testOut=out
 
 if "%1" equ "--run" goto :runTests
 
 if "%1" neq "" (
-    set timePrint=x64\%1\timeprint.exe
+    set timePrint=out\%1\timeprint.exe
 ) else (
-    set timePrint=x64\Debug\timeprint.exe
+    set timePrint=out\Debug\timeprint.exe
 )
 
 if not exist %timePrint% (

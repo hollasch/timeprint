@@ -1,6 +1,5 @@
 # Git Ignore File for timeprint
 
-x64/
 .vs/
+out/
 *.vcxproj.user
-/*.log
