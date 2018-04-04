@@ -1,6 +1,9 @@
 Change Log for `timeprint`
 ================================================================================
 
+## v2.0.0+ (In Progress)
+  - Indicate unknown DST status for calls to mktime().
+
 ## v2.0.0 (2018-02-26)
   - Renamed from currtime to timeprint.
   - Add new -- switch variants (--help, --codeChar, --timeZone, and so on).

@@ -446,8 +446,10 @@ bool getExplicitDateTime (time_t& result, wstring timeSpec)
                      || getExplicitDate (timeStruct, timeSpec.begin(), timeSpec.end());
     }
 
-    if (successResult)
+    if (successResult) {
+        timeStruct.tm_isdst = -1;         // DST status unknown
         result = mktime (&timeStruct);
+    }
 
     return successResult;
 }
@@ -946,7 +948,7 @@ bool printDeltaFunc (
 
 //__________________________________________________________________________________________________
 static auto help_general =
-    L"timeprint v2.0.0  |  https://github.com/hollasch/timeprint\n"
+    L"timeprint v2.0.0+ |  https://github.com/hollasch/timeprint\n"
     L"timeprint - Print time and date information\n"
     L"\n"
     L"usage: timeprint [--codeChar <char>] [-%<char>]\n"
