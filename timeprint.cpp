@@ -447,6 +447,10 @@ bool getExplicitDateTime (time_t& result, wstring timeSpec)
     }
 
     if (successResult) {
+        if (timeStruct.tm_year < 70) {
+            fwprintf (stderr, L"timeprint: Cannot handle dates before 1970.\n");
+            return false;
+        }
         timeStruct.tm_isdst = -1;         // DST status unknown
         result = mktime (&timeStruct);
     }
