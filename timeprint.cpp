@@ -718,10 +718,10 @@ void printResults (
                 }
 
                 // Get the leading integer value before the code.
-                wchar_t c; 
+                wchar_t c;
                 while (c = *formatIterator++, c && isdigit(c))
                     numPrefix = (10 * numPrefix) + (c - L'0');
-                
+
                 numPrefix *= numSign;
 
                 const static auto legalPrefixedCodes = L"a";
@@ -976,7 +976,7 @@ bool printDeltaFunc (
         else {
             kGroupIndex = static_cast<int>(decimalPointIndex - 3);
         }
-        
+
         while (kGroupIndex > 0) {
             outputString.insert (kGroupIndex, 1, thousandsChar);
             kGroupIndex -= 3;
@@ -989,384 +989,375 @@ bool printDeltaFunc (
 
 
 //__________________________________________________________________________________________________
-static auto help_general =
-    L"timeprint v2.1.0-beta |  https://github.com/hollasch/timeprint\n"
-    L"timeprint - Print time and date information\n"
-    L"\n"
-    L"usage: timeprint [--codeChar <char>] [-%<char>]\n"
-    L"                 [--help [topic]] [-h[topic]] [/?]\n"
-    L"                 [--access <fileName>] [-a<fileName>]\n"
-    L"                 [--creation <fileName>] [-c<fileName>]\n"
-    L"                 [--modification <fileName>] [-m<fileName>]\n"
-    L"                 [--timeZone <zone>] [-z<zone>]\n"
-    L"                 [--now] [-n]\n"
-    L"                 [--time <timeValue>] [-t<timeValue>]\n"
-    L"                 [string] ... [string]\n"
-    L"\n"
-    L"This command prints time information to the standard output stream. All string\n"
-    L"fragments will be concatenated with a space, so it's usually unnecessary to\n"
-    L"quote the format string.\n"
-    L"\n"
-    L"timeprint operates in either absolute or differential mode. If one time value\n"
-    L"is specified, then values for that absolute time are reported. If two time\n"
-    L"values are supplied, then timeprint reports the values for the positive\n"
-    L"difference between those two values. If no time values are given, then --now\n"
-    L"is implied.\n"
-    L"\n"
-    L"Command switches may be prefixed with a dash (-) or a slash (/).\n"
-    L"\n"
-    L"    --access <fileName>, -a<fileName>\n"
-    L"        Use the time of last access of the named file for a time value.\n"
-    L"\n"
-    L"    --codeChar <char>, -%<char>\n"
-    L"        The --codeChar switch specifies an alternate code character to the\n"
-    L"        default '%' character. If the backslash (\\) is specified as the code\n"
-    L"        character, then normal backslash escapes will be disabled. The\n"
-    L"        --codeChar switch is ignored unless the format string is specified on\n"
-    L"        the command line.\n"
-    L"\n"
-    L"    --creation <fileName>, -c <fileName>\n"
-    L"        Use the creation time of the named file.\n"
-    L"\n"
-    L"    --help [topic], -h[topic], -?[topic]\n"
-    L"        Print help and usage information in general, or for the specified\n"
-    L"        topic. Topics include 'examples', 'deltaTime', 'formatCodes',\n"
-    L"        'timeSyntax', and 'timezone'.\n"
-    L"\n"
-    L"    --modification <fileName>, -m<fileName>\n"
-    L"        Use the modification time of the named file.\n"
-    L"\n"
-    L"    --now, -n\n"
-    L"        Use the current time.\n"
-    L"\n"
-    L"    --time <value>, -t<value>\n"
-    L"        Specifies an explicit absolute time, using ISO 8601 syntax. For a\n"
-    L"        description of supported syntax, use `--help timeSyntax`.\n"
-    L"\n"
-    L"    --timeZone <zone>, -z<zone>\n"
-    L"        The --timeZone argument takes a timezone string of the form used by\n"
-    L"        the TZ environment variable. If no timezone is specified, the value\n"
-    L"        in the TZ environment variable is used. If the environment variable\n"
-    L"        TZ is unset, the system local time is used. For a description of the\n"
-    L"        time zone format, use `--help timeZone`.\n"
-    L"\n"
-    L"If no output string is supplied, the format specified in the environment\n"
-    L"variable TIMEFORMAT is used. If this variable is not set, then the format\n"
-    L"defaults to \"%#c\".\n"
-    L"\n"
-    L"Note that if your format string begins with - or /, you will need to prefix it\n"
-    L"with a \\ character so that it is not confused with a command switch.\n"
-    L"\n"
-    L"Strings take both \\-escaped characters and %-codes in the style of printf.\n"
-    L"The escape codes include \\n (newline), \\t (tab), \\b (backspace),\n"
-    L"\\r (carriage return), and \\a (alert, or beep).\n"
-    L"\n"
-    L"For a full description of supported time format codes, use\n"
-    L"`--help formatCodes`.\n"
-    L"\n"
-    L"For additional help, use `--help <topic>`, where <topic> is one of:\n"
-    L"    - examples\n"
-    L"    - deltaTime\n"
-    L"    - formatCodes\n"
-    L"    - timeSyntax\n"
-    L"    - timeZone\n"
-    ;
+static auto help_general = LR"(
+timeprint v2.1.0-beta |  https://github.com/hollasch/timeprint
+timeprint - Print time and date information
 
-static auto help_formatCodes =
-    L"\n"
-    L"\n"
-    L"    Format Codes\n"
-    L"    --------------\n"
-    L"\n"
-    L"    The following time format codes are supported:\n"
-    L"\n"
-    L"        %a    Abbreviated weekday name *\n"
-    L"        %<d>a Weekday name, abbreviated to d characters (min 1)\n"
-    L"        %A    Full weekday name *\n"
-    L"        %b    Abbreviated month name *\n"
-    L"        %B    Full month name *\n"
-    L"        %c    Date and time representation *\n"
-    L"        %C    Year divided by 100 and truncated to integer (00-99)\n"
-    L"        %d    Day of month as decimal number (01-31)\n"
-    L"        %D    Short MM/DD/YY date, equivalent to %m/%d/%y\n"
-    L"        %e    Day of the month, space-padded ( 1-31)\n"
-    L"        %F    Short YYYY-MM-DD date, equivalent to %Y-%m-%d\n"
-    L"        %g    Week-based year, last two digits (00-99)\n"
-    L"        %G    Week-based year\n"
-    L"        %h    Abbreviated month name (same as %b) *\n"
-    L"        %H    Hour in 24-hour format (00-23)\n"
-    L"        %I    Hour in 12-hour format (01-12)\n"
-    L"        %j    Day of year as decimal number (001-366)\n"
-    L"        %m    Month as decimal number (01-12)\n"
-    L"        %M    Minute as decimal number (00-59)\n"
-    L"        %n    New line character (same as '\\n')\n"
-    L"        %p    AM or PM designation\n"
-    L"        %r    12-hour clock time *\n"
-    L"        %R    24-hour HH:MM time, equivalent to %H:%M\n"
-    L"        %S    Seconds as a decimal number (00-59)\n"
-    L"        %t    Horizontal tab character (same as '\\t')\n"
-    L"        %T    ISO 8601 time format (HH:MM:SS) equivalent to %H:%M:%S\n"
-    L"        %u    ISO 8601 weekday as number with Monday=1 (1-7)\n"
-    L"        %U    Week number, first Sunday = week 1 day 1 (00-53)\n"
-    L"        %V    ISO 8601 week number (01-53)\n"
-    L"        %w    Weekday as decimal number, Sunday = 0 (0-6)\n"
-    L"        %W    Week of year, decimal, Monday = week 1 day 1(00-51)\n"
-    L"        %x    Date representation *\n"
-    L"        %X    Time representation *\n"
-    L"        %y    Year without century, as decimal number (00-99)\n"
-    L"        %Y    Year with century, as decimal number\n"
-    L"        %z    ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)\n"
-    L"              If timezone cannot be determined, no characters\n"
-    L"        %Z    Time-zone name or abbreviation, empty for unrecognized zones *\n"
-    L"        %_... Delta time formats. See `--help deltaTime`.\n"
-    L"        %%    Percent sign\n"
-    L"\n"
-    L"        * Specifiers marked with an asterisk are locale-dependent.\n"
-    L"\n"
-    L"    As in the printf function, the # flag may prefix any formatting code. In\n"
-    L"    that case, the meaning of the format code is changed as follows.\n"
-    L"\n"
-    L"        %#c\n"
-    L"            Long date and time representation, appropriate for current locale.\n"
-    L"            For example: Tuesday, March 14, 1995, 12:41:29.\n"
-    L"\n"
-    L"        %#x\n"
-    L"            Long date representation, appropriate to current locale.\n"
-    L"            For example: Tuesday, March 14, 1995.\n"
-    L"\n"
-    L"        %#d, %#H, %#I, %#j, %#m, %#M, %#S, %#U, %#w, %#W, %#y, %#Y\n"
-    L"            Remove any leading zeros.\n"
-    L"\n"
-    L"        All others\n"
-    L"            The flag is ignored.\n"
-    ;
+usage: timeprint [--codeChar <char>] [-%<char>]
+                 [--help [topic]] [-h[topic]] [/?]
+                 [--access <fileName>] [-a<fileName>]
+                 [--creation <fileName>] [-c<fileName>]
+                 [--modification <fileName>] [-m<fileName>]
+                 [--timeZone <zone>] [-z<zone>]
+                 [--now] [-n]
+                 [--time <timeValue>] [-t<timeValue>]
+                 [string] ... [string]
 
-static auto help_deltaTime =
-    L"\n"
-    L"\n"
-    L"    Delta Time Formatting\n"
-    L"    -----------------------\n"
-    L"\n"
-    L"    Time differences are reported using the delta time formats. The delta time\n"
-    L"    format has the following syntax:\n"
-    L"\n"
-    L"                               %_['kd][u[0]]<U>[.[#]]\n"
-    L"                                  -v-  -v--  v  --v-\n"
-    L"            Numeric Format --------'    |    |    |\n"
-    L"            Next Greater Unit ----------'    |    |\n"
-    L"            Units ---------------------------'    |\n"
-    L"            Decimal Precision --------------------'\n"
-    L"\n"
-    L"    Numeric Format ['kd] (_optional_)\n"
-    L"        The optional `'` character is followed by two characters, k and d.\n"
-    L"        k represents the character to use for the thousand's separator, with\n"
-    L"        the special case that `0` indicates that there is to be no thousands\n"
-    L"        separator. The d character is the character to use for the decimal\n"
-    L"        point, if one is present. So, for example, `'0.` specifies no\n"
-    L"        thousands separator, and the American `.` decimal point. `'.,` would\n"
-    L"        specify European formatting, with `.` for the thousands separator, and\n"
-    L"        `,` as the decimal point.\n"
-    L"\n"
-    L"    Next Greater Unit [u[0]] (_optional_)\n"
-    L"        This single lowercase letter indicates any preceding units used in the\n"
-    L"        delta time printing. For example, if the unit is hours, and the next\n"
-    L"        greater unit is years, then the hours reported are the remainder\n"
-    L"        (modulo) after the number of years. Supported next greater units\n"
-    L"        include the following:\n"
-    L"\n"
-    L"            y - Nominal years (see units below for definition)\n"
-    L"            t - Tropical years (see units below for definition)\n"
-    L"            d - Days\n"
-    L"            h - Hours\n"
-    L"            m - Minutes\n"
-    L"\n"
-    L"        If the next greater unit is followed by a zero, then the result is\n"
-    L"        zero-padded to the appropriate width for the range of possible values.\n"
-    L"\n"
-    L"    Units <U> (_required_)\n"
-    L"        The unit of time (single uppercase letter) to report for the time\n"
-    L"        delta. This is the remainder after the (optional) next greater unit.\n"
-    L"        The following units are supported:\n"
-    L"\n"
-    L"            Y - Nominal years\n"
-    L"            T - Tropical years\n"
-    L"            D - Days\n"
-    L"            H - Hours\n"
-    L"            M - Minutes\n"
-    L"            S - Whole seconds\n"
-    L"\n"
-    L"        Nominal years are 365 days in length.\n"
-    L"\n"
-    L"        Tropical (or solar) years are approximately equal to one trip around\n"
-    L"        the sun. These are useful to approximate the effect of leap years when\n"
-    L"        reporting multi-year durations. For this program, a tropical year is\n"
-    L"        defined as 365 + 97/400 days.\n"
-    L"\n"
-    L"        The following are the supported combinations of next greater unit and\n"
-    L"        unit:\n"
-    L"\n"
-    L"            Y\n"
-    L"            T\n"
-    L"            D yD tD\n"
-    L"            H yH tH dH\n"
-    L"            M yM tM dM hM\n"
-    L"            S yS tS dS hS mS\n"
-    L"\n"
-    L"    Decimal Precision [.[#]] (_optional_)\n"
-    L"        With the exception of seconds, all units will have a fractional value\n"
-    L"        for time differences. If the decimal precision format is omitted, the\n"
-    L"        then rounded whole value is printed.\n"
-    L"\n"
-    L"        If the decimal point and number is specified, then the fractional\n"
-    L"        value will be printed with the number of requested digits.\n"
-    L"\n"
-    L"        If a decimal point is specified but without subsequent digits, then\n"
-    L"        the number of digits will depend on the units. Enough digits will be\n"
-    L"        printed to maintain full resolution of the unit to within one second.\n"
-    L"        Thus, years: 8 digits, days: 5, hours: 4, minutes: 2.\n"
-    L"\n"
-    L"    Examples\n"
-    L"         Given a delta time of 547,991,463 seconds, the following delta format\n"
-    L"         strings will yield the following output:\n"
-    L"\n"
-    L"            %_S\n"
-    L"                '547991463'\n"
-    L"\n"
-    L"            %_',.S\n"
-    L"                '547,991,463'\n"
-    L"\n"
-    L"            %_Y years, %_yD days, %_dH. hours\n"
-    L"                '17 years, 137 days, 11.8508 hours'\n"
-    L"\n"
-    L"    See `--time examples` for more example uses of delta time formats.\n"
-    ;
+This command prints time information to the standard output stream. All string
+fragments will be concatenated with a space, so it's usually unnecessary to
+quote the format string.
 
-static auto help_timeSyntax =
-    L"\n"
-    L"\n"
-    L"    Time Syntax\n"
-    L"    -------------\n"
-    L"\n"
-    L"    The explicit `--time` option supports a variety of different formats,\n"
-    L"    based on the ISO 8601 date/time format.\n"
-    L"\n"
-    L"    An explicit date-time may have a date, a time, or both. In the case of\n"
-    L"    both, they must be separated by the letter `T`. No spaces are allowed in\n"
-    L"    the string.\n"
-    L"\n"
-    L"    The date can take one of the following patterns, where a `=` character\n"
-    L"    denotes a required dash, and a `-` denotes an optional dash:\n"
-    L"\n"
-    L"        YYYY-MM-DD\n"
-    L"        YYYY=MM\n"
-    L"        YYYY\n"
-    L"        ==MM-DD\n"
-    L"        YYYY-DDD   (DDD = day of the year)\n"
-    L"\n"
-    L"    The time can take one of the following patterns, where the `:` characters\n"
-    L"    are optional:\n"
-    L"\n"
-    L"        HH:MM:SS\n"
-    L"        HH:MM\n"
-    L"        HH\n"
-    L"\n"
-    L"    The time may be followed by an optional time zone, which has the following\n"
-    L"    pattern, where `+` represents a required `+` or `-` character.\n"
-    L"\n"
-    L"        +HHMM    (Offset from UTC)\n"
-    L"        +HH      (Offset from UTC)\n"
-    L"        Z        (Zulu, or UTC)\n"
-    L"\n"
-    L"    Parsing the explicit time value takes place as follows: if the string\n"
-    L"    contains a `T`, then the date is parsed before the `T`, and the time is\n"
-    L"    parsed after. If the string contains no `T`, then time parsing is first\n"
-    L"    attempted, and on failure date parsing is attempted. Again, parsing is\n"
-    L"    strict, and no other characters may included anywhere.\n"
-    L"\n"
-    L"    Any unspecified units get the current time value for that unit.\n"
-    L"\n"
-    L"    Example explicit time values include the following:\n"
-    L"\n"
-    L"        2018-02-24T20:58:46-0800\n"
-    L"        2018-02-25T04:58:46Z\n"
-    L"        17:57\n"
-    L"        --05-07\n"
-    L"        120000Z\n"
-    L"        1997-183\n"
-    L"        19731217T113618-0700\n"
-    L"\n"
-    L"    See `--help examples` for other examples.\n"
-    ;
+timeprint operates in either absolute or differential mode. If one time value
+is specified, then values for that absolute time are reported. If two time
+values are supplied, then timeprint reports the values for the positive
+difference between those two values. If no time values are given, then --now
+is implied.
 
-static auto help_timeZone =
-    L"\n"
-    L"\n"
-    L"    Time Zones\n"
-    L"    ------------\n"
-    L"    The time zone value may be specified with the TZ environment variable,\n"
-    L"    or using the `--timezone` option. Time zones have the format\n"
-    L"    `tzn[+|-]hh[:mm[:ss]][dzn]`, where\n"
-    L"\n"
-    L"        tzn\n"
-    L"            Time-zone name, three letters or more, such as PST.\n"
-    L"\n"
-    L"        [+|-]hh\n"
-    L"            The time that must be ADDED to local time to get UTC.\n"
-    L"            CAREFUL: Unfortunately, this value is negated from how time zones\n"
-    L"            are normally specified. For example, PDT is specified as -0800,\n"
-    L"            but in the time zone string, will be specified as `PDT+08`.\n"
-    L"            You can experiment with the string \"%#c %Z %z\" and the\n"
-    L"            `--timezone` option to ensure you understand how these work\n"
-    L"            together. If offset hours are omitted, they are assumed to be\n"
-    L"            zero.\n"
-    L"\n"
-    L"        [:mm]\n"
-    L"            Minutes, prefixed with mandatory colon.\n"
-    L"\n"
-    L"        [:ss]\n"
-    L"            Seconds, prefixed with mandatory colon.\n"
-    L"\n"
-    L"        [dzn]\n"
-    L"            Three-letter daylight-saving-time zone such as PDT. If daylight\n"
-    L"            saving time is never in effect in the locality, omit dzn. The C\n"
-    L"            run-time library assumes the US rules for implementing the\n"
-    L"            calculation of Daylight Saving Time (DST).\n"
-    L"\n"
-    L"        Examples of the timezone string include the following:\n"
-    L"\n"
-    L"            UTC       Universal Coordinated Time\n"
-    L"            PST8      Pacific Standard Time\n"
-    L"            PDT+07    Pacific Daylight Time\n"
-    L"            NST+03:30 Newfoundland Standard Time\n"
-    L"            PST8PDT   Pacific Standard Time, daylight savings in effect\n"
-    L"            GST-1GDT  German Standard Time, daylight savings in effect\n"
-    ;
+Command switches may be prefixed with a dash (-) or a slash (/).
 
-static auto help_examples =
-    L"\n"
-    L"\n"
-    L"    Examples\n"
-    L"    ----------\n"
-    L"\n"
-    L"    > timeprint\n"
-    L"    Sunday, July 20, 2003 17:02:39\n"
-    L"\n"
-    L"    > timeprint %H:%M:%S\n"
-    L"    17:03:17\n"
-    L"\n"
-    L"    > timeprint -z UTC\n"
-    L"    Monday, July 21, 2003 00:03:47\n"
-    L"\n"
-    L"    > timeprint Starting build at %Y-%m-%d %#I:%M:%S %p.\n"
-    L"    Starting build at 2003-07-20 5:06:09 PM.\n"
-    L"\n"
-    L"    > echo. >timestamp.txt\n"
-    L"    [a day and a half later...]\n"
-    L"    > timeprint --modification timestamp.txt --now Elapsed Time: %_S seconds\n"
-    L"    Elapsed Time: 129797 seconds\n"
-    L"    > timeprint --modification timestamp.txt --now Elapsed Time: %_H:%_hM:%_mS\n"
-    L"    Elapsed Time: 36:3:17\n"
-    ;
+    --access <fileName>, -a<fileName>
+        Use the time of last access of the named file for a time value.
+
+    --codeChar <char>, -%<char>
+        The --codeChar switch specifies an alternate code character to the
+        default '%' character. If the backslash (\) is specified as the code
+        character, then normal backslash escapes will be disabled. The
+        --codeChar switch is ignored unless the format string is specified on
+        the command line.
+
+    --creation <fileName>, -c <fileName>
+        Use the creation time of the named file.
+
+    --help [topic], -h[topic], -?[topic]
+        Print help and usage information in general, or for the specified
+        topic. Topics include 'examples', 'deltaTime', 'formatCodes',
+        'timeSyntax', and 'timezone'.
+
+    --modification <fileName>, -m<fileName>
+        Use the modification time of the named file.
+
+    --now, -n
+        Use the current time.
+
+    --time <value>, -t<value>
+        Specifies an explicit absolute time, using ISO 8601 syntax. For a
+        description of supported syntax, use `--help timeSyntax`.
+
+    --timeZone <zone>, -z<zone>
+        The --timeZone argument takes a timezone string of the form used by
+        the TZ environment variable. If no timezone is specified, the value
+        in the TZ environment variable is used. If the environment variable
+        TZ is unset, the system local time is used. For a description of the
+        time zone format, use `--help timeZone`.
+
+If no output string is supplied, the format specified in the environment
+variable TIMEFORMAT is used. If this variable is not set, then the format
+defaults to "%#c".
+
+Note that if your format string begins with - or /, you will need to prefix it
+with a \ character so that it is not confused with a command switch.
+
+Strings take both \-escaped characters and %-codes in the style of printf.
+The escape codes include \n (newline), \t (tab), \b (backspace),
+\r (carriage return), and \a (alert, or beep).
+
+For a full description of supported time format codes, use
+`--help formatCodes`.
+
+For additional help, use `--help <topic>`, where <topic> is one of:
+    - examples
+    - deltaTime
+    - formatCodes
+    - timeSyntax
+    - timeZone
+)";
+
+static auto help_formatCodes = LR"(
+    Format Codes
+    --------------
+
+    The following time format codes are supported:
+
+        %a    Abbreviated weekday name *
+        %<d>a Weekday name, abbreviated to d characters (min 1)
+        %A    Full weekday name *
+        %b    Abbreviated month name *
+        %B    Full month name *
+        %c    Date and time representation *
+        %C    Year divided by 100 and truncated to integer (00-99)
+        %d    Day of month as decimal number (01-31)
+        %D    Short MM/DD/YY date, equivalent to %m/%d/%y
+        %e    Day of the month, space-padded ( 1-31)
+        %F    Short YYYY-MM-DD date, equivalent to %Y-%m-%d
+        %g    Week-based year, last two digits (00-99)
+        %G    Week-based year
+        %h    Abbreviated month name (same as %b) *
+        %H    Hour in 24-hour format (00-23)
+        %I    Hour in 12-hour format (01-12)
+        %j    Day of year as decimal number (001-366)
+        %m    Month as decimal number (01-12)
+        %M    Minute as decimal number (00-59)
+        %n    New line character (same as '\n')
+        %p    AM or PM designation
+        %r    12-hour clock time *
+        %R    24-hour HH:MM time, equivalent to %H:%M
+        %S    Seconds as a decimal number (00-59)
+        %t    Horizontal tab character (same as '\t')
+        %T    ISO 8601 time format (HH:MM:SS) equivalent to %H:%M:%S
+        %u    ISO 8601 weekday as number with Monday=1 (1-7)
+        %U    Week number, first Sunday = week 1 day 1 (00-53)
+        %V    ISO 8601 week number (01-53)
+        %w    Weekday as decimal number, Sunday = 0 (0-6)
+        %W    Week of year, decimal, Monday = week 1 day 1(00-51)
+        %x    Date representation *
+        %X    Time representation *
+        %y    Year without century, as decimal number (00-99)
+        %Y    Year with century, as decimal number
+        %z    ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)
+              If timezone cannot be determined, no characters
+        %Z    Time-zone name or abbreviation, empty for unrecognized zones *
+        %_... Delta time formats. See `--help deltaTime`.
+        %%    Percent sign
+
+        * Specifiers marked with an asterisk are locale-dependent.
+
+    As in the printf function, the # flag may prefix any formatting code. In
+    that case, the meaning of the format code is changed as follows.
+
+        %#c
+            Long date and time representation, appropriate for current locale.
+            For example: Tuesday, March 14, 1995, 12:41:29.
+
+        %#x
+            Long date representation, appropriate to current locale.
+            For example: Tuesday, March 14, 1995.
+
+        %#d, %#H, %#I, %#j, %#m, %#M, %#S, %#U, %#w, %#W, %#y, %#Y
+            Remove any leading zeros.
+
+        All others
+            The flag is ignored.
+)";
+
+static auto help_deltaTime = LR"(
+    Delta Time Formatting
+    -----------------------
+
+    Time differences are reported using the delta time formats. The delta time
+    format has the following syntax:
+
+                               %_['kd][u[0]]<U>[.[#]]
+                                  -v-  -v--  v  --v-
+            Numeric Format --------'    |    |    |
+            Next Greater Unit ----------'    |    |
+            Units ---------------------------'    |
+            Decimal Precision --------------------'
+
+    Numeric Format ['kd] (_optional_)
+        The optional `'` character is followed by two characters, k and d.
+        k represents the character to use for the thousand's separator, with
+        the special case that `0` indicates that there is to be no thousands
+        separator. The d character is the character to use for the decimal
+        point, if one is present. So, for example, `'0.` specifies no
+        thousands separator, and the American `.` decimal point. `'.,` would
+        specify European formatting, with `.` for the thousands separator, and
+        `,` as the decimal point.
+
+    Next Greater Unit [u[0]] (_optional_)
+        This single lowercase letter indicates any preceding units used in the
+        delta time printing. For example, if the unit is hours, and the next
+        greater unit is years, then the hours reported are the remainder
+        (modulo) after the number of years. Supported next greater units
+        include the following:
+
+            y - Nominal years (see units below for definition)
+            t - Tropical years (see units below for definition)
+            d - Days
+            h - Hours
+            m - Minutes
+
+        If the next greater unit is followed by a zero, then the result is
+        zero-padded to the appropriate width for the range of possible values.
+
+    Units <U> (_required_)
+        The unit of time (single uppercase letter) to report for the time
+        delta. This is the remainder after the (optional) next greater unit.
+        The following units are supported:
+
+            Y - Nominal years
+            T - Tropical years
+            D - Days
+            H - Hours
+            M - Minutes
+            S - Whole seconds
+
+        Nominal years are 365 days in length.
+
+        Tropical (or solar) years are approximately equal to one trip around
+        the sun. These are useful to approximate the effect of leap years when
+        reporting multi-year durations. For this program, a tropical year is
+        defined as 365 + 97/400 days.
+
+        The following are the supported combinations of next greater unit and
+        unit:
+
+            Y
+            T
+            D yD tD
+            H yH tH dH
+            M yM tM dM hM
+            S yS tS dS hS mS
+
+    Decimal Precision [.[#]] (_optional_)
+        With the exception of seconds, all units will have a fractional value
+        for time differences. If the decimal precision format is omitted, the
+        then rounded whole value is printed.
+
+        If the decimal point and number is specified, then the fractional
+        value will be printed with the number of requested digits.
+
+        If a decimal point is specified but without subsequent digits, then
+        the number of digits will depend on the units. Enough digits will be
+        printed to maintain full resolution of the unit to within one second.
+        Thus, years: 8 digits, days: 5, hours: 4, minutes: 2.
+
+    Examples
+         Given a delta time of 547,991,463 seconds, the following delta format
+         strings will yield the following output:
+
+            %_S
+                '547991463'
+
+            %_',.S
+                '547,991,463'
+
+            %_Y years, %_yD days, %_dH. hours
+                '17 years, 137 days, 11.8508 hours'
+
+    See `--time examples` for more example uses of delta time formats.
+)";
+
+static auto help_timeSyntax = LR"(
+    Time Syntax
+    -------------
+
+    The explicit `--time` option supports a variety of different formats,
+    based on the ISO 8601 date/time format.
+
+    An explicit date-time may have a date, a time, or both. In the case of
+    both, they must be separated by the letter `T`. No spaces are allowed in
+    the string.
+
+    The date can take one of the following patterns, where a `=` character
+    denotes a required dash, and a `-` denotes an optional dash:
+
+        YYYY-MM-DD
+        YYYY=MM
+        YYYY
+        ==MM-DD
+        YYYY-DDD   (DDD = day of the year)
+
+    The time can take one of the following patterns, where the `:` characters
+    are optional:
+
+        HH:MM:SS
+        HH:MM
+        HH
+
+    The time may be followed by an optional time zone, which has the following
+    pattern, where `+` represents a required `+` or `-` character.
+
+        +HHMM    (Offset from UTC)
+        +HH      (Offset from UTC)
+        Z        (Zulu, or UTC)
+
+    Parsing the explicit time value takes place as follows: if the string
+    contains a `T`, then the date is parsed before the `T`, and the time is
+    parsed after. If the string contains no `T`, then time parsing is first
+    attempted, and on failure date parsing is attempted. Again, parsing is
+    strict, and no other characters may included anywhere.
+
+    Any unspecified units get the current time value for that unit.
+
+    Example explicit time values include the following:
+
+        2018-02-24T20:58:46-0800
+        2018-02-25T04:58:46Z
+        17:57
+        --05-07
+        120000Z
+        1997-183
+        19731217T113618-0700
+
+    See `--help examples` for other examples.
+)";
+
+static auto help_timeZone = LR"(
+    Time Zones
+    ------------
+
+    The time zone value may be specified with the TZ environment variable,
+    or using the `--timezone` option. Time zones have the format
+    `tzn[+|-]hh[:mm[:ss]][dzn]`, where
+
+        tzn
+            Time-zone name, three letters or more, such as PST.
+
+        [+|-]hh
+            The time that must be ADDED to local time to get UTC.
+            CAREFUL: Unfortunately, this value is negated from how time zones
+            are normally specified. For example, PDT is specified as -0800,
+            but in the time zone string, will be specified as `PDT+08`.
+            You can experiment with the string "%#c %Z %z" and the
+            `--timezone` option to ensure you understand how these work
+            together. If offset hours are omitted, they are assumed to be
+            zero.
+
+        [:mm]
+            Minutes, prefixed with mandatory colon.
+
+        [:ss]
+            Seconds, prefixed with mandatory colon.
+
+        [dzn]
+            Three-letter daylight-saving-time zone such as PDT. If daylight
+            saving time is never in effect in the locality, omit dzn. The C
+            run-time library assumes the US rules for implementing the
+            calculation of Daylight Saving Time (DST).
+
+        Examples of the timezone string include the following:
+
+            UTC       Universal Coordinated Time
+            PST8      Pacific Standard Time
+            PDT+07    Pacific Daylight Time
+            NST+03:30 Newfoundland Standard Time
+            PST8PDT   Pacific Standard Time, daylight savings in effect
+            GST-1GDT  German Standard Time, daylight savings in effect
+)";
+
+static auto help_examples = LR"(
+    Examples
+    ----------
+
+    > timeprint
+    Sunday, July 20, 2003 17:02:39
+
+    > timeprint %H:%M:%S
+    17:03:17
+
+    > timeprint -z UTC
+    Monday, July 21, 2003 00:03:47
+
+    > timeprint Starting build at %Y-%m-%d %#I:%M:%S %p.
+    Starting build at 2003-07-20 5:06:09 PM.
+
+    > echo. >timestamp.txt
+    [a day and a half later...]
+    > timeprint --modification timestamp.txt --now Elapsed Time: %_S seconds
+    Elapsed Time: 129797 seconds
+    > timeprint --modification timestamp.txt --now Elapsed Time: %_H:%_hM:%_mS
+    Elapsed Time: 36:3:17
+)";
 
 
 //__________________________________________________________________________________________________
