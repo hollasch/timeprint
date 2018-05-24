@@ -1,10 +1,10 @@
 Change Log for `timeprint`
 ================================================================================
 
-## v2.1.0  (In Progress)
+## v2.1.0  (2018-05-24)
   - Indicate unknown DST status for calls to mktime().
   - Print error message for unhandled explicit dates before 1970.
-  - Handle numeric prefix on %a format codes.
+  - New: Handle numeric prefix on %a format codes.
 
 ## v2.0.0 (2018-02-26)
   - Renamed from currtime to timeprint.

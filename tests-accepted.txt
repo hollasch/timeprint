@@ -3,7 +3,8 @@ Acceptance Tests for `timeprint`
 
 --------------------------------------------------------------------------------
 Test 1: [/?]
-timeprint v2.0.0  |  https://github.com/hollasch/timeprint
+
+timeprint v2.1.0 |  https://github.com/hollasch/timeprint
 timeprint - Print time and date information
 
 usage: timeprint [--codeChar <char>] [-%<char>]
@@ -87,13 +88,13 @@ For additional help, use `--help <topic>`, where <topic> is one of:
 --------------------------------------------------------------------------------
 [--help FORMATCODES]
 
-
     Format Codes
     --------------
 
     The following time format codes are supported:
 
         %a     Abbreviated weekday name *
+        %<d>a  Weekday name, abbreviated to d characters (min 1)
         %A     Full weekday name *
         %b     Abbreviated month name *
         %B     Full month name *
@@ -155,7 +156,6 @@ For additional help, use `--help <topic>`, where <topic> is one of:
 --------------------------------------------------------------------------------
 [-H timeSyntax]
 
-
     Time Syntax
     -------------
 
@@ -212,9 +212,9 @@ For additional help, use `--help <topic>`, where <topic> is one of:
 --------------------------------------------------------------------------------
 [/htimezone]
 
-
     Time Zones
     ------------
+
     The time zone value may be specified with the TZ environment variable,
     or using the `--timezone` option. Time zones have the format
     `tzn[+|-]hh[:mm[:ss]][dzn]`, where
@@ -256,7 +256,6 @@ For additional help, use `--help <topic>`, where <topic> is one of:
 --------------------------------------------------------------------------------
 [--help examples]
 
-
     Examples
     ----------
 
@@ -281,7 +280,6 @@ For additional help, use `--help <topic>`, where <topic> is one of:
 
 --------------------------------------------------------------------------------
 [--help deltaTime]
-
 
     Delta Time Formatting
     -----------------------
@@ -477,17 +475,20 @@ Bogus codes: %E%f%i%J%N%P%s%v
 [Bogus codes: %_a %_z]
 Bogus codes: %_a %_z
 --------------------------------------------------------------------------------
-[--timezone UTC    --time 2000-01-01T00:00:00Z]
+[--timezone UTC --time 2000-01-01T00:00:00Z]
 Saturday, January 01, 2000 00:00:00
 --------------------------------------------------------------------------------
-[--timezone UTC    --time 2000-01-02T03:04:05+67]
+[--timezone UTC --time 2000-01-02T03:04:05+67]
 Thursday, December 30, 1999 08:04:05
 --------------------------------------------------------------------------------
-[--timezone UTC    --time 2000-01-02T03:04:05-67:89]
+[--timezone UTC --time 2000-01-02T03:04:05-67:89]
 Tuesday, January 04, 2000 23:33:05
 --------------------------------------------------------------------------------
-[--timezone UTC    --time 2000-01-02T03:04:05-6789]
+[--timezone UTC --time 2000-01-02T03:04:05-6789]
 Tuesday, January 04, 2000 23:33:05
+--------------------------------------------------------------------------------
+[--timezone UTC --time 2000-01-01T12:00Z "%1a %2a %3a %4a %5a %6a %7a %8a %9a %20a"]
+S Sa Sat Satu Satur Saturd Saturda Saturday Saturday Saturday
 --------------------------------------------------------------------------------
 [--timezone PST+08 --time 2000-01-01T00:00:00Z "%#c %z %Z"]
 Friday, December 31, 1999 16:00:00 -0800 PST

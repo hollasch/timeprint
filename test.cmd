@@ -94,10 +94,11 @@ call :test Percent sign = %%%%%%%%
 call :test Bogus codes: %%%%E%%%%f%%%%i%%%%J%%%%N%%%%P%%%%s%%%%v
 call :test Bogus codes: %%%%_a %%%%_z
 
-call :test --timezone UTC    --time 2000-01-01T00:00:00Z
-call :test --timezone UTC    --time 2000-01-02T03:04:05+67
-call :test --timezone UTC    --time 2000-01-02T03:04:05-67:89
-call :test --timezone UTC    --time 2000-01-02T03:04:05-6789
+call :test --timezone UTC --time 2000-01-01T00:00:00Z
+call :test --timezone UTC --time 2000-01-02T03:04:05+67
+call :test --timezone UTC --time 2000-01-02T03:04:05-67:89
+call :test --timezone UTC --time 2000-01-02T03:04:05-6789
+call :test --timezone UTC --time 2000-01-01T12:00Z "%%%%1a %%%%2a %%%%3a %%%%4a %%%%5a %%%%6a %%%%7a %%%%8a %%%%9a %%%%20a"
 call :test --timezone PST+08 --time 2000-01-01T00:00:00Z "%%%%#c %%%%z %%%%Z"
 
 call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T00:00:00Z "%%%%_S"

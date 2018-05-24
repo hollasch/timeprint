@@ -990,7 +990,7 @@ bool printDeltaFunc (
 
 //__________________________________________________________________________________________________
 static auto help_general = LR"(
-timeprint v2.1.0-beta |  https://github.com/hollasch/timeprint
+timeprint v2.1.0 |  https://github.com/hollasch/timeprint
 timeprint - Print time and date information
 
 usage: timeprint [--codeChar <char>] [-%<char>]
@@ -1078,46 +1078,46 @@ static auto help_formatCodes = LR"(
 
     The following time format codes are supported:
 
-        %a    Abbreviated weekday name *
-        %<d>a Weekday name, abbreviated to d characters (min 1)
-        %A    Full weekday name *
-        %b    Abbreviated month name *
-        %B    Full month name *
-        %c    Date and time representation *
-        %C    Year divided by 100 and truncated to integer (00-99)
-        %d    Day of month as decimal number (01-31)
-        %D    Short MM/DD/YY date, equivalent to %m/%d/%y
-        %e    Day of the month, space-padded ( 1-31)
-        %F    Short YYYY-MM-DD date, equivalent to %Y-%m-%d
-        %g    Week-based year, last two digits (00-99)
-        %G    Week-based year
-        %h    Abbreviated month name (same as %b) *
-        %H    Hour in 24-hour format (00-23)
-        %I    Hour in 12-hour format (01-12)
-        %j    Day of year as decimal number (001-366)
-        %m    Month as decimal number (01-12)
-        %M    Minute as decimal number (00-59)
-        %n    New line character (same as '\n')
-        %p    AM or PM designation
-        %r    12-hour clock time *
-        %R    24-hour HH:MM time, equivalent to %H:%M
-        %S    Seconds as a decimal number (00-59)
-        %t    Horizontal tab character (same as '\t')
-        %T    ISO 8601 time format (HH:MM:SS) equivalent to %H:%M:%S
-        %u    ISO 8601 weekday as number with Monday=1 (1-7)
-        %U    Week number, first Sunday = week 1 day 1 (00-53)
-        %V    ISO 8601 week number (01-53)
-        %w    Weekday as decimal number, Sunday = 0 (0-6)
-        %W    Week of year, decimal, Monday = week 1 day 1(00-51)
-        %x    Date representation *
-        %X    Time representation *
-        %y    Year without century, as decimal number (00-99)
-        %Y    Year with century, as decimal number
-        %z    ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)
-              If timezone cannot be determined, no characters
-        %Z    Time-zone name or abbreviation, empty for unrecognized zones *
-        %_... Delta time formats. See `--help deltaTime`.
-        %%    Percent sign
+        %a     Abbreviated weekday name *
+        %<d>a  Weekday name, abbreviated to d characters (min 1)
+        %A     Full weekday name *
+        %b     Abbreviated month name *
+        %B     Full month name *
+        %c     Date and time representation *
+        %C     Year divided by 100 and truncated to integer (00-99)
+        %d     Day of month as decimal number (01-31)
+        %D     Short MM/DD/YY date, equivalent to %m/%d/%y
+        %e     Day of the month, space-padded ( 1-31)
+        %F     Short YYYY-MM-DD date, equivalent to %Y-%m-%d
+        %g     Week-based year, last two digits (00-99)
+        %G     Week-based year
+        %h     Abbreviated month name (same as %b) *
+        %H     Hour in 24-hour format (00-23)
+        %I     Hour in 12-hour format (01-12)
+        %j     Day of year as decimal number (001-366)
+        %m     Month as decimal number (01-12)
+        %M     Minute as decimal number (00-59)
+        %n     New line character (same as '\n')
+        %p     AM or PM designation
+        %r     12-hour clock time *
+        %R     24-hour HH:MM time, equivalent to %H:%M
+        %S     Seconds as a decimal number (00-59)
+        %t     Horizontal tab character (same as '\t')
+        %T     ISO 8601 time format (HH:MM:SS) equivalent to %H:%M:%S
+        %u     ISO 8601 weekday as number with Monday=1 (1-7)
+        %U     Week number, first Sunday = week 1 day 1 (00-53)
+        %V     ISO 8601 week number (01-53)
+        %w     Weekday as decimal number, Sunday = 0 (0-6)
+        %W     Week of year, decimal, Monday = week 1 day 1(00-51)
+        %x     Date representation *
+        %X     Time representation *
+        %y     Year without century, as decimal number (00-99)
+        %Y     Year with century, as decimal number
+        %z     ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)
+               If timezone cannot be determined, no characters
+        %Z     Time-zone name or abbreviation, empty for unrecognized zones *
+        %_...  Delta time formats. See `--help deltaTime`.
+        %%     Percent sign
 
         * Specifiers marked with an asterisk are locale-dependent.
 
