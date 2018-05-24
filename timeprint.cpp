@@ -705,16 +705,54 @@ void printResults (
             if (*formatIterator == L'_') {
                 printDelta (++formatIterator, formatEnd, deltaTimeSeconds);
                 --formatIterator;  // Reset iterator for loop increment.
+
+            } else if (*formatIterator == L'-' || isdigit(*formatIterator)) {
+                // Numeric prefixed code.
+                auto saveMark = formatIterator;     // Mark start in case of parse error.
+
+                auto numPrefix = 0;
+                auto numSign = 1;
+                if (*formatIterator == L'-') {
+                    ++formatIterator;
+                    numSign = -1;
+                }
+
+                // Get the leading integer value before the code.
+                wchar_t c; 
+                while (c = *formatIterator++, c && isdigit(c))
+                    numPrefix = (10 * numPrefix) + (c - L'0');
+                
+                numPrefix *= numSign;
+
+                const static auto legalPrefixedCodes = L"a";
+                if (!c || !wcschr(legalPrefixedCodes, c) || numPrefix < 1) {
+                    // If the string ended without a code character, or it's not a code that can
+                    // take a numeric prefix, or the prefix is out of range, then reset and just
+                    // emit without interpretation.
+                    formatIterator = saveMark;
+                    putwchar(codeChar);
+                    putwchar(*formatIterator);
+                } else {
+                    // Only %a can take a numeric prefix for now.
+                    wcsftime (outputBuffer, std::size(outputBuffer), L"%A", &timeValue);
+                    if (numPrefix < wcslen(outputBuffer))
+                        outputBuffer[numPrefix] = 0;
+                    fputws (outputBuffer, stdout);
+                    --formatIterator;
+                }
+
             } else if ((*formatIterator != L'#') && !wcschr(legalCodes, *formatIterator)) {
                 // Print out illegal codes as-is.
                 putwchar (L'%');
                 putwchar (*formatIterator);
+
             } else if ((formatIterator[0] == L'#') && !wcschr(legalCodes, formatIterator[1])) {
                 // Print out illegal '#'-prefixed codes as-is.
                 ++formatIterator;
                 putwchar (L'%');
                 putwchar (L'#');
                 putwchar (*formatIterator);
+
             } else {
                 // Standard legal strftime() Code Sequences
                 token[0] = L'%';
@@ -952,7 +990,7 @@ bool printDeltaFunc (
 
 //__________________________________________________________________________________________________
 static auto help_general =
-    L"timeprint v2.0.0+ |  https://github.com/hollasch/timeprint\n"
+    L"timeprint v2.1.0-beta |  https://github.com/hollasch/timeprint\n"
     L"timeprint - Print time and date information\n"
     L"\n"
     L"usage: timeprint [--codeChar <char>] [-%<char>]\n"
@@ -1042,45 +1080,46 @@ static auto help_formatCodes =
     L"\n"
     L"    The following time format codes are supported:\n"
     L"\n"
-    L"        %a     Abbreviated weekday name *\n"
-    L"        %A     Full weekday name *\n"
-    L"        %b     Abbreviated month name *\n"
-    L"        %B     Full month name *\n"
-    L"        %c     Date and time representation *\n"
-    L"        %C     Year divided by 100 and truncated to integer (00-99)\n"
-    L"        %d     Day of month as decimal number (01-31)\n"
-    L"        %D     Short MM/DD/YY date, equivalent to %m/%d/%y\n"
-    L"        %e     Day of the month, space-padded ( 1-31)\n"
-    L"        %F     Short YYYY-MM-DD date, equivalent to %Y-%m-%d\n"
-    L"        %g     Week-based year, last two digits (00-99)\n"
-    L"        %G     Week-based year\n"
-    L"        %h     Abbreviated month name (same as %b) *\n"
-    L"        %H     Hour in 24-hour format (00-23)\n"
-    L"        %I     Hour in 12-hour format (01-12)\n"
-    L"        %j     Day of year as decimal number (001-366)\n"
-    L"        %m     Month as decimal number (01-12)\n"
-    L"        %M     Minute as decimal number (00-59)\n"
-    L"        %n     New line character (same as '\\n')\n"
-    L"        %p     AM or PM designation\n"
-    L"        %r     12-hour clock time *\n"
-    L"        %R     24-hour HH:MM time, equivalent to %H:%M\n"
-    L"        %S     Seconds as a decimal number (00-59)\n"
-    L"        %t     Horizontal tab character (same as '\\t')\n"
-    L"        %T     ISO 8601 time format (HH:MM:SS) equivalent to %H:%M:%S\n"
-    L"        %u     ISO 8601 weekday as number with Monday=1 (1-7)\n"
-    L"        %U     Week number, first Sunday = week 1 day 1 (00-53)\n"
-    L"        %V     ISO 8601 week number (01-53)\n"
-    L"        %w     Weekday as decimal number, Sunday = 0 (0-6)\n"
-    L"        %W     Week of year, decimal, Monday = week 1 day 1(00-51)\n"
-    L"        %x     Date representation *\n"
-    L"        %X     Time representation *\n"
-    L"        %y     Year without century, as decimal number (00-99)\n"
-    L"        %Y     Year with century, as decimal number\n"
-    L"        %z     ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)\n"
-    L"               If timezone cannot be determined, no characters\n"
-    L"        %Z     Time-zone name or abbreviation, empty for unrecognized zones *\n"
-    L"        %_...  Delta time formats. See `--help deltaTime`.\n"
-    L"        %%     Percent sign\n"
+    L"        %a    Abbreviated weekday name *\n"
+    L"        %<d>a Weekday name, abbreviated to d characters (min 1)\n"
+    L"        %A    Full weekday name *\n"
+    L"        %b    Abbreviated month name *\n"
+    L"        %B    Full month name *\n"
+    L"        %c    Date and time representation *\n"
+    L"        %C    Year divided by 100 and truncated to integer (00-99)\n"
+    L"        %d    Day of month as decimal number (01-31)\n"
+    L"        %D    Short MM/DD/YY date, equivalent to %m/%d/%y\n"
+    L"        %e    Day of the month, space-padded ( 1-31)\n"
+    L"        %F    Short YYYY-MM-DD date, equivalent to %Y-%m-%d\n"
+    L"        %g    Week-based year, last two digits (00-99)\n"
+    L"        %G    Week-based year\n"
+    L"        %h    Abbreviated month name (same as %b) *\n"
+    L"        %H    Hour in 24-hour format (00-23)\n"
+    L"        %I    Hour in 12-hour format (01-12)\n"
+    L"        %j    Day of year as decimal number (001-366)\n"
+    L"        %m    Month as decimal number (01-12)\n"
+    L"        %M    Minute as decimal number (00-59)\n"
+    L"        %n    New line character (same as '\\n')\n"
+    L"        %p    AM or PM designation\n"
+    L"        %r    12-hour clock time *\n"
+    L"        %R    24-hour HH:MM time, equivalent to %H:%M\n"
+    L"        %S    Seconds as a decimal number (00-59)\n"
+    L"        %t    Horizontal tab character (same as '\\t')\n"
+    L"        %T    ISO 8601 time format (HH:MM:SS) equivalent to %H:%M:%S\n"
+    L"        %u    ISO 8601 weekday as number with Monday=1 (1-7)\n"
+    L"        %U    Week number, first Sunday = week 1 day 1 (00-53)\n"
+    L"        %V    ISO 8601 week number (01-53)\n"
+    L"        %w    Weekday as decimal number, Sunday = 0 (0-6)\n"
+    L"        %W    Week of year, decimal, Monday = week 1 day 1(00-51)\n"
+    L"        %x    Date representation *\n"
+    L"        %X    Time representation *\n"
+    L"        %y    Year without century, as decimal number (00-99)\n"
+    L"        %Y    Year with century, as decimal number\n"
+    L"        %z    ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)\n"
+    L"              If timezone cannot be determined, no characters\n"
+    L"        %Z    Time-zone name or abbreviation, empty for unrecognized zones *\n"
+    L"        %_... Delta time formats. See `--help deltaTime`.\n"
+    L"        %%    Percent sign\n"
     L"\n"
     L"        * Specifiers marked with an asterisk are locale-dependent.\n"
     L"\n"
