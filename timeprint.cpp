@@ -21,7 +21,9 @@ using std::vector;
 using std::wcout;
 using std::wstring;
 
-#define cVersionString L"v2.1.1"
+static auto cHelpBanner = LR"(
+timeprint - Print time and date information
+v2.1.1  |  2018-10-17  |  https://github.com/hollasch/timeprint)";
 
 
 enum class HelpType    // Types of usage information for the --help option
@@ -991,10 +993,7 @@ bool printDeltaFunc (
 
 
 //__________________________________________________________________________________________________
-static auto help_general =
-L"timeprint " cVersionString R"( - Print time and date information
-https://github.com/hollasch/timeprint
-
+static auto help_general = LR"(
 usage: timeprint [--codeChar <char>] [-%<char>]
                  [--help [topic]] [-h[topic]] [/?]
                  [--access <fileName>] [-a<fileName>]
@@ -1371,7 +1370,11 @@ void help (HelpType type)
     switch (type) {
         default: return;
 
-        case HelpType::General:      _putws(help_general);      break;
+        case HelpType::General:
+            _putws(cHelpBanner);
+            _putws(help_general);
+            break;
+
         case HelpType::Examples:     _putws(help_examples);     break;
         case HelpType::DeltaTime:    _putws(help_deltaTime);    break;
         case HelpType::FormatCodes:  _putws(help_formatCodes);  break;
