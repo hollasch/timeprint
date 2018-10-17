@@ -4,7 +4,7 @@ Print time and date information.
 
 
 Summary
--------------
+--------------------------------------------------------------------------------
 `timeprint` is a Windows command-line tool that provides a way to format and
 display aspects of the current or elapsed date and time. It is based on the
 C++ standard `strftime` function, with some additional functionality.
@@ -16,13 +16,10 @@ C++ standard `strftime` function, with some additional functionality.
 - [Delta Time Formatting](#delta-time-formatting)
 - [Time Syntax](#time-syntax)
 - [Examples](#examples)
-- [Building](#building)
-- [Installation](#installation)
-- [Testing](#testing)
 
 
 Usage
--------
+--------------------------------------------------------------------------------
     timeprint [--codeChar <char>] [-%<char>]
               [--help [topic]] [-h[topic]] [/?]
               [--access <fileName>] [-a<fileName>]
@@ -35,7 +32,7 @@ Usage
 
 
 Description
--------------
+--------------------------------------------------------------------------------
 This command prints time information to the standard output stream. All string
 fragments will be concatenated with a space, so it's usually unnecessary to
 quote the format string.
@@ -105,7 +102,7 @@ For additional help, use `--help <topic>`, where <topic> is one of
 
 
 Time Zones
-------------
+--------------------------------------------------------------------------------
 The time zone value may be specified with the TZ environment variable,
 or using the `--timezone` option. Time zones have the format
 `tzn[+|-]hh[:mm[:ss]][dzn]`, where
@@ -143,7 +140,7 @@ Examples of the timezone string include the following:
 
 
 Format Codes
---------------
+--------------------------------------------------------------------------------
 The following time format codes are supported:
 
 
@@ -209,7 +206,7 @@ The flag is ignored.
 
 
 Delta Time Formatting
------------------------
+--------------------------------------------------------------------------------
 Time differences are reported using the delta time formats. The delta time
 format has the following syntax:
 
@@ -311,7 +308,7 @@ See `--time examples` for more example uses of delta time formats.
 
 
 Time Syntax
--------------
+--------------------------------------------------------------------------------
 The explicit `--time` option supports a variety of different formats,
 based on the ISO 8601 date/time format.
 
@@ -364,29 +361,28 @@ See `--help examples` for other examples.
 
 
 Examples
-----------
-```
-> timeprint
-Sunday, July 20, 2003 17:02:39
+--------------------------------------------------------------------------------
+    > timeprint
+    Sunday, July 20, 2003 17:02:39
 
-> timeprint %H:%M:%S
-17:03:17
+    > timeprint %H:%M:%S
+    17:03:17
 
-> timeprint -z UTC
-Monday, July 21, 2003 00:03:47
+    > timeprint -z UTC
+    Monday, July 21, 2003 00:03:47
 
-> timeprint Building levels [%Y-%m-%d %#I:%M:%S %p].
-Building levels [2003-07-20 5:06:09 PM].
+    > timeprint Building levels [%Y-%m-%d %#I:%M:%S %p].
+    Building levels [2003-07-20 5:06:09 PM].
 
-> echo. >timestamp.txt
-[a day and a half later...]
-> timeprint --modification timestamp.txt --now Elapsed Time: %_S seconds
-Elapsed Time: 129797 seconds
-> timeprint --modification timestamp.txt --now Elapsed Time: %_H:%_hM:%_mS
-Elapsed Time: 36:3:17
-```
+    > echo. >timestamp.txt
+    [a day and a half later...]
+    > timeprint --modification timestamp.txt --now Elapsed Time: %_S seconds
+    Elapsed Time: 129797 seconds
+    > timeprint --modification timestamp.txt --now Elapsed Time: %_H:%_hM:%_mS
+    Elapsed Time: 36:3:17
 
 
-----------------------------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
 Steve Hollasch, steve@hollasch.net<br>
 https://github.com/hollasch/timeprint
