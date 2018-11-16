@@ -378,6 +378,9 @@ For additional help, use `--help <topic>`, where <topic> is one of:
     See `--time examples` for more example uses of delta time formats.
 
 --------------------------------------------------------------------------------
+[]
+Test TIMEFORMAT environment variable.
+--------------------------------------------------------------------------------
 Output [-h bogusHelpTopic      ] equal to general-help
 Test passed.
 --------------------------------------------------------------------------------

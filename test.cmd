@@ -61,6 +61,10 @@ call :test /htimezone
 call :test --help examples
 call :test --help deltaTime
 
+set TIMEFORMAT=Test TIMEFORMAT environment variable.
+call :test
+set TIMEFORMAT=
+
 call :testCapture general-help --help
 call :testEqual   general-help -h bogusHelpTopic
 call :testEqual   general-help -hbogusHelpTopic
