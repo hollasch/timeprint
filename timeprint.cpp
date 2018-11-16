@@ -168,12 +168,9 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
         auto argptr = argv[i];
 
         if (!((argv[i][0] == L'-') || (argv[i][0] == L'/'))) {
-            if (params.format.empty())
-                params.format += argptr;
-            else {
+            if (!params.format.empty())
                 params.format += L" ";
-                params.format += argptr;
-            }
+            params.format += argptr;
         } else {
             auto timeValWord1 = i;         // Used later for reporting on invalid third time values.
             auto timeValWord2 = false;
