@@ -49,21 +49,24 @@ enum class TimeType    // Type of time for an associated time value string
 };
 
 
-struct TimeSpec
+class TimeSpec
 {
-    TimeType type;     // Type of time
-    wstring  value;    // String value of specified type
+  public:
+    TimeType type { TimeType::None };   // Type of time
+    wstring  value;                     // String value of specified type
 };
 
 
-struct Parameters
+class Parameters
 {
+  public:
     // Describes the parameters for a run of this program.
 
-    wchar_t  codeChar;      // Format Code Character (default '%')
-    HelpType helpType;      // Type of help information to print & exit
-    wstring  zone;          // Time zone string
-    wstring  format;        // Output format string
+    wchar_t  codeChar { L'%' };            // Format Code Character (default '%')
+    HelpType helpType { HelpType::None };  // Type of help information to print & exit
+    wstring  zone;                         // Time zone string
+    wstring  format;                       // Output format string
+    bool     isDelta  { false };           // Time calculation is a difference between two times
 
     TimeSpec time1;         // Time 1 [required] (either single use, or for time difference)
     TimeSpec time2;         // Time 2 [optional] (for time difference output)
@@ -156,12 +159,6 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
     // This function processes the command line arguments and sets the corresponding values in the
     // Parameters structure. This function returns true if all arguments were legal and processed
     // properly, otherwise it returns false.
-
-    // Set default values.
-    params.codeChar = L'%';
-    params.helpType   = HelpType::None;
-    params.time1.type = TimeType::None;
-    params.time2.type = TimeType::None;
 
     // Process command arguments.
     for (auto i=1;  i < argc;  ++i) {
