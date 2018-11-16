@@ -16,6 +16,8 @@ if "%1" neq "" (
     set timePrint=out\Debug\timeprint.exe
 )
 
+echo Testing %timePrint%.
+
 if not exist %timePrint% (
     echo ERROR: Executable %timePrint% not found. 1>&2
     exit /b 1
