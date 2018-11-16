@@ -54,6 +54,16 @@ class TimeSpec
   public:
     TimeType type { TimeType::None };   // Type of time
     wstring  value;                     // String value of specified type
+
+    void Set(TimeType t, const wstring& str) {
+        type = t;
+        value = str;
+    }
+
+    void Set(TimeType t) {
+        type = t;
+        value.clear();
+    }
 };
 
 
@@ -226,7 +236,7 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
 
             // Handle the option according to the option character.
 
-            TimeType newTimeType = TimeType::None;    // For options that specify a time
+            TimeSpec newTimeSpec;
 
             switch (optChar) {
                 default:
@@ -239,7 +249,7 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
                         fwprintf (stderr, L"timeprint: Missing argument for --access (-a) option.\n");
                         return false;
                     }
-                    newTimeType = TimeType::Access;
+                    newTimeSpec.Set(TimeType::Access, argptr);
                     break;
 
                 // File Modification Time
@@ -248,7 +258,7 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
                         fwprintf (stderr, L"timeprint: Missing argument for --creation (-c) option.\n");
                         return false;
                     }
-                    newTimeType = TimeType::Creation;
+                    newTimeSpec.Set(TimeType::Creation, argptr);
                     break;
 
                 // Alternate Code Character
@@ -283,11 +293,11 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
                         fwprintf (stderr, L"timeprint: Missing argument for --modification (-m) option.\n");
                         return false;
                     }
-                    newTimeType = TimeType::Modification;
+                    newTimeSpec.Set(TimeType::Modification, argptr);
                     break;
 
                 case L'n':
-                    newTimeType = TimeType::Now;
+                    newTimeSpec.Set(TimeType::Now);
                     break;
 
                 case L't':
@@ -295,7 +305,7 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
                         fwprintf (stderr, L"timeprint: Missing argument for --time (-t) option.\n");
                         return false;
                     }
-                    newTimeType = TimeType::Explicit;
+                    newTimeSpec.Set(TimeType::Explicit, argptr);
                     break;
 
                 // Timezone
@@ -309,13 +319,12 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
                     break;
             }
 
-            if (newTimeType != TimeType::None) {
+            if (newTimeSpec.type != TimeType::None) {
                 if (params.time1.type == TimeType::None) {
-                    params.time1.type = newTimeType;
-                    if (argptr) params.time1.value = argptr;
+                    params.time1 = newTimeSpec;
                 } else if (params.time2.type == TimeType::None) {
-                    params.time2.type = newTimeType;
-                    if (argptr) params.time2.value = argptr;
+                    params.time2 = newTimeSpec;
+                    params.isDelta = true;
                 } else {
                     fwprintf (stderr,
                         L"timeprint: Unexpected third time value (%s%s%s).\n",
@@ -327,6 +336,10 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
             }
         }
     }
+
+    // If no time source was specified, then report information for the current time.
+    if (params.time1.type == TimeType::None)
+        params.time1.Set(TimeType::Now);
 
     // If no format string was specified on the command line, fetch it from the TIMEFORMAT
     // environment variable.  If not available there, then use the default format string.
@@ -342,10 +355,6 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
             free (timeFormat);
         }
     }
-
-    // If no time source was specified, then report information for the current time.
-    if (params.time1.type == TimeType::None)
-        params.time1.type = TimeType::Now;
 
     return true;
 }
