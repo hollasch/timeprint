@@ -23,7 +23,7 @@ using std::wstring;
 
 static auto cHelpBanner = LR"(
 timeprint - Print time and date information
-v3.0.0-alpha  /  2018-11-16  /  https://github.com/hollasch/timeprint)";
+v3.0.0-alpha  /  2018-11-17  /  https://github.com/hollasch/timeprint)";
 
 
 enum class HelpType    // Types of usage information for the --help option
@@ -84,7 +84,6 @@ class Parameters
 
 
 // Global Constants
-
 static const int secondsPerMinute       = 60;
 static const int secondsPerHour         = secondsPerMinute * 60;
 static const int secondsPerDay          = secondsPerHour * 24;
@@ -174,165 +173,167 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
     for (auto i=1;  i < argc;  ++i) {
         auto argptr = argv[i];
 
+        // Non-option arguments accrue to the output format string.
         if (!((argv[i][0] == L'-') || (argv[i][0] == L'/'))) {
             if (!params.format.empty())
                 params.format += L" ";
             params.format += argptr;
-        } else {
-            auto timeValWord1 = i;         // Used later for reporting on invalid third time values.
-            auto timeValWord2 = false;
+            continue;
+        }
 
-            auto optChar = argv[i][1];     // Option Character
+        auto timeValWord1 = i;         // Used later for reporting on invalid third time values.
+        auto timeValWord2 = false;
 
-            if (optChar == 0) {
-                fputws (L"timeprint: Null option switch.\n", stderr);
+        auto optChar = argv[i][1];     // Option Character
+
+        if (optChar == 0) {
+            fputws (L"timeprint: Null option switch.\n", stderr);
+            return false;
+        }
+
+        // Point argptr to the contents of the switch.  This may be immediately following the
+        // option character, or it may be the next token on the command line.
+
+        auto     advanceArg = (argv[i][2] == 0);
+        wchar_t* switchWord = nullptr;
+
+        if (optChar == L'-') {
+            advanceArg = true;
+            switchWord = argv[i] + 2;
+            if (0 == _wcsicmp(switchWord, L"access"))
+                optChar = L'a';
+            else if (0 == _wcsicmp(switchWord, L"codeChar"))
+                optChar = L'%';
+            else if (0 == _wcsicmp(switchWord, L"creation"))
+                optChar = L'c';
+            else if (0 == _wcsicmp(switchWord, L"help"))
+                optChar = L'h';
+            else if (0 == _wcsicmp(switchWord, L"modification"))
+                optChar = L'm';
+            else if (0 == _wcsicmp(switchWord, L"now")) {
+                optChar = L'n';
+                advanceArg = false;
+            }
+            else if (0 == _wcsicmp(switchWord, L"time"))
+                optChar = L't';
+            else if (0 == _wcsicmp(switchWord, L"timeZone"))
+                optChar = L'z';
+            else {
+                fwprintf (stderr, L"timeprint: Unrecognized switch (--%s).\n", switchWord);
                 return false;
             }
+        }
 
-            // Point argptr to the contents of the switch.  This may be immediately following the
-            // option character, or it may be the next token on the command line.
-
-            auto     advanceArg = (argv[i][2] == 0);
-            wchar_t* switchWord = nullptr;
-
-            if (optChar == L'-') {
-                advanceArg = true;
-                switchWord = argv[i] + 2;
-                if (0 == _wcsicmp(switchWord, L"access"))
-                    optChar = L'a';
-                else if (0 == _wcsicmp(switchWord, L"codeChar"))
-                    optChar = L'%';
-                else if (0 == _wcsicmp(switchWord, L"creation"))
-                    optChar = L'c';
-                else if (0 == _wcsicmp(switchWord, L"help"))
-                    optChar = L'h';
-                else if (0 == _wcsicmp(switchWord, L"modification"))
-                    optChar = L'm';
-                else if (0 == _wcsicmp(switchWord, L"now")) {
-                    optChar = L'n';
-                    advanceArg = false;
-                }
-                else if (0 == _wcsicmp(switchWord, L"time"))
-                    optChar = L't';
-                else if (0 == _wcsicmp(switchWord, L"timeZone"))
-                    optChar = L'z';
-                else {
-                    fwprintf (stderr, L"timeprint: Unrecognized switch (--%s).\n", switchWord);
-                    return false;
-                }
-            }
-
-            if (advanceArg) {
-                ++i;
-                if (i >= argc) {
-                    argptr = 0;
-                } else {
-                    argptr = argv[i];
-                    timeValWord2 = true;
-                }
+        if (advanceArg) {
+            ++i;
+            if (i >= argc) {
+                argptr = 0;
             } else {
-                argptr = argv[i]+2;
+                argptr = argv[i];
+                timeValWord2 = true;
             }
+        } else {
+            argptr = argv[i]+2;
+        }
 
-            // Handle the option according to the option character.
+        // Handle the option according to the option character.
 
-            TimeSpec newTimeSpec;
+        TimeSpec newTimeSpec;
 
-            switch (optChar) {
-                default:
-                    fwprintf (stderr, L"timeprint: Unrecognized option (-%c).\n", optChar);
-                    return false;
+        switch (optChar) {
+            default:
+                fwprintf (stderr, L"timeprint: Unrecognized option (-%c).\n", optChar);
+                return false;
 
-                // File Access Time
-                case L'a':
-                    if (!argptr) {
-                        fwprintf (stderr, L"timeprint: Missing argument for --access (-a) option.\n");
-                        return false;
-                    }
-                    newTimeSpec.Set(TimeType::Access, argptr);
-                    break;
-
-                // File Modification Time
-                case L'c':
-                    if (!argptr) {
-                        fwprintf (stderr, L"timeprint: Missing argument for --creation (-c) option.\n");
-                        return false;
-                    }
-                    newTimeSpec.Set(TimeType::Creation, argptr);
-                    break;
-
-                // Alternate Code Character
-                case L'%':
-                    if (argptr) params.codeChar = *argptr;
-                    break;
-
-                // Command Usage & Help
-                case L'H':
-                case L'h':
-                case L'?':
-                    if (!argptr) {
-                        params.helpType = HelpType::General;
-                    } else if (0 == _wcsicmp(argptr, L"examples")) {
-                        params.helpType = HelpType::Examples;
-                    } else if (0 == _wcsicmp(argptr, L"deltaTime")) {
-                        params.helpType = HelpType::DeltaTime;
-                    } else if (0 == _wcsicmp(argptr, L"formatCodes")) {
-                        params.helpType = HelpType::FormatCodes;
-                    } else if (0 == _wcsicmp(argptr, L"timeSyntax")) {
-                        params.helpType = HelpType::TimeSyntax;
-                    } else if (0 == _wcsicmp(argptr, L"timeZone")) {
-                        params.helpType = HelpType::TimeZone;
-                    } else {
-                        params.helpType = HelpType::General;
-                    }
-                    return true;
-
-                // File Modification Time
-                case L'm':
-                    if (!argptr) {
-                        fwprintf (stderr, L"timeprint: Missing argument for --modification (-m) option.\n");
-                        return false;
-                    }
-                    newTimeSpec.Set(TimeType::Modification, argptr);
-                    break;
-
-                case L'n':
-                    newTimeSpec.Set(TimeType::Now);
-                    break;
-
-                case L't':
-                    if (!argptr) {
-                        fwprintf (stderr, L"timeprint: Missing argument for --time (-t) option.\n");
-                        return false;
-                    }
-                    newTimeSpec.Set(TimeType::Explicit, argptr);
-                    break;
-
-                // Timezone
-                case L'z':
-                    if (!argptr) {
-                        fwprintf (stderr, L"timeprint: Missing argument for --timeZone (-z) option.\n");
-                        return false;
-                    }
-
-                    params.zone = argptr;
-                    break;
-            }
-
-            if (newTimeSpec.type != TimeType::None) {
-                if (params.time1.type == TimeType::None) {
-                    params.time1 = newTimeSpec;
-                } else if (params.time2.type == TimeType::None) {
-                    params.time2 = newTimeSpec;
-                    params.isDelta = true;
-                } else {
-                    fwprintf (stderr,
-                        L"timeprint: Unexpected third time value (%s%s%s).\n",
-                        argv[timeValWord1],
-                        timeValWord2 ? L" " : L"",
-                        timeValWord2 ? argv[timeValWord1 + 1] : L"");
+            // File Access Time
+            case L'a':
+                if (!argptr) {
+                    fwprintf (stderr, L"timeprint: Missing argument for --access (-a) option.\n");
                     return false;
                 }
+                newTimeSpec.Set(TimeType::Access, argptr);
+                break;
+
+            // File Modification Time
+            case L'c':
+                if (!argptr) {
+                    fwprintf (stderr, L"timeprint: Missing argument for --creation (-c) option.\n");
+                    return false;
+                }
+                newTimeSpec.Set(TimeType::Creation, argptr);
+                break;
+
+            // Alternate Code Character
+            case L'%':
+                if (argptr) params.codeChar = *argptr;
+                break;
+
+            // Command Usage & Help
+            case L'H':
+            case L'h':
+            case L'?':
+                if (!argptr) {
+                    params.helpType = HelpType::General;
+                } else if (0 == _wcsicmp(argptr, L"examples")) {
+                    params.helpType = HelpType::Examples;
+                } else if (0 == _wcsicmp(argptr, L"deltaTime")) {
+                    params.helpType = HelpType::DeltaTime;
+                } else if (0 == _wcsicmp(argptr, L"formatCodes")) {
+                    params.helpType = HelpType::FormatCodes;
+                } else if (0 == _wcsicmp(argptr, L"timeSyntax")) {
+                    params.helpType = HelpType::TimeSyntax;
+                } else if (0 == _wcsicmp(argptr, L"timeZone")) {
+                    params.helpType = HelpType::TimeZone;
+                } else {
+                    params.helpType = HelpType::General;
+                }
+                return true;
+
+            // File Modification Time
+            case L'm':
+                if (!argptr) {
+                    fwprintf (stderr, L"timeprint: Missing argument for --modification (-m) option.\n");
+                    return false;
+                }
+                newTimeSpec.Set(TimeType::Modification, argptr);
+                break;
+
+            case L'n':
+                newTimeSpec.Set(TimeType::Now);
+                break;
+
+            case L't':
+                if (!argptr) {
+                    fwprintf (stderr, L"timeprint: Missing argument for --time (-t) option.\n");
+                    return false;
+                }
+                newTimeSpec.Set(TimeType::Explicit, argptr);
+                break;
+
+            // Timezone
+            case L'z':
+                if (!argptr) {
+                    fwprintf (stderr, L"timeprint: Missing argument for --timeZone (-z) option.\n");
+                    return false;
+                }
+
+                params.zone = argptr;
+                break;
+        }
+
+        if (newTimeSpec.type != TimeType::None) {
+            if (params.time1.type == TimeType::None) {
+                params.time1 = newTimeSpec;
+            } else if (params.time2.type == TimeType::None) {
+                params.time2 = newTimeSpec;
+                params.isDelta = true;
+            } else {
+                fwprintf (stderr,
+                    L"timeprint: Unexpected third time value (%s%s%s).\n",
+                    argv[timeValWord1],
+                    timeValWord2 ? L" " : L"",
+                    timeValWord2 ? argv[timeValWord1 + 1] : L"");
+                return false;
             }
         }
     }

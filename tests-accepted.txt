@@ -5,7 +5,7 @@ Acceptance Tests for `timeprint`
 Test 1: [/?]
 
 timeprint - Print time and date information
-v2.1.1  |  2018-10-17  |  https://github.com/hollasch/timeprint
+v3.0.0-alpha  /  2018-11-17  /  https://github.com/hollasch/timeprint
 
 usage: timeprint [--codeChar <char>] [-%<char>]
                  [--help [topic]] [-h[topic]] [/?]
