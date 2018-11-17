@@ -1,14 +1,24 @@
 @echo off & setlocal
-: ==================================================================================================
-: Acceptance testing for `timeprint`. Note that to properly pass % characters, they must be escaped
-: (sometimes twice).
-:
-: NOTE: This test requires the `diff` tool to be on your path.
-: ==================================================================================================
+:: =================================================================================================
+:: Acceptance testing for `timeprint`. Note that to properly pass % characters, they must be escaped
+:: (sometimes twice).
+::
+:: NOTE: This test requires the `diff` tool to be on your path.
+:: =================================================================================================
 
 set testOut=out
 
-if "%1" equ "--run" goto :runTests
+:: This script sets up runtime parameters and then calls itself with the `--run` argument to capture
+:: test output and report results. You can find the :runTests label after the equals line below.
+if "%1" equ "run" goto :runTests
+
+set testScript=%0
+
+set interactive=1
+if "%1" equ "--non-interactive" (
+    set interactive=0
+    shift
+)
 
 if "%1" neq "" (
     set timePrint=out\%1\timeprint.exe
@@ -23,24 +33,40 @@ if not exist %timePrint% (
     exit /b 1
 )
 
-call %0 --run %timePrint% > %testOut%\tests-output.txt
+call %testScript% run %timePrint% > %testOut%\tests-output.txt
 diff -u3 tests-accepted.txt %testOut%\tests-output.txt
 
 if %errorlevel% equ 0 (
-    echo All tests pass.
-    goto :eof
+    echo PASS: All output matches.
+    goto :pass
 )
 
 echo.
-set /p response="Differences found. Accept new results? "
-if /i "%response%" neq "y"  if /i "%response%" neq "yes"  exit /b 1
+if %interactive% equ 0 (
+    echo FAIL: Output changed.
+    goto :fail
+)
 
-copy %testOut%\tests-output.txt tests-accepted.txt
+set /p response="Differences found. Accept new results? "
+if /i "%response%" neq "y"  if /i "%response%" neq "yes" (
+    echo FAIL: Output changed, differences unaccepted.
+    goto :fail
+) else (
+    copy %testOut%\tests-output.txt tests-accepted.txt
+    echo PASS: New output accepted.
+    goto :pass
+)
+
+:fail
+echo.
+exit /b 1
+
+:pass
+echo.
 exit /b 0
 
 
-
-: ==================================================================================================
+::==================================================================================================
 :runTests
 
 set timePrint=%2

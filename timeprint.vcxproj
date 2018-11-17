@@ -66,6 +66,9 @@
     <BuildLog>
       <Path>$(IntDir)\$(ProjectName).log</Path>
     </BuildLog>
+    <PostBuildEvent>
+      <Command>test.cmd --non-interactive $(Configuration)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -93,6 +96,9 @@
     <BuildLog>
       <Path>$(IntDir)\$(ProjectName).log</Path>
     </BuildLog>
+    <PostBuildEvent>
+      <Command>test.cmd --non-interactive $(Configuration)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="timeprint.cpp" />
