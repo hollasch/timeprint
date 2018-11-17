@@ -378,8 +378,17 @@ For additional help, use `--help <topic>`, where <topic> is one of:
     See `--time examples` for more example uses of delta time formats.
 
 --------------------------------------------------------------------------------
+"User time format from env var"
 []
 Test TIMEFORMAT environment variable.
+--------------------------------------------------------------------------------
+"User time delta format from env var"
+[--time 08:00 --time 15:00]
+Test TIMEFORMAT_DELTA environment variable.
+--------------------------------------------------------------------------------
+"Default time delta format"
+[--time 2000-01-01T00:00:00 --time 2018-11-16T15:57:05]
+18 years, 324 days, 15:57:05
 --------------------------------------------------------------------------------
 Output [-h bogusHelpTopic      ] equal to general-help
 Test passed.

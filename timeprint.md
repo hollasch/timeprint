@@ -81,8 +81,9 @@ TZ is unset, the system local time is used. For a description of the
 time zone format, use `--help timeZone`.\n"
 
 If no output string is supplied, the format specified in the environment
-variable `TIMEFORMAT` is used. If this variable is not set, then the format
-defaults to `%#c`.
+variable `TIMEFORMAT` is used for absolute times, or the environment variable
+TIMEFORMAT_DELTA is used for delta times. If the appropriate variable is not
+set, then a default general output format will be used.
 
 Note that if your format string begins with `-` or `/`, you will need to prefix
 it with a `\` character so that it is not confused with a command switch.

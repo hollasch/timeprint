@@ -61,9 +61,18 @@ call :test /htimezone
 call :test --help examples
 call :test --help deltaTime
 
+set comment="User time format from env var"
 set TIMEFORMAT=Test TIMEFORMAT environment variable.
 call :test
 set TIMEFORMAT=
+
+set comment="User time delta format from env var"
+set TIMEFORMAT_DELTA=Test TIMEFORMAT_DELTA environment variable.
+call :test --time 08:00 --time 15:00
+
+set comment="Default time delta format"
+set TIMEFORMAT_DELTA=
+call :test --time 2000-01-01T00:00:00 --time 2018-11-16T15:57:05
 
 call :testCapture general-help --help
 call :testEqual   general-help -h bogusHelpTopic

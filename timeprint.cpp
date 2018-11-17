@@ -23,7 +23,7 @@ using std::wstring;
 
 static auto cHelpBanner = LR"(
 timeprint - Print time and date information
-v2.1.1  |  2018-10-17  |  https://github.com/hollasch/timeprint)";
+v3.0.0-alpha  /  2018-11-16  /  https://github.com/hollasch/timeprint)";
 
 
 enum class HelpType    // Types of usage information for the --help option
@@ -346,14 +346,16 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
 
     if (params.format.empty()) {
         wchar_t* timeFormat;
-        _wdupenv_s (&timeFormat, nullptr, L"TIMEFORMAT");
 
-        if (!timeFormat) {
-            params.format = L"%#c";
+        if (params.isDelta) {
+            _wdupenv_s (&timeFormat, nullptr, L"TimeFormat_Delta");
+            params.format = timeFormat ? timeFormat : L"%_Y years, %_yD days, %_d0H:%_h0M:%_m0S";
         } else {
-            params.format = timeFormat;
-            free (timeFormat);
+            _wdupenv_s (&timeFormat, nullptr, L"TimeFormat");
+            params.format = timeFormat ? timeFormat : L"%#c";
         }
+
+        free (timeFormat);
     }
 
     return true;
