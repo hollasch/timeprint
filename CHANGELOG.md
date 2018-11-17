@@ -1,15 +1,21 @@
 Change Log -- `timeprint`
 ================================================================================
 
-v2.1.1  (PENDING)
+v3.0.0  (In Progress)
 ----------------------------------------------------------------------------------------------------
-### Changed
-  - Trivial reformat change to help header lines.
+### Major Changes
+  - Delta time output now checks environment variable TimeFormat_Delta instead of old TimeFormat.
+  - New default output format for printing time differences / elapsed times.
+
+### Minor Changes
+  - Updated help output.
+
+### Patches
 
 
 v2.1.0  (2018-05-24)
 ----------------------------------------------------------------------------------------------------
-### Added
+### Minor Changes
   - Indicate unknown DST status for calls to `mktime()`.
   - Print error message for unhandled explicit dates before 1970.
   - New: Handle numeric prefix on `%a` format codes.
@@ -17,18 +23,8 @@ v2.1.0  (2018-05-24)
 
 v2.0.0  (2018-02-26)
 ----------------------------------------------------------------------------------------------------
-### Added
-  - Add new `--` switch variants (`--help`, `--codeChar`, `--timeZone`, and so on).
-  - Add help information on new (C++11) format codes.
-  - New rich suite of delta time format options.
-  - New options `--creation`, `--access`, `--modification`.
-  - New option `--now`
-  - New option `--time`
-
-### Removed
+### Major Changes
   - Deprecate option `--modTime`
-
-### Changed
   - -e is now -%/--codeChar to eliminate confusion between escape sequences and
     format code sequences.
   - Renamed from currtime to timeprint.
@@ -38,11 +34,19 @@ v2.0.0  (2018-02-26)
     + Old `%R` is replaced with `%_H`,
       `%R` is now standard "24-hour HH:MM time, equivalent to %H:%M".
     + Old `%s` is replaced with `%_S`, `%s` is now undefined.
+
+### Minor Changes
+  - Add new `--` switch variants (`--help`, `--codeChar`, `--timeZone`, and so on).
+  - Add help information on new (C++11) format codes.
+  - New rich suite of delta time format options.
+  - New options `--creation`, `--access`, `--modification`.
+  - New option `--now`
+  - New option `--time`
   - Help output broken into multiple topics.
 
-### Fixed
-  - Fix crashing bug when the format contained unrecognized `%`-codes.
-  - Fix crashing bug on missing `--modTime`, `--timeZone` options.
+### Patches
+  - Fix: crashing bug when the format contained unrecognized `%`-codes.
+  - Fix: crashing bug on missing `--modTime`, `--timeZone` options.
 
 
 v1.0.0  (original 2013-03-09, released 2018-02-15)
