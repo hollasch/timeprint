@@ -135,6 +135,8 @@ exit /b 0
 
 :test
     echo.--------------------------------------------------------------------------------
+    if defined comment echo %comment%
+    set comment=
     echo [%*]
     %timePrint% %*
     set /a testNum = testNum + 1
