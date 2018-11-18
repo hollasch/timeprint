@@ -48,14 +48,14 @@ if %interactive% equ 0 (
 )
 
 set /p response="Differences found. Accept new results? "
-if /i "%response%" neq "y"  if /i "%response%" neq "yes" (
-    echo FAIL: Output changed, differences unaccepted.
-    goto :fail
-) else (
-    copy %testOut%\tests-output.txt tests-accepted.txt
-    echo PASS: New output accepted.
-    goto :pass
-)
+if /i "%response%" neq "y"  if /i "%response%" neq "yes" goto :failUnaccepted
+
+copy %testOut%\tests-output.txt tests-accepted.txt
+echo PASS: New output accepted.
+goto :pass
+
+:failUnaccepted
+echo FAIL: Output changed, differences unaccepted.
 
 :fail
 echo.
@@ -105,9 +105,10 @@ call :testEqual   general-help -h bogusHelpTopic
 call :testEqual   general-help -hbogusHelpTopic
 call :testEqual   general-help --help bogusHelpTopic
 
-call :errTest --
-call :errTest -
-call :errTest --bogusSwitch
+call :test --
+call :test -
+call :test --bogusSwitch
+
 call :errTest -a
 call :errTest --access
 call :errTest --access someBogusFile
