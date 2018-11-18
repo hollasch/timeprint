@@ -9,6 +9,7 @@ It takes an optional format string to control the output.
 #include <ctype.h>
 #include <sys/stat.h>
 
+#include <cstdarg>
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -26,8 +27,9 @@ timeprint - Print time and date information
 v3.0.0-alpha  /  2018-11-17  /  https://github.com/hollasch/timeprint)";
 
 
-enum class HelpType    // Types of usage information for the --help option
-{
+enum class HelpType {
+    // Types of usage information for the --help option
+
     None,         // No help information requested
     General,      // General usage information
     Examples,     // Illustrative examples
@@ -37,9 +39,23 @@ enum class HelpType    // Types of usage information for the --help option
     TimeZone      // Time zone formats
 };
 
+enum class OptionType {
+    // Command-Line Option Types
 
-enum class TimeType    // Type of time for an associated time value string
-{
+    None,
+    AccessTime,
+    CodeChar,
+    CreationTime,
+    Help,
+    ModificationTime,
+    Now,
+    Time,
+    TimeZone,
+};
+
+enum class TimeType {
+    // Type of time for an associated time value string
+
     None,         // Not a legal time
     Now,          // Current time
     Explicit,     // Explicit ISO-8601 date/time
@@ -48,9 +64,8 @@ enum class TimeType    // Type of time for an associated time value string
     Modification  // Modification time of the named file
 };
 
+class TimeSpec {
 
-class TimeSpec
-{
   public:
     TimeType type { TimeType::None };   // Type of time
     wstring  value;                     // String value of specified type
@@ -66,12 +81,10 @@ class TimeSpec
     }
 };
 
-
-class Parameters
-{
-  public:
+class Parameters {
     // Describes the parameters for a run of this program.
 
+  public:
     wchar_t  codeChar { L'%' };            // Format Code Character (default '%')
     HelpType helpType { HelpType::None };  // Type of help information to print & exit
     wstring  zone;                         // Time zone string
@@ -100,17 +113,21 @@ static int    timeZoneOffsetMinutes;    // Signed minutes offset from UTC
 
 
 // Function Declarations
-bool calcTime            (const Parameters& params, tm& timeValue, time_t& deltaTimeSeconds);
-void getCurrentTime      ();
-bool getParameters       (Parameters& params, int argc, wchar_t* argv[]);
-bool getTimeFromSpec     (time_t& result, const TimeSpec&);
-bool getExplicitDateTime (time_t& result, wstring timeSpec);
-bool getExplicitTime     (tm& result, wstring::iterator specBegin, wstring::iterator specEnd);
-bool getExplicitDate     (tm& result, wstring::iterator specBegin, wstring::iterator specEnd);
-void help                (HelpType);
-void printResults        (wstring format, wchar_t codeChar, const tm& timeValue, time_t deltaTimeSeconds);
-void printDelta          (wstring::iterator& formatIterator, const wstring::iterator& formatEnd, time_t deltaTimeSeconds);
-bool printDeltaFunc      (wstring::iterator& formatIterator, const wstring::iterator& formatEnd, time_t deltaTimeSeconds);
+bool       calcTime           (const Parameters& params, tm& timeValue, time_t& deltaTimeSeconds);
+wstring    defaultTimeFormat  (bool deltaFormat);
+bool       equalIgnoreCase    (const wchar_t* str1, const wchar_t* str2);
+bool       errorMsg           (const wchar_t *message, ...);
+void       getCurrentTime     ();
+OptionType getOptionType      (int& argi, int& paramOffset, wchar_t* argv[]);
+bool       getParameters      (Parameters& params, int argc, wchar_t* argv[]);
+bool       getTimeFromSpec    (time_t& result, const TimeSpec&);
+bool       getExplicitDateTime(time_t& result, wstring timeSpec);
+bool       getExplicitTime    (tm& result, wstring::iterator specBegin, wstring::iterator specEnd);
+bool       getExplicitDate    (tm& result, wstring::iterator specBegin, wstring::iterator specEnd);
+void       help               (HelpType);
+void       printResults       (wstring format, wchar_t codeChar, const tm& timeValue, time_t deltaTimeSeconds);
+void       printDelta         (wstring::iterator& formatIterator, const wstring::iterator& formatEnd, time_t deltaSec);
+bool       printDeltaFunc     (wstring::iterator& formatIterator, const wstring::iterator& formatEnd, time_t deltaSec);
 
 
 //__________________________________________________________________________________________________
@@ -134,6 +151,7 @@ int wmain (int argc, wchar_t *argv[])
 }
 
 
+//__________________________________________________________________________________________________
 void getCurrentTime ()
 {
     // This function gets the current local time, and the corresponding local and UTC time structs.
@@ -170,157 +188,81 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
     // properly, otherwise it returns false.
 
     // Process command arguments.
-    for (auto i=1;  i < argc;  ++i) {
-        auto argptr = argv[i];
+    auto argi = 1;
+    while (argi < argc) {
+
+        int paramOffset;
+        auto arg = argv[argi];
+        auto priorArgi = argi;         // Used later for reporting on invalid third time values.
+
+        auto optionType = getOptionType(argi, paramOffset, argv);
 
         // Non-option arguments accrue to the output format string.
-        if (!((argv[i][0] == L'-') || (argv[i][0] == L'/'))) {
+        if (optionType == OptionType::None) {
             if (!params.format.empty())
                 params.format += L" ";
-            params.format += argptr;
+            params.format += arg;
             continue;
         }
 
-        auto timeValWord1 = i;         // Used later for reporting on invalid third time values.
-        auto timeValWord2 = false;
-
-        auto optChar = argv[i][1];     // Option Character
-
-        if (optChar == 0) {
-            fputws (L"timeprint: Null option switch.\n", stderr);
-            return false;
-        }
-
-        // Point argptr to the contents of the switch.  This may be immediately following the
-        // option character, or it may be the next token on the command line.
-
-        auto     advanceArg = (argv[i][2] == 0);
-        wchar_t* switchWord = nullptr;
-
-        if (optChar == L'-') {
-            advanceArg = true;
-            switchWord = argv[i] + 2;
-            if (0 == _wcsicmp(switchWord, L"access"))
-                optChar = L'a';
-            else if (0 == _wcsicmp(switchWord, L"codeChar"))
-                optChar = L'%';
-            else if (0 == _wcsicmp(switchWord, L"creation"))
-                optChar = L'c';
-            else if (0 == _wcsicmp(switchWord, L"help"))
-                optChar = L'h';
-            else if (0 == _wcsicmp(switchWord, L"modification"))
-                optChar = L'm';
-            else if (0 == _wcsicmp(switchWord, L"now")) {
-                optChar = L'n';
-                advanceArg = false;
-            }
-            else if (0 == _wcsicmp(switchWord, L"time"))
-                optChar = L't';
-            else if (0 == _wcsicmp(switchWord, L"timeZone"))
-                optChar = L'z';
-            else {
-                fwprintf (stderr, L"timeprint: Unrecognized switch (--%s).\n", switchWord);
-                return false;
-            }
-        }
-
-        if (advanceArg) {
-            ++i;
-            if (i >= argc) {
-                argptr = 0;
-            } else {
-                argptr = argv[i];
-                timeValWord2 = true;
-            }
-        } else {
-            argptr = argv[i]+2;
-        }
-
-        // Handle the option according to the option character.
-
         TimeSpec newTimeSpec;
 
-        switch (optChar) {
-            default:
-                fwprintf (stderr, L"timeprint: Unrecognized option (-%c).\n", optChar);
-                return false;
+        if (optionType == OptionType::Now) {
+            // The only option that never takes a parameter.
+            newTimeSpec.Set(TimeType::Now);
+        } else {
 
-            // File Access Time
-            case L'a':
-                if (!argptr) {
-                    fwprintf (stderr, L"timeprint: Missing argument for --access (-a) option.\n");
-                    return false;
-                }
-                newTimeSpec.Set(TimeType::Access, argptr);
-                break;
-
-            // File Modification Time
-            case L'c':
-                if (!argptr) {
-                    fwprintf (stderr, L"timeprint: Missing argument for --creation (-c) option.\n");
-                    return false;
-                }
-                newTimeSpec.Set(TimeType::Creation, argptr);
-                break;
-
-            // Alternate Code Character
-            case L'%':
-                if (argptr) params.codeChar = *argptr;
-                break;
-
-            // Command Usage & Help
-            case L'H':
-            case L'h':
-            case L'?':
-                if (!argptr) {
-                    params.helpType = HelpType::General;
-                } else if (0 == _wcsicmp(argptr, L"examples")) {
-                    params.helpType = HelpType::Examples;
-                } else if (0 == _wcsicmp(argptr, L"deltaTime")) {
-                    params.helpType = HelpType::DeltaTime;
-                } else if (0 == _wcsicmp(argptr, L"formatCodes")) {
-                    params.helpType = HelpType::FormatCodes;
-                } else if (0 == _wcsicmp(argptr, L"timeSyntax")) {
-                    params.helpType = HelpType::TimeSyntax;
-                } else if (0 == _wcsicmp(argptr, L"timeZone")) {
-                    params.helpType = HelpType::TimeZone;
-                } else {
-                    params.helpType = HelpType::General;
-                }
+            wchar_t* parameter = (argi >= argc) ? nullptr : (argv[argi] + paramOffset);
+            
+            if (optionType == OptionType::Help) {
+                // The help option may or may not take a parameter.
+                params.helpType = (parameter == nullptr)                     ? HelpType::General
+                                : equalIgnoreCase(parameter, L"examples")    ? HelpType::Examples
+                                : equalIgnoreCase(parameter, L"deltaTime")   ? HelpType::DeltaTime
+                                : equalIgnoreCase(parameter, L"formatCodes") ? HelpType::FormatCodes
+                                : equalIgnoreCase(parameter, L"timeSyntax")  ? HelpType::TimeSyntax
+                                : equalIgnoreCase(parameter, L"timeZone")    ? HelpType::TimeZone
+                                : HelpType::General;
                 return true;
+            } else {
+                // Options that always take parameters.
 
-            // File Modification Time
-            case L'm':
-                if (!argptr) {
-                    fwprintf (stderr, L"timeprint: Missing argument for --modification (-m) option.\n");
-                    return false;
+                if (optionType == OptionType::AccessTime) {
+                    if (!parameter)
+                        return errorMsg(L"Missing argument for --access (-a) option");
+                    newTimeSpec.Set(TimeType::Access, parameter);
+
+                } else if (optionType == OptionType::CodeChar) {
+                    if (!parameter)
+                        return errorMsg(L"Missing argument for --codeChar (-c) option");
+                    params.codeChar = *parameter;
+
+                } else if (optionType == OptionType::CreationTime) {
+                    if (!parameter)
+                        return errorMsg(L"Missing argument for --creation (-c) option");
+                    newTimeSpec.Set(TimeType::Creation, parameter);
+
+                } else if (optionType == OptionType::ModificationTime) {
+                    if (!parameter)
+                        return errorMsg(L"Missing argument for --modification (-m) option");
+                    newTimeSpec.Set(TimeType::Modification, parameter);
+
+                } else if (optionType == OptionType::Time) {
+                    if (!parameter)
+                        return errorMsg(L"Missing argument for --time (-t) option");
+                    newTimeSpec.Set(TimeType::Explicit, parameter);
+
+                } else if (optionType == OptionType::TimeZone) {
+                    if (!parameter)
+                        return errorMsg(L"Missing argument for --timeZone (-z) option");
+                    params.zone = parameter;
                 }
-                newTimeSpec.Set(TimeType::Modification, argptr);
-                break;
 
-            case L'n':
-                newTimeSpec.Set(TimeType::Now);
-                break;
-
-            case L't':
-                if (!argptr) {
-                    fwprintf (stderr, L"timeprint: Missing argument for --time (-t) option.\n");
-                    return false;
-                }
-                newTimeSpec.Set(TimeType::Explicit, argptr);
-                break;
-
-            // Timezone
-            case L'z':
-                if (!argptr) {
-                    fwprintf (stderr, L"timeprint: Missing argument for --timeZone (-z) option.\n");
-                    return false;
-                }
-
-                params.zone = argptr;
-                break;
+                ++argi;
+            }
         }
 
+        // Add in new (first or second) time spec.
         if (newTimeSpec.type != TimeType::None) {
             if (params.time1.type == TimeType::None) {
                 params.time1 = newTimeSpec;
@@ -328,12 +270,9 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
                 params.time2 = newTimeSpec;
                 params.isDelta = true;
             } else {
-                fwprintf (stderr,
-                    L"timeprint: Unexpected third time value (%s%s%s).\n",
-                    argv[timeValWord1],
-                    timeValWord2 ? L" " : L"",
-                    timeValWord2 ? argv[timeValWord1 + 1] : L"");
-                return false;
+                auto twoArgs = optionType != OptionType::Now;
+                return errorMsg (L"Unexpected third time value (%s%s%s)",
+                    argv[priorArgi], twoArgs ? L" " : L"", twoArgs ? argv[priorArgi+1] : L"");
             }
         }
     }
@@ -342,24 +281,94 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
     if (params.time1.type == TimeType::None)
         params.time1.Set(TimeType::Now);
 
-    // If no format string was specified on the command line, fetch it from the TIMEFORMAT
-    // environment variable.  If not available there, then use the default format string.
-
-    if (params.format.empty()) {
-        wchar_t* timeFormat;
-
-        if (params.isDelta) {
-            _wdupenv_s (&timeFormat, nullptr, L"TimeFormat_Delta");
-            params.format = timeFormat ? timeFormat : L"%_Y years, %_yD days, %_d0H:%_h0M:%_m0S";
-        } else {
-            _wdupenv_s (&timeFormat, nullptr, L"TimeFormat");
-            params.format = timeFormat ? timeFormat : L"%#c";
-        }
-
-        free (timeFormat);
-    }
+    // If no format string was specified on the command line, use the default time format.
+    if (params.format.empty())
+        params.format = defaultTimeFormat (params.isDelta);
 
     return true;
+}
+
+
+//__________________________________________________________________________________________________
+wstring defaultTimeFormat (bool deltaFormat) {
+    // Returns the default time format for the absolute or delta time, either from the user's
+    // environment variable, or from a standard default time format.
+
+    wchar_t* timeFormatEnv;
+    wstring  defaultFormat;
+
+    if (deltaFormat) {
+        _wdupenv_s (&timeFormatEnv, nullptr, L"TimeFormat_Delta");
+        defaultFormat = timeFormatEnv ? timeFormatEnv : L"%_Y years, %_yD days, %_d0H:%_h0M:%_m0S";
+    } else {
+        _wdupenv_s (&timeFormatEnv, nullptr, L"TimeFormat");
+        defaultFormat = timeFormatEnv ? timeFormatEnv : L"%#c";
+    }
+
+    free (timeFormatEnv);
+
+    return defaultFormat;
+}
+
+
+//__________________________________________________________________________________________________
+OptionType getOptionType (int& argi, int& paramOffset, wchar_t* argv[])
+{
+    // This function returns the type of the current option (indexed by `argi`). The option
+    // parameter may immediately follow a single-letter option (for example, `-t12:00`). In this
+    // case, `paramOffset` will be 2 and `argi` will not change, otherwise `argi` will be
+    // incremented and `paramOffset` will be 0. Finally, the option type will be returned.
+    // Unrecognized options will return OptionType::None, `argi` will be left unchanged, and
+    // paramOffset will be 0.
+
+    auto arg = argv[argi];
+    paramOffset = 0;
+    auto optionType = OptionType::None;
+
+    // Check double-dash options and other options that take no arguments.
+
+    struct {
+        const wchar_t* optString;
+        OptionType     type;
+    } optionStrings[] = {
+        { L"/?",             OptionType::Help },
+        { L"-n",             OptionType::Now },
+        { L"--access",       OptionType::AccessTime },
+        { L"--codeChar",     OptionType::CodeChar },
+        { L"--creation",     OptionType::CreationTime },
+        { L"--help",         OptionType::Help },
+        { L"--modification", OptionType::ModificationTime },
+        { L"--now",          OptionType::Now },
+        { L"--time",         OptionType::Time },
+        { L"--timeZone",     OptionType::TimeZone }
+    };
+
+    for (auto option : optionStrings) {
+        if (equalIgnoreCase(arg, option.optString)) {
+            ++argi;
+            return option.type;
+        }
+    }
+
+    // Single-dash options that may have (immediately-trailing) arguments.
+    if (arg[0] == L'-') switch (tolower(arg[1])) {
+        case L'%': optionType = OptionType::CodeChar;         break;
+        case L'a': optionType = OptionType::AccessTime;       break;
+        case L'c': optionType = OptionType::CreationTime;     break;
+        case L'h': optionType = OptionType::Help;             break;
+        case L'm': optionType = OptionType::ModificationTime; break;
+        case L't': optionType = OptionType::Time;             break;
+        case L'z': optionType = OptionType::TimeZone;         break;
+    }
+
+    // If we have a valid single-dash option and the parameter immediately follows, don't advance
+    // the argument index, and set the parameter offset. Otherwise, advance to the next argument.
+    if (optionType != OptionType::None && arg[2] != 0)
+        paramOffset = 2;
+    else
+        ++argi;
+
+    return optionType;
 }
 
 
@@ -414,10 +423,8 @@ bool getTimeFromSpec (time_t& result, const TimeSpec& spec)
 
         auto fileName = spec.value.c_str();
 
-        if (0 != _wstat(fileName, &stat)) {
-            fwprintf (stderr, L"timeprint: Couldn't get status of \"%s\".\n", fileName);
-            return false;
-        }
+        if (0 != _wstat(fileName, &stat))
+            return errorMsg(L"Couldn't get status of \"%s\"", fileName);
 
         switch (spec.type) {
             case TimeType::Access:        result = stat.st_atime; break;
@@ -432,8 +439,7 @@ bool getTimeFromSpec (time_t& result, const TimeSpec& spec)
         if (getExplicitDateTime(result, timeString))
             return true;
 
-        fwprintf (stderr, L"timeprint: Unrecognized explicit time: \"%s\".\n", timeString.c_str());
-        return false;
+        return errorMsg(L"Unrecognized explicit time: \"%s\"", timeString.c_str());
     }
 
     return false;   // Unrecognized time type
@@ -457,10 +463,8 @@ bool getExplicitDateTime (time_t& result, wstring timeSpec)
     }
 
     if (successResult) {
-        if (timeStruct.tm_year < 70) {
-            fwprintf (stderr, L"timeprint: Cannot handle dates before 1970.\n");
-            return false;
-        }
+        if (timeStruct.tm_year < 70)
+            return errorMsg(L"Cannot handle dates before 1970");
         timeStruct.tm_isdst = -1;         // DST status unknown
         result = mktime (&timeStruct);
     }
@@ -999,6 +1003,31 @@ bool printDeltaFunc (
 
 
 //__________________________________________________________________________________________________
+bool equalIgnoreCase (const wchar_t* str1, const wchar_t* str2) {
+    return 0 == _wcsicmp(str1, str2);
+}
+
+
+//__________________________________________________________________________________________________
+bool errorMsg (const wchar_t *message, ...) {
+    // Prints printf-style error message to stderr output stream. This function always returns false
+    // (for chaining).
+
+    va_list(arguments);
+    va_start(arguments, message);
+
+    wstring fullMessage = L"timeprint: ";
+    fullMessage += message;
+    fullMessage += L".\n";
+
+    vfwprintf_s (stderr, fullMessage.c_str(), arguments);
+
+    va_end(arguments);
+    return false; 
+}
+
+
+//__________________________________________________________________________________________________
 static auto help_general = LR"(
 usage: timeprint [--codeChar <char>] [-%<char>]
                  [--help [topic]] [-h[topic]] [/?]
@@ -1022,8 +1051,10 @@ is implied.
 
 Command switches may be prefixed with a dash (-) or a slash (/).
 
-    --access <fileName>, -a<fileName>
-        Use the time of last access of the named file for a time value.
+    --help [topic], -h[topic]
+        Print help and usage information in general, or for the specified
+        topic. Topics include 'examples', 'deltaTime', 'formatCodes',
+        'timeSyntax', and 'timezone'.
 
     --codeChar <char>, -%<char>
         The --codeChar switch specifies an alternate code character to the
@@ -1032,13 +1063,11 @@ Command switches may be prefixed with a dash (-) or a slash (/).
         --codeChar switch is ignored unless the format string is specified on
         the command line.
 
-    --creation <fileName>, -c <fileName>
-        Use the creation time of the named file.
+    --access <fileName>, -a<fileName>
+        Use the time of last access of the named file for a time value.
 
-    --help [topic], -h[topic], -?[topic]
-        Print help and usage information in general, or for the specified
-        topic. Topics include 'examples', 'deltaTime', 'formatCodes',
-        'timeSyntax', and 'timezone'.
+    --creation <fileName>, -c<fileName>
+        Use the creation time of the named file.
 
     --modification <fileName>, -m<fileName>
         Use the modification time of the named file.

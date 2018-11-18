@@ -29,8 +29,10 @@ is implied.
 
 Command switches may be prefixed with a dash (-) or a slash (/).
 
-    --access <fileName>, -a<fileName>
-        Use the time of last access of the named file for a time value.
+    --help [topic], -h[topic]
+        Print help and usage information in general, or for the specified
+        topic. Topics include 'examples', 'deltaTime', 'formatCodes',
+        'timeSyntax', and 'timezone'.
 
     --codeChar <char>, -%<char>
         The --codeChar switch specifies an alternate code character to the
@@ -39,13 +41,11 @@ Command switches may be prefixed with a dash (-) or a slash (/).
         --codeChar switch is ignored unless the format string is specified on
         the command line.
 
-    --creation <fileName>, -c <fileName>
-        Use the creation time of the named file.
+    --access <fileName>, -a<fileName>
+        Use the time of last access of the named file for a time value.
 
-    --help [topic], -h[topic], -?[topic]
-        Print help and usage information in general, or for the specified
-        topic. Topics include 'examples', 'deltaTime', 'formatCodes',
-        'timeSyntax', and 'timezone'.
+    --creation <fileName>, -c<fileName>
+        Use the creation time of the named file.
 
     --modification <fileName>, -m<fileName>
         Use the modification time of the named file.
@@ -211,48 +211,7 @@ For additional help, use `--help <topic>`, where <topic> is one of:
 
 --------------------------------------------------------------------------------
 [/htimezone]
-
-    Time Zones
-    ------------
-
-    The time zone value may be specified with the TZ environment variable,
-    or using the `--timezone` option. Time zones have the format
-    `tzn[+|-]hh[:mm[:ss]][dzn]`, where
-
-        tzn
-            Time-zone name, three letters or more, such as PST.
-
-        [+|-]hh
-            The time that must be ADDED to local time to get UTC.
-            CAREFUL: Unfortunately, this value is negated from how time zones
-            are normally specified. For example, PDT is specified as -0800,
-            but in the time zone string, will be specified as `PDT+08`.
-            You can experiment with the string "%#c %Z %z" and the
-            `--timezone` option to ensure you understand how these work
-            together. If offset hours are omitted, they are assumed to be
-            zero.
-
-        [:mm]
-            Minutes, prefixed with mandatory colon.
-
-        [:ss]
-            Seconds, prefixed with mandatory colon.
-
-        [dzn]
-            Three-letter daylight-saving-time zone such as PDT. If daylight
-            saving time is never in effect in the locality, omit dzn. The C
-            run-time library assumes the US rules for implementing the
-            calculation of Daylight Saving Time (DST).
-
-        Examples of the timezone string include the following:
-
-            UTC       Universal Coordinated Time
-            PST8      Pacific Standard Time
-            PDT+07    Pacific Daylight Time
-            NST+03:30 Newfoundland Standard Time
-            PST8PDT   Pacific Standard Time, daylight savings in effect
-            GST-1GDT  German Standard Time, daylight savings in effect
-
+/htimezone
 --------------------------------------------------------------------------------
 [--help examples]
 
@@ -399,14 +358,14 @@ Test passed.
 Output [--help bogusHelpTopic      ] equal to general-help
 Test passed.
 --------------------------------------------------------------------------------
-Error Test [--]
-timeprint: Unrecognized switch (--).
+[--]
+--
 --------------------------------------------------------------------------------
-Error Test [-]
-timeprint: Null option switch.
+[-]
+-
 --------------------------------------------------------------------------------
-Error Test [--bogusSwitch]
-timeprint: Unrecognized switch (--bogusSwitch).
+[--bogusSwitch]
+--bogusSwitch
 --------------------------------------------------------------------------------
 Error Test [-a]
 timeprint: Missing argument for --access (-a) option.

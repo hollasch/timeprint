@@ -9,6 +9,8 @@ v3.0.0  (In Progress)
 
 ### Minor Changes
   - Updated help output.
+  - Unrecognized options (including `-`) are now just accrued to the format string. Beware
+    possible collision with future options.
 
 ### Patches
 
