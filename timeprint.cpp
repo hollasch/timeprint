@@ -114,6 +114,7 @@ static int    timeZoneOffsetMinutes;    // Signed minutes offset from UTC
 
 // Function Declarations
 bool       calcTime           (const Parameters& params, tm& timeValue, time_t& deltaTimeSeconds);
+bool       charIn             (wchar_t c, const wchar_t* list);
 wstring    defaultTimeFormat  (bool deltaFormat);
 bool       equalIgnoreCase    (const wchar_t* str1, const wchar_t* str2);
 bool       errorMsg           (const wchar_t *message, ...);
@@ -124,6 +125,7 @@ bool       getTimeFromSpec    (time_t& result, const TimeSpec&);
 bool       getExplicitDateTime(time_t& result, wstring timeSpec);
 bool       getExplicitTime    (tm& result, wstring::iterator specBegin, wstring::iterator specEnd);
 bool       getExplicitDate    (tm& result, wstring::iterator specBegin, wstring::iterator specEnd);
+int        getNumIntDigits    (double);
 void       help               (HelpType);
 void       printResults       (wstring format, wchar_t codeChar, const tm& timeValue, time_t deltaTimeSeconds);
 void       printDelta         (wstring::iterator& formatIterator, const wstring::iterator& formatEnd, time_t deltaSec);
@@ -817,31 +819,6 @@ void printDelta (
 
 
 //__________________________________________________________________________________________________
-bool charIn (wchar_t c, const wchar_t* list)
-{
-    // Return true if the given character is in the zero-terminated array of characters.
-    // Also returns true if c == 0.
-    auto i = 0;
-    while (list[i] && (c != list[i]))
-        ++i;
-    return (c == list[i]);
-}
-
-
-int getNumIntDigits (double x)
-{
-    // Returns the number of digits in the given integer value.
-
-    int n = static_cast<int>(x);
-    int nDigits = 1;
-    while (n /= 10)
-        ++ nDigits;
-
-    return nDigits;
-}
-
-
-//__________________________________________________________________________________________________
 bool printDeltaFunc (
     wstring::iterator&       formatIterator,     // Pointer to delta format after '%_'
     const wstring::iterator& formatEnd,          // Format string end
@@ -999,6 +976,32 @@ bool printDeltaFunc (
 
     fputws (outputString.c_str(), stdout);
     return true;
+}
+
+
+//__________________________________________________________________________________________________
+bool charIn (wchar_t c, const wchar_t* list)
+{
+    // Return true if the given character is in the zero-terminated array of characters.
+    // Also returns true if c == 0.
+    auto i = 0;
+    while (list[i] && (c != list[i]))
+        ++i;
+    return (c == list[i]);
+}
+
+
+//__________________________________________________________________________________________________
+int getNumIntDigits (double x)
+{
+    // Returns the number of digits in the given integer value.
+
+    int n = static_cast<int>(x);
+    int nDigits = 1;
+    while (n /= 10)
+        ++ nDigits;
+
+    return nDigits;
 }
 
 
