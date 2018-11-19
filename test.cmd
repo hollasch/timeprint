@@ -148,7 +148,10 @@ call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%%%%_Dd %%%%
 call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%%%%_Dd %%%%_d0H:%%%%_h0M:%%%%_m0S"
 call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%%%%_D."
 call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%%%%_D.8"
-call :test --time 2000-01-01T00:00:00Z --time 2018-01-02T03:04:05Z "%%%%_'|_M.4"
+
+call :test --time 2000-01-01T00:00:00Z --time 2002-05-07T09:07:53Z "%%%%_M.4"
+call :test --time 2000-01-01T00:00:00Z --time 2002-05-07T09:07:53Z "%%%%_'|_M.4"
+call :test --time 2000-01-01T00:00:00Z --time 2002-05-07T09:07:53Z "%%%%_'0_M.4"
 
 call :test --now --creation timeprint.cpp "%%%%_"
 call :test --now --creation timeprint.cpp "%%%%_y"
