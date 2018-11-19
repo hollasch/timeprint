@@ -119,6 +119,8 @@ wstring    defaultTimeFormat  (bool deltaFormat);
 bool       equalIgnoreCase    (const wchar_t* str1, const wchar_t* str2);
 bool       errorMsg           (const wchar_t *message, ...);
 void       getCurrentTime     ();
+bool       getDeltaNumberFormat (wstring::iterator& formatIterator, const wstring::iterator& formatEnd,
+                                 wchar_t& thousandsChar, wchar_t& decimalChar);
 OptionType getOptionType      (int& argi, int& paramOffset, wchar_t* argv[]);
 bool       getParameters      (Parameters& params, int argc, wchar_t* argv[]);
 bool       getTimeFromSpec    (time_t& result, const TimeSpec&);
@@ -824,23 +826,12 @@ bool printDeltaFunc (
     const wstring::iterator& formatEnd,          // Format string end
     time_t                   deltaTimeSeconds)   // Time difference when comparing two times
 {
-    double  deltaValue;              // Delta value, scaled
-    wchar_t thousandsChar = 0;       // Thousands-separator character, 0=none
-    wchar_t decimalChar = 0;         // Decimal character
-
     if (formatIterator == formatEnd) return false;
 
-    // Parse thousands separator and decimal point format flag.
-    if (*formatIterator == L'\'') {
-        if (++formatIterator == formatEnd) return false;
-        thousandsChar = *formatIterator;
-        if (++formatIterator == formatEnd) return false;
-        decimalChar = *formatIterator;
-        if (++formatIterator == formatEnd) return false;
-
-        if (thousandsChar == L'0')
-            thousandsChar = 0;
-    }
+    wchar_t thousandsChar;  // Thousands-separator character, 0=none
+    wchar_t decimalChar;    // Decimal character
+    if (!getDeltaNumberFormat (formatIterator, formatEnd, thousandsChar, decimalChar))
+        return false;
 
     // Parse modulo unit, if one exists.
     wchar_t moduloUnit  = *formatIterator++;
@@ -859,7 +850,8 @@ bool printDeltaFunc (
             break;
     }
 
-    deltaValue = moduloUnit ? fmod(deltaTimeSeconds,moduloValue) : deltaTimeSeconds;
+    // Delta value, scaled
+    double deltaValue = moduloUnit ? fmod(deltaTimeSeconds,moduloValue) : deltaTimeSeconds;
 
     // Parse delta unit.
 
@@ -975,6 +967,36 @@ bool printDeltaFunc (
     }
 
     fputws (outputString.c_str(), stdout);
+    return true;
+}
+
+
+//__________________________________________________________________________________________________
+bool getDeltaNumberFormat (
+    wstring::iterator& formatIterator,
+    const wstring::iterator& formatEnd,
+    wchar_t& thousandsChar,
+    wchar_t& decimalChar)
+{
+    // This function parses the thousands separator and decimal point formatting sequence, if it
+    // exists. On return, `thousandsChar` will contain the thousands character, or zero if no
+    // thousands character is to be printed, and `decimalChar` will contain the decimal character to
+    // use, or 0 to use a '.' decimal point.
+
+    thousandsChar = 0;
+    decimalChar = 0;
+
+    if (*formatIterator == L'\'') {
+        if (++formatIterator == formatEnd) return false;
+        thousandsChar = *formatIterator;
+        if (++formatIterator == formatEnd) return false;
+        decimalChar = *formatIterator;
+        if (++formatIterator == formatEnd) return false;
+
+        if (thousandsChar == L'0')    // '0' indicates no thousands character.
+            thousandsChar = 0;
+    }
+
     return true;
 }
 
