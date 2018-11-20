@@ -1136,71 +1136,28 @@ For additional help, use `--help <topic>`, where <topic> is one of:
     - timeZone
 )";
 
-static auto help_formatCodes = LR"(
-Format Codes
--------------
+static auto help_examples = LR"(
+Examples
+---------
 
-    The following time format codes are supported:
+    > timeprint
+    Sunday, July 20, 2003 17:02:39
 
-        %a     Abbreviated weekday name *
-        %<d>a  Weekday name, abbreviated to d characters (min 1)
-        %A     Full weekday name *
-        %b     Abbreviated month name *
-        %B     Full month name *
-        %c     Date and time representation *
-        %C     Year divided by 100 and truncated to integer (00-99)
-        %d     Day of month as decimal number (01-31)
-        %D     Short MM/DD/YY date, equivalent to %m/%d/%y
-        %e     Day of the month, space-padded ( 1-31)
-        %F     Short YYYY-MM-DD date, equivalent to %Y-%m-%d
-        %g     Week-based year, last two digits (00-99)
-        %G     Week-based year
-        %h     Abbreviated month name (same as %b) *
-        %H     Hour in 24-hour format (00-23)
-        %I     Hour in 12-hour format (01-12)
-        %j     Day of year as decimal number (001-366)
-        %m     Month as decimal number (01-12)
-        %M     Minute as decimal number (00-59)
-        %n     New line character (same as '\n')
-        %p     AM or PM designation
-        %r     12-hour clock time *
-        %R     24-hour HH:MM time, equivalent to %H:%M
-        %S     Seconds as a decimal number (00-59)
-        %t     Horizontal tab character (same as '\t')
-        %T     ISO 8601 time format (HH:MM:SS) equivalent to %H:%M:%S
-        %u     ISO 8601 weekday as number with Monday=1 (1-7)
-        %U     Week number, first Sunday = week 1 day 1 (00-53)
-        %V     ISO 8601 week number (01-53)
-        %w     Weekday as decimal number, Sunday = 0 (0-6)
-        %W     Week of year, decimal, Monday = week 1 day 1(00-51)
-        %x     Date representation *
-        %X     Time representation *
-        %y     Year without century, as decimal number (00-99)
-        %Y     Year with century, as decimal number
-        %z     ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)
-               If timezone cannot be determined, no characters
-        %Z     Time-zone name or abbreviation, empty for unrecognized zones *
-        %_...  Delta time formats. See `--help deltaTime`.
-        %%     Percent sign
+    > timeprint %H:%M:%S
+    17:03:17
 
-        * Specifiers marked with an asterisk are locale-dependent.
+    > timeprint -z UTC
+    Monday, July 21, 2003 00:03:47
 
-    As in the printf function, the # flag may prefix any formatting code. In
-    that case, the meaning of the format code is changed as follows.
+    > timeprint Starting build at %Y-%m-%d %#I:%M:%S %p.
+    Starting build at 2003-07-20 5:06:09 PM.
 
-        %#c
-            Long date and time representation, appropriate for current locale.
-            For example: Tuesday, March 14, 1995, 12:41:29.
-
-        %#x
-            Long date representation, appropriate to current locale.
-            For example: Tuesday, March 14, 1995.
-
-        %#d, %#H, %#I, %#j, %#m, %#M, %#S, %#U, %#w, %#W, %#y, %#Y
-            Remove any leading zeros.
-
-        All others
-            The flag is ignored.
+    > echo. >timestamp.txt
+    [a day and a half later...]
+    > timeprint --modification timestamp.txt --now Elapsed Time: %_S seconds
+    Elapsed Time: 129797 seconds
+    > timeprint --modification timestamp.txt --now Elapsed Time: %_H:%_hM:%_mS
+    Elapsed Time: 36:3:17
 )";
 
 static auto help_deltaTime = LR"(
@@ -1301,6 +1258,73 @@ Delta Time Formatting
     See `--time examples` for more example uses of delta time formats.
 )";
 
+static auto help_formatCodes = LR"(
+Format Codes
+-------------
+
+    The following time format codes are supported:
+
+        %a     Abbreviated weekday name *
+        %<d>a  Weekday name, abbreviated to d characters (min 1)
+        %A     Full weekday name *
+        %b     Abbreviated month name *
+        %B     Full month name *
+        %c     Date and time representation *
+        %C     Year divided by 100 and truncated to integer (00-99)
+        %d     Day of month as decimal number (01-31)
+        %D     Short MM/DD/YY date, equivalent to %m/%d/%y
+        %e     Day of the month, space-padded ( 1-31)
+        %F     Short YYYY-MM-DD date, equivalent to %Y-%m-%d
+        %g     Week-based year, last two digits (00-99)
+        %G     Week-based year
+        %h     Abbreviated month name (same as %b) *
+        %H     Hour in 24-hour format (00-23)
+        %I     Hour in 12-hour format (01-12)
+        %j     Day of year as decimal number (001-366)
+        %m     Month as decimal number (01-12)
+        %M     Minute as decimal number (00-59)
+        %n     New line character (same as '\n')
+        %p     AM or PM designation
+        %r     12-hour clock time *
+        %R     24-hour HH:MM time, equivalent to %H:%M
+        %S     Seconds as a decimal number (00-59)
+        %t     Horizontal tab character (same as '\t')
+        %T     ISO 8601 time format (HH:MM:SS) equivalent to %H:%M:%S
+        %u     ISO 8601 weekday as number with Monday=1 (1-7)
+        %U     Week number, first Sunday = week 1 day 1 (00-53)
+        %V     ISO 8601 week number (01-53)
+        %w     Weekday as decimal number, Sunday = 0 (0-6)
+        %W     Week of year, decimal, Monday = week 1 day 1(00-51)
+        %x     Date representation *
+        %X     Time representation *
+        %y     Year without century, as decimal number (00-99)
+        %Y     Year with century, as decimal number
+        %z     ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)
+               If timezone cannot be determined, no characters
+        %Z     Time-zone name or abbreviation, empty for unrecognized zones *
+        %_...  Delta time formats. See `--help deltaTime`.
+        %%     Percent sign
+
+        * Specifiers marked with an asterisk are locale-dependent.
+
+    As in the printf function, the # flag may prefix any formatting code. In
+    that case, the meaning of the format code is changed as follows.
+
+        %#c
+            Long date and time representation, appropriate for current locale.
+            For example: Tuesday, March 14, 1995, 12:41:29.
+
+        %#x
+            Long date representation, appropriate to current locale.
+            For example: Tuesday, March 14, 1995.
+
+        %#d, %#H, %#I, %#j, %#m, %#M, %#S, %#U, %#w, %#W, %#y, %#Y
+            Remove any leading zeros.
+
+        All others
+            The flag is ignored.
+)";
+
 static auto help_timeSyntax = LR"(
 Time Syntax
 ------------
@@ -1397,30 +1421,6 @@ Time Zones
             NST+03:30 Newfoundland Standard Time
             PST8PDT   Pacific Standard Time, daylight savings in effect
             GST-1GDT  German Standard Time, daylight savings in effect
-)";
-
-static auto help_examples = LR"(
-Examples
----------
-
-    > timeprint
-    Sunday, July 20, 2003 17:02:39
-
-    > timeprint %H:%M:%S
-    17:03:17
-
-    > timeprint -z UTC
-    Monday, July 21, 2003 00:03:47
-
-    > timeprint Starting build at %Y-%m-%d %#I:%M:%S %p.
-    Starting build at 2003-07-20 5:06:09 PM.
-
-    > echo. >timestamp.txt
-    [a day and a half later...]
-    > timeprint --modification timestamp.txt --now Elapsed Time: %_S seconds
-    Elapsed Time: 129797 seconds
-    > timeprint --modification timestamp.txt --now Elapsed Time: %_H:%_hM:%_mS
-    Elapsed Time: 36:3:17
 )";
 
 
