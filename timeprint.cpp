@@ -223,9 +223,12 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
                 params.helpType = (parameter == nullptr)                     ? HelpType::General
                                 : equalIgnoreCase(parameter, L"examples")    ? HelpType::Examples
                                 : equalIgnoreCase(parameter, L"deltaTime")   ? HelpType::DeltaTime
+                                : equalIgnoreCase(parameter, L"deltaTimes")  ? HelpType::DeltaTime
+                                : equalIgnoreCase(parameter, L"formatCode")  ? HelpType::FormatCodes
                                 : equalIgnoreCase(parameter, L"formatCodes") ? HelpType::FormatCodes
                                 : equalIgnoreCase(parameter, L"timeSyntax")  ? HelpType::TimeSyntax
                                 : equalIgnoreCase(parameter, L"timeZone")    ? HelpType::TimeZone
+                                : equalIgnoreCase(parameter, L"timeZones")   ? HelpType::TimeZone
                                 : HelpType::General;
                 return true;
             } else {
@@ -1134,8 +1137,8 @@ For additional help, use `--help <topic>`, where <topic> is one of:
 )";
 
 static auto help_formatCodes = LR"(
-    Format Codes
-    --------------
+Format Codes
+-------------
 
     The following time format codes are supported:
 
@@ -1201,8 +1204,8 @@ static auto help_formatCodes = LR"(
 )";
 
 static auto help_deltaTime = LR"(
-    Delta Time Formatting
-    -----------------------
+Delta Time Formatting
+----------------------
 
     Time differences are reported using the delta time formats. The delta time
     format has the following syntax:
@@ -1299,8 +1302,8 @@ static auto help_deltaTime = LR"(
 )";
 
 static auto help_timeSyntax = LR"(
-    Time Syntax
-    -------------
+Time Syntax
+------------
 
     The explicit `--time` option supports a variety of different formats,
     based on the ISO 8601 date/time format.
@@ -1354,8 +1357,8 @@ static auto help_timeSyntax = LR"(
 )";
 
 static auto help_timeZone = LR"(
-    Time Zones
-    ------------
+Time Zones
+-----------
 
     The time zone value may be specified with the TZ environment variable,
     or using the `--timezone` option. Time zones have the format
@@ -1397,8 +1400,8 @@ static auto help_timeZone = LR"(
 )";
 
 static auto help_examples = LR"(
-    Examples
-    ----------
+Examples
+---------
 
     > timeprint
     Sunday, July 20, 2003 17:02:39

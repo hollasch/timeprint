@@ -81,11 +81,12 @@ echo Test %testNum%: [/?]
 %timePrint% /?
 set /a testNum = testNum + 1
 
-call :test --help FORMATCODES
-call :test -H timeSyntax
-call :test /htimezone
 call :test --help examples
 call :test --help deltaTime
+call :test --help FORMATCODES
+call :test -H timeSyntax
+call :test -htimezone
+call :test /hexamples
 
 set comment="User time format from env var"
 set TIMEFORMAT=Test TIMEFORMAT environment variable.
