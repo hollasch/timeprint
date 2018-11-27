@@ -95,10 +95,12 @@ set TIMEFORMAT=
 
 set comment="User time delta format from env var"
 set TIMEFORMAT_DELTA=Test TIMEFORMAT_DELTA environment variable.
+call :testDefCode --time 08:00 --time 15:00
 call :test --time 08:00 --time 15:00
 
 set comment="Default time delta format"
 set TIMEFORMAT_DELTA=
+call :testDefCode --time 2000-01-01T00:00:00 --time 2018-11-16T15:57:05
 call :test --time 2000-01-01T00:00:00 --time 2018-11-16T15:57:05
 
 call :testCapture general-help --help
@@ -131,40 +133,47 @@ call :test A b c d e Hello world f g h i j
 call :test "A b c d e Hello world f g h i j"
 call :test "A\nB\nC"
 call :test "A\tB\tC"
-call :test "A%%%%nB%%%%nC"
-call :test "A%%%%tB%%%%tC"
-call :test Percent sign = %%%%%%%%
-call :test Bogus codes: %%%%E%%%%f%%%%i%%%%J%%%%N%%%%P%%%%s%%%%v
-call :test Bogus codes: %%%%_a %%%%_z
+
+call :testDefCode "A%%%%nB%%%%nC"
+call :testDefCode "A%%%%tB%%%%tC"
+call :testDefCode Percent sign = %%%%%%%%
+call :testDefCode --codeChar $ --time 2000-01-02T03:04:05 $Y $m $d $H $M $S
+
+call :test "A!nB!nC"
+call :test "A!tB!tC"
+call :test "Exclamation point = !!"
+
+call :test Bogus codes: !E !f !i !J !N !P !s !v
+call :test Bogus codes: !_a !_z
 
 call :test --timezone UTC --time 2000-01-01T00:00:00Z
 call :test --timezone UTC --time 2000-01-02T03:04:05+67
 call :test --timezone UTC --time 2000-01-02T03:04:05-67:89
 call :test --timezone UTC --time 2000-01-02T03:04:05-6789
-call :test --timezone UTC --time 2000-01-01T12:00Z "%%%%1a %%%%2a %%%%3a %%%%4a %%%%5a %%%%6a %%%%7a %%%%8a %%%%9a %%%%20a"
-call :test --timezone PST+08 --time 2000-01-01T00:00:00Z "%%%%#c %%%%z %%%%Z"
+call :test --timezone UTC --time 2000-01-01T12:00Z "!1a !2a !3a !4a !5a !6a !7a !8a !9a !20a"
+call :test --timezone PST+08 --time 2000-01-01T00:00:00Z "!#c !z !Z"
 
-call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T00:00:00Z "%%%%_S"
-call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%%%%_Dd %%%%_dH:%%%%_hM:%%%%_mS"
-call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%%%%_Dd %%%%_d0H:%%%%_h0M:%%%%_m0S"
-call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%%%%_D."
-call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%%%%_D.8"
+call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T00:00:00Z "!_S"
+call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "!_Dd !_dH:!_hM:!_mS"
+call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "!_Dd !_d0H:!_h0M:!_m0S"
+call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "!_D."
+call :test --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "!_D.8"
 
-call :test --time 2000-01-01T00:00:00Z --time 2002-05-07T09:07:53Z "%%%%_M.4"
-call :test --time 2000-01-01T00:00:00Z --time 2002-05-07T09:07:53Z "%%%%_'|_M.4"
-call :test --time 2000-01-01T00:00:00Z --time 2002-05-07T09:07:53Z "%%%%_'0_M.4"
+call :test --time 2000-01-01T00:00:00Z --time 2002-05-07T09:07:53Z "!_M.4"
+call :test --time 2000-01-01T00:00:00Z --time 2002-05-07T09:07:53Z "!_'|_M.4"
+call :test --time 2000-01-01T00:00:00Z --time 2002-05-07T09:07:53Z "!_'0_M.4"
 
-call :test --now --creation timeprint.cpp "%%%%_"
-call :test --now --creation timeprint.cpp "%%%%_y"
-call :test --now --creation timeprint.cpp "%%%%_y."
-call :test --now --creation timeprint.cpp "%%%%_yy (bogus delta time value)"
-call :test --now --creation timeprint.cpp "%%%%_tt (bogus delta time value)"
-call :test --now --creation timeprint.cpp "%%%%_xy (bogus delta time modulo unit type)"
-call :test --now --creation timeprint.cpp "%%%%_xt (bogus delta time modulo unit type)"
-call :test --now --creation timeprint.cpp "%%%%_xd (bogus delta time modulo unit type)"
-call :test --now --creation timeprint.cpp "%%%%_xh (bogus delta time modulo unit type)"
-call :test --now --creation timeprint.cpp "%%%%_xm (bogus delta time modulo unit type)"
-call :test --now --creation timeprint.cpp "%%%%_'yM.0 (spurious delta time lead character)"
+call :test --now --creation timeprint.cpp "!_"
+call :test --now --creation timeprint.cpp "!_y"
+call :test --now --creation timeprint.cpp "!_y."
+call :test --now --creation timeprint.cpp "!_yy (bogus delta time value)"
+call :test --now --creation timeprint.cpp "!_tt (bogus delta time value)"
+call :test --now --creation timeprint.cpp "!_xy (bogus delta time modulo unit type)"
+call :test --now --creation timeprint.cpp "!_xt (bogus delta time modulo unit type)"
+call :test --now --creation timeprint.cpp "!_xd (bogus delta time modulo unit type)"
+call :test --now --creation timeprint.cpp "!_xh (bogus delta time modulo unit type)"
+call :test --now --creation timeprint.cpp "!_xm (bogus delta time modulo unit type)"
+call :test --now --creation timeprint.cpp "!_'yM.0 (spurious delta time lead character)"
 
 
 
@@ -175,6 +184,15 @@ exit /b 0
 
 
 :test
+    echo.--------------------------------------------------------------------------------
+    if defined comment echo %comment%
+    set comment=
+    echo [%*]
+    %timePrint% --codeChar ! %*
+    set /a testNum = testNum + 1
+    goto :eof
+
+:testDefCode
     echo.--------------------------------------------------------------------------------
     if defined comment echo %comment%
     set comment=
