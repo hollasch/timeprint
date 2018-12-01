@@ -88,8 +88,8 @@ For additional help, use `--help <topic>`, where <topic> is one of:
 --------------------------------------------------------------------------------
 [--help examples]
 
-Examples
----------
+    Examples
+    ----------
 
     > timeprint
     Sunday, July 20, 2003 17:02:39
@@ -113,8 +113,8 @@ Examples
 --------------------------------------------------------------------------------
 [--help deltaTime]
 
-Delta Time Formatting
-----------------------
+    Delta Time Formatting
+    -----------------------
 
     Time differences are reported using the delta time formats. The delta time
     format has the following syntax:
@@ -212,8 +212,8 @@ Delta Time Formatting
 --------------------------------------------------------------------------------
 [--help FORMATCODES]
 
-Format Codes
--------------
+    Format Codes
+    --------------
 
     The following time format codes are supported:
 
@@ -280,8 +280,8 @@ Format Codes
 --------------------------------------------------------------------------------
 [-H timeSyntax]
 
-Time Syntax
-------------
+    Time Syntax
+    -------------
 
     The explicit `--time` option supports a variety of different formats,
     based on the ISO 8601 date/time format.
@@ -336,8 +336,8 @@ Time Syntax
 --------------------------------------------------------------------------------
 [-htimezone]
 
-Time Zones
------------
+    Time Zones
+    ------------
 
     The time zone value may be specified with the TZ environment variable,
     or using the `--timezone` option. Time zones have the format
