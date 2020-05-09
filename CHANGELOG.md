@@ -4,8 +4,10 @@ Change Log -- `timeprint`
 v3.0.0  (In Progress)
 ----------------------------------------------------------------------------------------------------
 ### Major Changes
-  - Delta time output now checks environment variable TimeFormat_Delta instead of old TimeFormat.
-  - New default output format for printing time differences / elapsed times.
+  - Delta time output now checks environment variable `TimeFormat_Delta` instead of old `TimeFormat`
+    (#45).
+  - New default output format for printing time differences / elapsed times (#44)
+  - Project now builds using CMake (#52)
 
 ### Minor Changes
   - Updated help output.
