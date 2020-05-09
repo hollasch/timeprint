@@ -12,6 +12,8 @@ set testOut=out
 :: test output and report results. You can find the :runTests label after the equals line below.
 if "%1" equ "run" goto :runTests
 
+if not exist %testOut% mkdir %testOut%
+
 set testScript=%0
 
 set interactive=1
@@ -21,9 +23,9 @@ if "%1" equ "--non-interactive" (
 )
 
 if "%1" neq "" (
-    set timePrint=out\%1\timeprint.exe
+    set timePrint=build\%1\timeprint.exe
 ) else (
-    set timePrint=out\Debug\timeprint.exe
+    set timePrint=build\Debug\timeprint.exe
 )
 
 echo Testing %timePrint%.
