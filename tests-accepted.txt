@@ -389,6 +389,9 @@ Test TIMEFORMAT environment variable.
 [--time 08:00 --time 15:00]
 Test TIMEFORMAT_DELTA environment variable.
 --------------------------------------------------------------------------------
+[--time 08:00 --time 15:00]
+Test TIMEFORMAT_DELTA environment variable.
+--------------------------------------------------------------------------------
 "Default time delta format"
 [--time 2000-01-01T00:00:00 --time 2018-11-16T15:57:05]
 18 years, 324 days, 15:57:05
