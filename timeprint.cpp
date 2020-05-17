@@ -24,7 +24,7 @@ using std::wstring;
 
 static auto cHelpBanner = LR"(
 timeprint - Print time and date information
-v3.0.0-alpha  /  2018-11-17  /  https://github.com/hollasch/timeprint)";
+v3.0.0-alpha.2 /  2020-05-16  /  https://github.com/hollasch/timeprint)";
 
 
 enum class HelpType {
