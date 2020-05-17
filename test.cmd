@@ -4,6 +4,11 @@
 :: (sometimes twice).
 ::
 :: NOTE: This test requires the `diff` tool to be on your path.
+::
+:: Usage: test [release|debug]
+::
+:: By default, tests the release build.
+::
 :: =================================================================================================
 
 set testOut=out
@@ -22,9 +27,22 @@ if "%1" equ "--non-interactive" (
     shift
 )
 
-if "%1" neq "" (
-    set timePrint=build\%1\timeprint.exe
+if "%1" equ "release" (
+    set buildConfig=release
+) else if "%1" equ "" (
+    set buildConfig=release
+) else if "%1" equ "debug" (
+    set buildConfig=debug
 ) else (
+    echo 1>&2ERROR: Invalid build configuation ^(%1^). Expected "release" or "debug".
+    exit /b 1
+)
+
+if %buildConfig% equ release (
+    call cmake --build build --config release
+    set timePrint=build\Release\timeprint.exe
+) else (
+    call cmake --build build --config debug
     set timePrint=build\Debug\timeprint.exe
 )
 
