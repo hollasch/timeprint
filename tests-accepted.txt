@@ -66,7 +66,12 @@ Command switches may be prefixed with a dash (-) or a slash (/).
 
 If no output string is supplied, the format specified in the environment
 variable TIMEFORMAT is used. If this variable is not set, then the format
-defaults to "%#c".
+defaults to "%#c". The TIMEFORMAT string must use the "%" code character.
+
+Similarly, the default difference time format may be specified with the
+TIMEFORMAT_DELTA environment variable. If this variable is not set, then the
+format defaults to "%_Y years, %_yD days, %_d0H:%_h0M:%_m0S". The
+TIMEFORMAT_DELTA string must use the "%" code character.
 
 Note that if your format string begins with - or /, you will need to prefix it
 with a \ character so that it is not confused with a command switch.
@@ -86,10 +91,10 @@ For additional help, use `--help <topic>`, where <topic> is one of:
     - timeZone
 
 --------------------------------------------------------------------------------
-[--help examples]
+[--codeChar $ --help examples]
 
-    Examples
-    ----------
+Examples
+---------
 
     > timeprint
     Sunday, July 20, 2003 17:02:39
@@ -111,10 +116,10 @@ For additional help, use `--help <topic>`, where <topic> is one of:
     Elapsed Time: 36:3:17
 
 --------------------------------------------------------------------------------
-[--help deltaTime]
+[--codeChar $ --help deltaTime]
 
-    Delta Time Formatting
-    -----------------------
+Delta Time Formatting
+----------------------
 
     Time differences are reported using the delta time formats. The delta time
     format has the following syntax:
@@ -210,10 +215,10 @@ For additional help, use `--help <topic>`, where <topic> is one of:
     See `--time examples` for more example uses of delta time formats.
 
 --------------------------------------------------------------------------------
-[--help FORMATCODES]
+[--codeChar $ --help FORMATCODES]
 
-    Format Codes
-    --------------
+Format Codes
+-------------
 
     The following time format codes are supported:
 
@@ -278,10 +283,10 @@ For additional help, use `--help <topic>`, where <topic> is one of:
             The flag is ignored.
 
 --------------------------------------------------------------------------------
-[-H timeSyntax]
+[--codeChar $ -H timeSyntax]
 
-    Time Syntax
-    -------------
+Time Syntax
+------------
 
     The explicit `--time` option supports a variety of different formats,
     based on the ISO 8601 date/time format.
@@ -334,10 +339,10 @@ For additional help, use `--help <topic>`, where <topic> is one of:
     See `--help examples` for other examples.
 
 --------------------------------------------------------------------------------
-[-htimezone]
+[--codeChar $ -htimezone]
 
-    Time Zones
-    ------------
+Time Zones
+-----------
 
     The time zone value may be specified with the TZ environment variable,
     or using the `--timezone` option. Time zones have the format
@@ -378,22 +383,25 @@ For additional help, use `--help <topic>`, where <topic> is one of:
             GST-1GDT  German Standard Time, daylight savings in effect
 
 --------------------------------------------------------------------------------
-[/hexamples]
+[--codeChar $ /hexamples]
 /hexamples
 --------------------------------------------------------------------------------
 "User time format from env var"
-[]
+[--codeChar $ ]
 Test TIMEFORMAT environment variable.
 --------------------------------------------------------------------------------
 "User time delta format from env var"
 [--time 08:00 --time 15:00]
 Test TIMEFORMAT_DELTA environment variable.
 --------------------------------------------------------------------------------
-[--time 08:00 --time 15:00]
+[--codeChar $ --time 08:00 --time 15:00]
 Test TIMEFORMAT_DELTA environment variable.
 --------------------------------------------------------------------------------
 "Default time delta format"
 [--time 2000-01-01T00:00:00 --time 2018-11-16T15:57:05]
+18 years, 324 days, 15:57:05
+--------------------------------------------------------------------------------
+[--codeChar $ --time 2000-01-01T00:00:00 --time 2018-11-16T15:57:05]
 18 years, 324 days, 15:57:05
 --------------------------------------------------------------------------------
 Output [-h bogusHelpTopic      ] equal to general-help
@@ -405,13 +413,13 @@ Test passed.
 Output [--help bogusHelpTopic      ] equal to general-help
 Test passed.
 --------------------------------------------------------------------------------
-[--]
+[--codeChar $ --]
 --
 --------------------------------------------------------------------------------
-[-]
+[--codeChar $ -]
 -
 --------------------------------------------------------------------------------
-[--bogusSwitch]
+[--codeChar $ --bogusSwitch]
 --bogusSwitch
 --------------------------------------------------------------------------------
 Error Test [-a]
@@ -462,18 +470,18 @@ timeprint: Missing argument for --timeZone (-z) option.
 Error Test [--timezone]
 timeprint: Missing argument for --timeZone (-z) option.
 --------------------------------------------------------------------------------
-[A b c d e Hello world f g h i j]
+[--codeChar $ A b c d e Hello world f g h i j]
 A b c d e Hello world f g h i j
 --------------------------------------------------------------------------------
-["A b c d e Hello world f g h i j"]
+[--codeChar $ "A b c d e Hello world f g h i j"]
 A b c d e Hello world f g h i j
 --------------------------------------------------------------------------------
-["A\nB\nC"]
+[--codeChar $ "A\nB\nC"]
 A
 B
 C
 --------------------------------------------------------------------------------
-["A\tB\tC"]
+[--codeChar $ "A\tB\tC"]
 A	B	C
 --------------------------------------------------------------------------------
 ["A%nB%nC"]
@@ -487,84 +495,98 @@ A	B	C
 [Percent sign = %%]
 Percent sign = %
 --------------------------------------------------------------------------------
-[Bogus codes: %E%f%i%J%N%P%s%v]
-Bogus codes: %E%f%i%J%N%P%s%v
+[--codeChar $ --time 2000-01-02T03:04:05 $Y $m $d $H $M $S]
+2000 01 02 03 04 05
 --------------------------------------------------------------------------------
-[Bogus codes: %_a %_z]
-Bogus codes: %_a %_z
+[--codeChar $ "A$nB$nC"]
+A
+B
+C
 --------------------------------------------------------------------------------
-[--timezone UTC --time 2000-01-01T00:00:00Z]
+[--codeChar $ "A$tB$tC"]
+A	B	C
+--------------------------------------------------------------------------------
+[--codeChar $ "Dollar sign = $$"]
+Dollar sign = $
+--------------------------------------------------------------------------------
+[--codeChar $ Bogus codes: $E $f $i $J $N $P $s $v]
+Bogus codes: $E $f $i $J $N $P $s $v
+--------------------------------------------------------------------------------
+[--codeChar $ Bogus codes: $_a $_z]
+Bogus codes: $_a $_z
+--------------------------------------------------------------------------------
+[--codeChar $ --timezone UTC --time 2000-01-01T00:00:00Z]
 Saturday, January 01, 2000 00:00:00
 --------------------------------------------------------------------------------
-[--timezone UTC --time 2000-01-02T03:04:05+67]
+[--codeChar $ --timezone UTC --time 2000-01-02T03:04:05+67]
 Thursday, December 30, 1999 08:04:05
 --------------------------------------------------------------------------------
-[--timezone UTC --time 2000-01-02T03:04:05-67:89]
+[--codeChar $ --timezone UTC --time 2000-01-02T03:04:05-67:89]
 Tuesday, January 04, 2000 23:33:05
 --------------------------------------------------------------------------------
-[--timezone UTC --time 2000-01-02T03:04:05-6789]
+[--codeChar $ --timezone UTC --time 2000-01-02T03:04:05-6789]
 Tuesday, January 04, 2000 23:33:05
 --------------------------------------------------------------------------------
-[--timezone UTC --time 2000-01-01T12:00Z "%1a %2a %3a %4a %5a %6a %7a %8a %9a %20a"]
+[--codeChar $ --timezone UTC --time 2000-01-01T12:00Z "$1a $2a $3a $4a $5a $6a $7a $8a $9a $20a"]
 S Sa Sat Satu Satur Saturd Saturda Saturday Saturday Saturday
 --------------------------------------------------------------------------------
-[--timezone PST+08 --time 2000-01-01T00:00:00Z "%#c %z %Z"]
+[--codeChar $ --timezone PST+08 --time 2000-01-01T00:00:00Z "$#c $z $Z"]
 Friday, December 31, 1999 16:00:00 -0800 PST
 --------------------------------------------------------------------------------
-[--time 2000-01-01T00:00:00Z --time 2000-01-02T00:00:00Z "%_S"]
+[--codeChar $ --time 2000-01-01T00:00:00Z --time 2000-01-02T00:00:00Z "$_S"]
 86400
 --------------------------------------------------------------------------------
-[--time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%_Dd %_dH:%_hM:%_mS"]
+[--codeChar $ --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "$_Dd $_dH:$_hM:$_mS"]
 1d 3:4:5
 --------------------------------------------------------------------------------
-[--time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%_Dd %_d0H:%_h0M:%_m0S"]
+[--codeChar $ --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "$_Dd $_d0H:$_h0M:$_m0S"]
 1d 03:04:05
 --------------------------------------------------------------------------------
-[--time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%_D."]
+[--codeChar $ --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "$_D."]
 1.12784
 --------------------------------------------------------------------------------
-[--time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "%_D.8"]
+[--codeChar $ --time 2000-01-01T00:00:00Z --time 2000-01-02T03:04:05Z "$_D.8"]
 1.12783565
 --------------------------------------------------------------------------------
-[--time 2000-01-01T00:00:00Z --time 2002-05-07T09:07:53Z "%_M.4"]
+[--codeChar $ --time 2000-01-01T00:00:00Z --time 2002-05-07T09:07:53Z "$_M.4"]
 1234567.8833
 --------------------------------------------------------------------------------
-[--time 2000-01-01T00:00:00Z --time 2002-05-07T09:07:53Z "%_'|_M.4"]
+[--codeChar $ --time 2000-01-01T00:00:00Z --time 2002-05-07T09:07:53Z "$_'|_M.4"]
 1|234|567_8833
 --------------------------------------------------------------------------------
-[--time 2000-01-01T00:00:00Z --time 2002-05-07T09:07:53Z "%_'0_M.4"]
+[--codeChar $ --time 2000-01-01T00:00:00Z --time 2002-05-07T09:07:53Z "$_'0_M.4"]
 1234567_8833
 --------------------------------------------------------------------------------
-[--now --creation timeprint.cpp "%_"]
-%_
+[--codeChar $ --now --creation timeprint.cpp "$_ (bogus delta time value)"]
+$_ (bogus delta time value)
 --------------------------------------------------------------------------------
-[--now --creation timeprint.cpp "%_y"]
-%_y
+[--codeChar $ --now --creation timeprint.cpp "$_y (bogus delta time value)"]
+$_y (bogus delta time value)
 --------------------------------------------------------------------------------
-[--now --creation timeprint.cpp "%_y."]
-%_y.
+[--codeChar $ --now --creation timeprint.cpp "$_y. (bogus delta time value)"]
+$_y. (bogus delta time value)
 --------------------------------------------------------------------------------
-[--now --creation timeprint.cpp "%_yy (bogus delta time value)"]
-%_yy (bogus delta time value)
+[--codeChar $ --now --creation timeprint.cpp "$_yy (bogus delta time value)"]
+$_yy (bogus delta time value)
 --------------------------------------------------------------------------------
-[--now --creation timeprint.cpp "%_tt (bogus delta time value)"]
-%_tt (bogus delta time value)
+[--codeChar $ --now --creation timeprint.cpp "$_tt (bogus delta time value)"]
+$_tt (bogus delta time value)
 --------------------------------------------------------------------------------
-[--now --creation timeprint.cpp "%_xy (bogus delta time modulo unit type)"]
-%_xy (bogus delta time modulo unit type)
+[--codeChar $ --now --creation timeprint.cpp "$_xy (bogus delta time modulo unit type)"]
+$_xy (bogus delta time modulo unit type)
 --------------------------------------------------------------------------------
-[--now --creation timeprint.cpp "%_xt (bogus delta time modulo unit type)"]
-%_xt (bogus delta time modulo unit type)
+[--codeChar $ --now --creation timeprint.cpp "$_xt (bogus delta time modulo unit type)"]
+$_xt (bogus delta time modulo unit type)
 --------------------------------------------------------------------------------
-[--now --creation timeprint.cpp "%_xd (bogus delta time modulo unit type)"]
-%_xd (bogus delta time modulo unit type)
+[--codeChar $ --now --creation timeprint.cpp "$_xd (bogus delta time modulo unit type)"]
+$_xd (bogus delta time modulo unit type)
 --------------------------------------------------------------------------------
-[--now --creation timeprint.cpp "%_xh (bogus delta time modulo unit type)"]
-%_xh (bogus delta time modulo unit type)
+[--codeChar $ --now --creation timeprint.cpp "$_xh (bogus delta time modulo unit type)"]
+$_xh (bogus delta time modulo unit type)
 --------------------------------------------------------------------------------
-[--now --creation timeprint.cpp "%_xm (bogus delta time modulo unit type)"]
-%_xm (bogus delta time modulo unit type)
+[--codeChar $ --now --creation timeprint.cpp "$_xm (bogus delta time modulo unit type)"]
+$_xm (bogus delta time modulo unit type)
 --------------------------------------------------------------------------------
-[--now --creation timeprint.cpp "%_'yM.0 (spurious delta time lead character)"]
-%_'yM.0 (spurious delta time lead character)
+[--codeChar $ --now --creation timeprint.cpp "$_'yM.0 (spurious delta time lead character)"]
+$_'yM.0 (spurious delta time lead character)
 --------------------------------------------------------------------------------

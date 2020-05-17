@@ -130,7 +130,8 @@ bool       getExplicitDate    (tm& result, wstring::iterator specBegin, wstring:
 int        getNumIntDigits    (double);
 void       help               (HelpType);
 void       printResults       (wstring format, wchar_t codeChar, const tm& timeValue, time_t deltaTimeSeconds);
-void       printDelta         (wstring::iterator& formatIterator, const wstring::iterator& formatEnd, time_t deltaSec);
+void       printDelta         (wstring::iterator& formatIterator, wchar_t codeChar, const wstring::iterator& formatEnd,
+                               time_t deltaSec);
 bool       printDeltaFunc     (wstring::iterator& formatIterator, const wstring::iterator& formatEnd, time_t deltaSec);
 
 
@@ -217,7 +218,7 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
         } else {
 
             wchar_t* parameter = (argi >= argc) ? nullptr : (argv[argi] + paramOffset);
-            
+
             if (optionType == OptionType::Help) {
                 // The help option may or may not take a parameter.
                 params.helpType = (parameter == nullptr)                     ? HelpType::General
@@ -289,8 +290,10 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
         params.time1.Set(TimeType::Now);
 
     // If no format string was specified on the command line, use the default time format.
-    if (params.format.empty())
+    if (params.format.empty()) {
         params.format = defaultTimeFormat (params.isDelta);
+        params.codeChar = L'%';
+    }
 
     return true;
 }
@@ -717,14 +720,14 @@ void printResults (
 
         } else if (*formatIterator == codeChar) {
 
-            const static auto legalCodes = L"aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ%";
+            const static auto legalCodes = L"aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ";
 
             wchar_t token[4];    // Code Token Word
 
             ++formatIterator;
 
             if (*formatIterator == L'_') {
-                printDelta (++formatIterator, formatEnd, deltaTimeSeconds);
+                printDelta (++formatIterator, codeChar, formatEnd, deltaTimeSeconds);
                 --formatIterator;  // Reset iterator for loop increment.
 
             } else if (*formatIterator == L'-' || isdigit(*formatIterator)) {
@@ -762,15 +765,17 @@ void printResults (
                     --formatIterator;
                 }
 
+            } else if (*formatIterator == codeChar) {
+                putwchar (codeChar);
             } else if ((*formatIterator != L'#') && !wcschr(legalCodes, *formatIterator)) {
                 // Print out illegal codes as-is.
-                putwchar (L'%');
+                putwchar (codeChar);
                 putwchar (*formatIterator);
 
             } else if ((formatIterator[0] == L'#') && !wcschr(legalCodes, formatIterator[1])) {
                 // Print out illegal '#'-prefixed codes as-is.
                 ++formatIterator;
-                putwchar (L'%');
+                putwchar (codeChar);
                 putwchar (L'#');
                 putwchar (*formatIterator);
 
@@ -808,6 +813,7 @@ Delta Formatting
 //__________________________________________________________________________________________________
 void printDelta (
     wstring::iterator&       formatIterator,     // Pointer to delta format after '%_'
+    wchar_t                  codeChar,           // Format Code Character
     const wstring::iterator& formatEnd,          // Format string end
     time_t                   deltaTimeSeconds)   // Time difference when comparing two times
 {
@@ -817,7 +823,8 @@ void printDelta (
     auto formatRestart = formatIterator;
 
     if (!printDeltaFunc(formatIterator, formatEnd, deltaTimeSeconds)) {
-        fputws (L"%_", stdout);
+        putwchar (codeChar);
+        putwchar (L'_');
         formatIterator = formatRestart;
     }
 }
@@ -1116,7 +1123,12 @@ Command switches may be prefixed with a dash (-) or a slash (/).
 
 If no output string is supplied, the format specified in the environment
 variable TIMEFORMAT is used. If this variable is not set, then the format
-defaults to "%#c".
+defaults to "%#c". The TIMEFORMAT string must use the "%" code character.
+
+Similarly, the default difference time format may be specified with the
+TIMEFORMAT_DELTA environment variable. If this variable is not set, then the
+format defaults to "%_Y years, %_yD days, %_d0H:%_h0M:%_m0S". The
+TIMEFORMAT_DELTA string must use the "%" code character.
 
 Note that if your format string begins with - or /, you will need to prefix it
 with a \ character so that it is not confused with a command switch.
