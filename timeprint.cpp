@@ -22,10 +22,7 @@ using std::vector;
 using std::wcout;
 using std::wstring;
 
-static auto cHelpBanner = LR"(
-timeprint - Print time and date information
-v3.0.0-alpha.2 /  2020-05-16  /  https://github.com/hollasch/timeprint)";
-
+static auto version = L"v3.0.0-alpha | 2021-04-26 | https://github.com/hollasch/timeprint";
 
 enum class HelpType {
     // Types of usage information for the --help option
@@ -1064,15 +1061,16 @@ bool errorMsg (const wchar_t *message, ...) {
 
 //__________________________________________________________________________________________________
 static auto help_general = LR"(
-usage: timeprint [--codeChar <char>] [-%<char>]
-                 [--help [topic]] [-h[topic]] [/?]
-                 [--access <fileName>] [-a<fileName>]
-                 [--creation <fileName>] [-c<fileName>]
-                 [--modification <fileName>] [-m<fileName>]
-                 [--timeZone <zone>] [-z<zone>]
-                 [--now] [-n]
-                 [--time <timeValue>] [-t<timeValue>]
-                 [string] ... [string]
+timeprint: Print time and date information
+usage    : timeprint [--codeChar <char>] [-%<char>]
+                     [--help [topic]] [-h[topic]] [/?]
+                     [--access <fileName>] [-a<fileName>]
+                     [--creation <fileName>] [-c<fileName>]
+                     [--modification <fileName>] [-m<fileName>]
+                     [--timeZone <zone>] [-z<zone>]
+                     [--now] [-n]
+                     [--time <timeValue>] [-t<timeValue>]
+                     [string] ... [string]
 
 This command prints time information to the standard output stream. All string
 fragments will be concatenated with a space, so it's usually unnecessary to
@@ -1446,8 +1444,8 @@ void help (HelpType type)
         default: return;
 
         case HelpType::General:
-            _putws(cHelpBanner);
             _putws(help_general);
+            _putws(version);
             break;
 
         case HelpType::Examples:     _putws(help_examples);     break;
