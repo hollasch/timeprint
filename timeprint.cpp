@@ -27,13 +27,14 @@ static auto version = L"v3.0.0-alpha | 2021-04-26 | https://github.com/hollasch/
 enum class HelpType {
     // Types of usage information for the --help option
 
-    None,         // No help information requested
-    General,      // General usage information
-    Examples,     // Illustrative examples
-    DeltaTime,    // Delta time formats
-    FormatCodes,  // Output format time codes
-    TimeSyntax,   // ISO 8601 explicit time format
-    TimeZone      // Time zone formats
+    None,
+    Version,
+    General,
+    Examples,
+    DeltaTime,
+    FormatCodes,
+    TimeSyntax,
+    TimeZone,
 };
 
 enum class OptionType {
@@ -48,6 +49,7 @@ enum class OptionType {
     Now,
     Time,
     TimeZone,
+    Version,
 };
 
 enum class TimeType {
@@ -210,8 +212,10 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[])
         TimeSpec newTimeSpec;
 
         if (optionType == OptionType::Now) {
-            // The only option that never takes a parameter.
             newTimeSpec.Set(TimeType::Now);
+        } else if (optionType == OptionType::Version) {
+            params.helpType = HelpType::Version;
+            return true;
         } else {
 
             wchar_t* parameter = (argi >= argc) ? nullptr : (argv[argi] + paramOffset);
@@ -347,7 +351,8 @@ OptionType getOptionType (int& argi, int& paramOffset, wchar_t* argv[])
         { L"--modification", OptionType::ModificationTime },
         { L"--now",          OptionType::Now },
         { L"--time",         OptionType::Time },
-        { L"--timeZone",     OptionType::TimeZone }
+        { L"--timeZone",     OptionType::TimeZone },
+        { L"--version",      OptionType::Version },
     };
 
     for (auto option : optionStrings) {
@@ -1063,7 +1068,7 @@ bool errorMsg (const wchar_t *message, ...) {
 static auto help_general = LR"(
 timeprint: Print time and date information
 usage    : timeprint [--codeChar <char>] [-%<char>]
-                     [--help [topic]] [-h[topic]] [/?]
+                     [--help [topic]] [-h[topic]] [/?] [--version]
                      [--access <fileName>] [-a<fileName>]
                      [--creation <fileName>] [-c<fileName>]
                      [--modification <fileName>] [-m<fileName>]
@@ -1118,6 +1123,9 @@ Command switches may be prefixed with a dash (-) or a slash (/).
         in the TZ environment variable is used. If the environment variable
         TZ is unset, the system local time is used. For a description of the
         time zone format, use `--help timeZone`.
+
+    --version
+        Print version information.
 
 If no output string is supplied, the format specified in the environment
 variable TIMEFORMAT is used. If this variable is not set, then the format
@@ -1448,6 +1456,7 @@ void help (HelpType type)
             _putws(version);
             break;
 
+        case HelpType::Version:      _putws(version);           break;
         case HelpType::Examples:     _putws(help_examples);     break;
         case HelpType::DeltaTime:    _putws(help_deltaTime);    break;
         case HelpType::FormatCodes:  _putws(help_formatCodes);  break;
