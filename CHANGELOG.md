@@ -13,6 +13,7 @@ Change Log -- timeprint
   - Updated help output
   - Unrecognized options (including `-`) are now just accrued to the format string. Beware
     possible collision with future options.
+  - Added `--version` option.
 
 ### Patches
   - Fix: multiple problems when handling alternate code characters
