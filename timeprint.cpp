@@ -22,7 +22,7 @@ using std::vector;
 using std::wcout;
 using std::wstring;
 
-static auto version = L"v3.0.0-alpha | 2021-04-26 | https://github.com/hollasch/timeprint";
+static auto version = L"v3.0.0-alpha.16 | 2021-05-27 | https://github.com/hollasch/timeprint";
 
 enum class HelpType {
     // Types of usage information for the --help option
