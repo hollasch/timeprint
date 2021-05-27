@@ -119,7 +119,7 @@ goto :failUnaccepted
 
     echo.--------------------------------------------------------------------------------
     echo Test %testNum%: [/?]
-    %timePrint% /?
+    %timePrint% /? | findstr -v github.com/hollasch/timeprint
     set /a testNum = testNum + 1
 
     call :test --help examples

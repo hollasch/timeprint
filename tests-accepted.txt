@@ -4,18 +4,16 @@ Acceptance Tests for `timeprint`
 --------------------------------------------------------------------------------
 Test 1: [/?]
 
-timeprint - Print time and date information
-v3.0.0-alpha  /  2018-11-17  /  https://github.com/hollasch/timeprint
-
-usage: timeprint [--codeChar <char>] [-%<char>]
-                 [--help [topic]] [-h[topic]] [/?]
-                 [--access <fileName>] [-a<fileName>]
-                 [--creation <fileName>] [-c<fileName>]
-                 [--modification <fileName>] [-m<fileName>]
-                 [--timeZone <zone>] [-z<zone>]
-                 [--now] [-n]
-                 [--time <timeValue>] [-t<timeValue>]
-                 [string] ... [string]
+timeprint: Print time and date information
+usage    : timeprint [--codeChar <char>] [-%<char>]
+                     [--help [topic]] [-h[topic]] [/?] [--version]
+                     [--access <fileName>] [-a<fileName>]
+                     [--creation <fileName>] [-c<fileName>]
+                     [--modification <fileName>] [-m<fileName>]
+                     [--timeZone <zone>] [-z<zone>]
+                     [--now] [-n]
+                     [--time <timeValue>] [-t<timeValue>]
+                     [string] ... [string]
 
 This command prints time information to the standard output stream. All string
 fragments will be concatenated with a space, so it's usually unnecessary to
@@ -63,6 +61,9 @@ Command switches may be prefixed with a dash (-) or a slash (/).
         in the TZ environment variable is used. If the environment variable
         TZ is unset, the system local time is used. For a description of the
         time zone format, use `--help timeZone`.
+
+    --version
+        Print version information.
 
 If no output string is supplied, the format specified in the environment
 variable TIMEFORMAT is used. If this variable is not set, then the format
