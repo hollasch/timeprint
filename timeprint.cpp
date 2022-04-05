@@ -22,7 +22,7 @@ using std::vector;
 using std::wcout;
 using std::wstring;
 
-static auto version = L"timeprint 3.0.0-alpha.16 | 2021-05-27 | https://github.com/hollasch/timeprint";
+static auto version = L"timeprint 3.0.0-alpha.17 | 2022-04-05 | https://github.com/hollasch/timeprint";
 
 enum class HelpType {
     // Types of usage information for the --help option
@@ -1094,12 +1094,31 @@ Command switches may be prefixed with a dash (-) or a slash (/).
         topic. Topics include 'examples', 'deltaTime', 'formatCodes',
         'timeSyntax', and 'timezone'.
 
+    --version
+        Print version information.
+
     --codeChar <char>, -%<char>
         The --codeChar switch specifies an alternate code character to the
         default '%' character. If the backslash (\) is specified as the code
         character, then normal backslash escapes will be disabled. The
         --codeChar switch is ignored unless the format string is specified on
         the command line.
+
+    --timeZone <zone>, -z<zone>
+        The --timeZone argument takes a timezone string of the form used by the
+        TZ environment variable and displays the result in that time zone. If no
+        timezone is specified, the value in the TZ environment variable is used.
+        If the environment variable TZ is unset, the system local time is used.
+        For a description of the time zone format, use `--help timeZone`.
+
+    --now, -n
+        Use the current time. This is useful when specifying one of two time
+        values for delta time printing. For absolute time printing, `--now` is
+        the default.
+
+    --time <value>, -t<value>
+        Specifies an explicit absolute time, using ISO 8601 syntax. For a
+        description of supported syntax, use `--help timeSyntax`.
 
     --access <fileName>, -a<fileName>
         Use the time of last access of the named file for a time value.
@@ -1109,23 +1128,6 @@ Command switches may be prefixed with a dash (-) or a slash (/).
 
     --modification <fileName>, -m<fileName>
         Use the modification time of the named file.
-
-    --now, -n
-        Use the current time.
-
-    --time <value>, -t<value>
-        Specifies an explicit absolute time, using ISO 8601 syntax. For a
-        description of supported syntax, use `--help timeSyntax`.
-
-    --timeZone <zone>, -z<zone>
-        The --timeZone argument takes a timezone string of the form used by
-        the TZ environment variable. If no timezone is specified, the value
-        in the TZ environment variable is used. If the environment variable
-        TZ is unset, the system local time is used. For a description of the
-        time zone format, use `--help timeZone`.
-
-    --version
-        Print version information.
 
 If no output string is supplied, the format specified in the environment
 variable TIMEFORMAT is used. If this variable is not set, then the format
