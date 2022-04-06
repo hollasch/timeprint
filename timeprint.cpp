@@ -22,7 +22,7 @@ using std::vector;
 using std::wcout;
 using std::wstring;
 
-static auto version = L"timeprint 3.0.0-alpha.17 | 2022-04-05 | https://github.com/hollasch/timeprint";
+static auto version = L"timeprint 3.0.0-alpha.18 | 2022-04-06 | https://github.com/hollasch/timeprint";
 
 enum class HelpType {
     // Types of usage information for the --help option
@@ -64,7 +64,6 @@ enum class TimeType {
 };
 
 class TimeSpec {
-
   public:
     TimeType type { TimeType::None };   // Type of time
     wstring  value;                     // String value of specified type
@@ -112,16 +111,16 @@ static int    timeZoneOffsetMinutes;    // Signed minutes offset from UTC
 
 
 // Function Declarations
-bool       calcTime           (const Parameters& params, tm& timeValue, time_t& deltaTimeSeconds);
+bool       calcTime           (const Parameters&, tm& timeValue, time_t& deltaTimeSeconds);
 bool       charIn             (wchar_t c, const wchar_t* list);
 wstring    defaultTimeFormat  (bool deltaFormat);
-bool       equalIgnoreCase    (const wchar_t* str1, const wchar_t* str2);
+bool       equalIgnoreCase    (const wchar_t*, const wchar_t*);
 bool       errorMsg           (const wchar_t *message, ...);
 void       getCurrentTime     ();
 bool       getDeltaNumberFormat (wstring::iterator& formatIterator, const wstring::iterator& formatEnd,
                                  wchar_t& thousandsChar, wchar_t& decimalChar);
 OptionType getOptionType      (int& argi, int& paramOffset, wchar_t* argv[]);
-bool       getParameters      (Parameters& params, int argc, wchar_t* argv[]);
+bool       getParameters      (Parameters&, int argc, wchar_t* argv[]);
 bool       getTimeFromSpec    (time_t& result, const TimeSpec&);
 bool       getExplicitDateTime(time_t& result, wstring timeSpec);
 bool       getExplicitTime    (tm& result, wstring::iterator specBegin, wstring::iterator specEnd);
@@ -135,8 +134,7 @@ bool       printDeltaFunc     (wstring::iterator& formatIterator, const wstring:
 
 
 //__________________________________________________________________________________________________
-int wmain (int argc, wchar_t *argv[])
-{
+int wmain (int argc, wchar_t *argv[]) {
     Parameters params;
 
     if (!getParameters(params, argc, argv)) return -1;
@@ -156,8 +154,7 @@ int wmain (int argc, wchar_t *argv[])
 
 
 //__________________________________________________________________________________________________
-void getCurrentTime ()
-{
+void getCurrentTime () {
     // This function gets the current local time, and the corresponding local and UTC time structs.
     // It also gets the current time zone's hour & minute offsets from UTC.
 
@@ -185,8 +182,7 @@ void getCurrentTime ()
 
 
 //__________________________________________________________________________________________________
-bool getParameters (Parameters &params, int argc, wchar_t* argv[])
-{
+bool getParameters (Parameters &params, int argc, wchar_t* argv[]) {
     // This function processes the command line arguments and sets the corresponding values in the
     // Parameters structure. This function returns true if all arguments were legal and processed
     // properly, otherwise it returns false.
@@ -323,8 +319,7 @@ wstring defaultTimeFormat (bool deltaFormat) {
 
 
 //__________________________________________________________________________________________________
-OptionType getOptionType (int& argi, int& paramOffset, wchar_t* argv[])
-{
+OptionType getOptionType (int& argi, int& paramOffset, wchar_t* argv[]) {
     // This function returns the type of the current option (indexed by `argi`). The option
     // parameter may immediately follow a single-letter option (for example, `-t12:00`). In this
     // case, `paramOffset` will be 2 and `argi` will not change, otherwise `argi` will be
@@ -418,8 +413,7 @@ bool calcTime (
 
 
 //__________________________________________________________________________________________________
-bool getTimeFromSpec (time_t& result, const TimeSpec& spec)
-{
+bool getTimeFromSpec (time_t& result, const TimeSpec& spec) {
     // Gets the time according to the given time spec.
 
     if (spec.type == TimeType::Now) {
@@ -459,8 +453,7 @@ bool getTimeFromSpec (time_t& result, const TimeSpec& spec)
 
 
 //__________________________________________________________________________________________________
-bool getExplicitDateTime (time_t& result, wstring timeSpec)
-{
+bool getExplicitDateTime (time_t& result, wstring timeSpec) {
     tm timeStruct = currentTimeLocal;
 
     auto dateTimeSep = std::find (timeSpec.begin(), timeSpec.end(), 'T');
@@ -590,8 +583,7 @@ bool parseDateTimePattern (
 
 
 //__________________________________________________________________________________________________
-bool getExplicitTime (tm& resultTimeLocal, wstring::iterator specBegin, wstring::iterator specEnd)
-{
+bool getExplicitTime (tm& resultTimeLocal, wstring::iterator specBegin, wstring::iterator specEnd) {
     bool gotTime = false;
     vector<int> results;
     wstring::iterator specIt = specBegin;
@@ -648,8 +640,7 @@ bool getExplicitTime (tm& resultTimeLocal, wstring::iterator specBegin, wstring:
 
 
 //__________________________________________________________________________________________________
-bool getExplicitDate (tm& resultTime, wstring::iterator specBegin, wstring::iterator specEnd)
-{
+bool getExplicitDate (tm& resultTime, wstring::iterator specBegin, wstring::iterator specEnd) {
     auto gotDate = false;
     vector<int> results;
     wstring::iterator specIt = specBegin;
@@ -1014,8 +1005,7 @@ bool getDeltaNumberFormat (
 
 
 //__________________________________________________________________________________________________
-bool charIn (wchar_t c, const wchar_t* list)
-{
+bool charIn (wchar_t c, const wchar_t* list) {
     // Return true if the given character is in the zero-terminated array of characters.
     // Also returns true if c == 0.
     auto i = 0;
@@ -1026,8 +1016,7 @@ bool charIn (wchar_t c, const wchar_t* list)
 
 
 //__________________________________________________________________________________________________
-int getNumIntDigits (double x)
-{
+int getNumIntDigits (double x) {
     // Returns the number of digits in the given integer value.
 
     int n = static_cast<int>(x);
@@ -1087,11 +1076,13 @@ values are supplied, then timeprint reports the values for the positive
 difference between those two values. If no time values are given, then --now
 is implied.
 
-Command switches may be prefixed with a dash (-) or a slash (/).
+Single-letter command options that take an argument may be specified with or
+without token separation. (For example, both `-htimeSyntax` and `-h timeSyntax`
+are valid.)
 
-    --help [topic], -h[topic]
-        Print help and usage information in general, or for the specified
-        topic. Topics include 'examples', 'deltaTime', 'formatCodes',
+    --help [topic], -h[topic], /?
+        Print help and usage information in general, or for the optional
+        specified topic. Topics include 'examples', 'deltaTime', 'formatCodes',
         'timeSyntax', and 'timezone'.
 
     --version
@@ -1156,6 +1147,8 @@ For additional help, use `--help <topic>`, where <topic> is one of:
     - timeZone
 )";
 
+//----------------------------------------------------------------------------------------------------------------------
+
 static auto help_examples = LR"(
 Examples
 ---------
@@ -1179,6 +1172,8 @@ Examples
     > timeprint --modification timestamp.txt --now Elapsed Time: %_H:%_hM:%_mS
     Elapsed Time: 36:3:17
 )";
+
+//----------------------------------------------------------------------------------------------------------------------
 
 static auto help_deltaTime = LR"(
 Delta Time Formatting
@@ -1278,6 +1273,8 @@ Delta Time Formatting
     See `--time examples` for more example uses of delta time formats.
 )";
 
+//----------------------------------------------------------------------------------------------------------------------
+
 static auto help_formatCodes = LR"(
 Format Codes
 -------------
@@ -1345,6 +1342,8 @@ Format Codes
             The flag is ignored.
 )";
 
+//----------------------------------------------------------------------------------------------------------------------
+
 static auto help_timeSyntax = LR"(
 Time Syntax
 ------------
@@ -1400,6 +1399,8 @@ Time Syntax
     See `--help examples` for other examples.
 )";
 
+//----------------------------------------------------------------------------------------------------------------------
+
 static auto help_timeZone = LR"(
 Time Zones
 -----------
@@ -1445,8 +1446,7 @@ Time Zones
 
 
 //__________________________________________________________________________________________________
-void help (HelpType type)
-{
+void help (HelpType type) {
     // For HelpType::None, do nothing. For other help types, print corresponding help information
     // and exit.
 
