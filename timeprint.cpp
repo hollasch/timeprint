@@ -22,7 +22,7 @@ using std::vector;
 using std::wcout;
 using std::wstring;
 
-static auto version = L"timeprint 3.0.0-alpha.18 | 2022-04-06 | https://github.com/hollasch/timeprint";
+static auto version = L"timeprint 3.0.0-alpha.19 | 2022-04-07 | https://github.com/hollasch/timeprint";
 
 enum class HelpType {
     // Types of usage information for the --help option
@@ -234,32 +234,32 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[]) {
 
                 if (optionType == OptionType::AccessTime) {
                     if (!parameter)
-                        return errorMsg(L"Missing argument for --access (-a) option");
+                        return errorMsg(L"Missing argument for %s option", arg);
                     newTimeSpec.Set(TimeType::Access, parameter);
 
                 } else if (optionType == OptionType::CodeChar) {
                     if (!parameter)
-                        return errorMsg(L"Missing argument for --codeChar (-c) option");
+                        return errorMsg(L"Missing argument for %s option", arg);
                     params.codeChar = *parameter;
 
                 } else if (optionType == OptionType::CreationTime) {
                     if (!parameter)
-                        return errorMsg(L"Missing argument for --creation (-c) option");
+                        return errorMsg(L"Missing argument for %s option", arg);
                     newTimeSpec.Set(TimeType::Creation, parameter);
 
                 } else if (optionType == OptionType::ModificationTime) {
                     if (!parameter)
-                        return errorMsg(L"Missing argument for --modification (-m) option");
+                        return errorMsg(L"Missing argument for %s option", arg);
                     newTimeSpec.Set(TimeType::Modification, parameter);
 
                 } else if (optionType == OptionType::Time) {
                     if (!parameter)
-                        return errorMsg(L"Missing argument for --time (-t) option");
+                        return errorMsg(L"Missing argument for %s option", arg);
                     newTimeSpec.Set(TimeType::Explicit, parameter);
 
                 } else if (optionType == OptionType::TimeZone) {
                     if (!parameter)
-                        return errorMsg(L"Missing argument for --timeZone (-z) option");
+                        return errorMsg(L"Missing argument for %s option", arg);
                     params.zone = parameter;
                 }
 
