@@ -339,10 +339,15 @@ OptionType getOptionType (int& argi, int& paramOffset, wchar_t* argv[]) {
     } optionStrings[] = {
         { L"/?",             OptionType::Help },
         { L"-n",             OptionType::Now },
+        { L"--accessed",     OptionType::AccessTime },
         { L"--access",       OptionType::AccessTime },
         { L"--codeChar",     OptionType::CodeChar },
+        { L"--created",      OptionType::CreationTime },
+        { L"--create",       OptionType::CreationTime },
         { L"--creation",     OptionType::CreationTime },
         { L"--help",         OptionType::Help },
+        { L"--modified",     OptionType::ModificationTime },
+        { L"--modify",       OptionType::ModificationTime },
         { L"--modification", OptionType::ModificationTime },
         { L"--now",          OptionType::Now },
         { L"--time",         OptionType::Time },
@@ -1058,17 +1063,17 @@ static auto help_general = LR"(
 timeprint: Print time and date information
 usage    : timeprint [--codeChar <char>] [-%<char>]
                      [--help [topic]] [-h[topic]] [/?] [--version]
-                     [--access <fileName>] [-a<fileName>]
-                     [--creation <fileName>] [-c<fileName>]
-                     [--modification <fileName>] [-m<fileName>]
+                     [--<access|accessed> <file>] [-a<file>]
+                     [--<create|created|creation> <file>] [-c<file>]
+                     [--<modify|modified|modification> <file>] [-m<file>]
                      [--timeZone <zone>] [-z<zone>]
                      [--now] [-n]
                      [--time <timeValue>] [-t<timeValue>]
                      [string] ... [string]
 
 This command prints time information to the standard output stream. All string
-fragments will be concatenated with a space, so it's usually unnecessary to
-quote the format string.
+fragments will be concatenated with a space, so it's often unnecessary to quote
+the format string.
 
 timeprint operates in either absolute or differential mode. If one time value
 is specified, then values for that absolute time are reported. If two time
@@ -1111,13 +1116,13 @@ are valid.)
         Specifies an explicit absolute time, using ISO 8601 syntax. For a
         description of supported syntax, use `--help timeSyntax`.
 
-    --access <fileName>, -a<fileName>
+    --access|--accessed <fileName>, -a<fileName>
         Use the time of last access of the named file for a time value.
 
-    --creation <fileName>, -c<fileName>
+    --create|--created|--creation <fileName>, -c<fileName>
         Use the creation time of the named file.
 
-    --modification <fileName>, -m<fileName>
+    --modify|--modified|--modification <fileName>, -m<fileName>
         Use the modification time of the named file.
 
 If no output string is supplied, the format specified in the environment

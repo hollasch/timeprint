@@ -14,6 +14,8 @@ Change Log -- timeprint
   - Unrecognized options (including `-`) are now just accrued to the format string. Beware
     possible collision with future options.
   - Added `--version` option.
+  - Added `--accessed`, `--created`, `--create`, `--modified`, and `--modify` aliases for existing
+    options `--access`, `--creation`, and `--modification`.
 
 ### Patches
   - Fix: multiple problems when handling alternate code characters
