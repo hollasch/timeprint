@@ -24,7 +24,7 @@ Building
 This project uses the CMake build tool. CMake is a meta-build system that locates and uses your
 local development tools to build the project if possible.
 
-To build, first install [CMake][https://cmake.org/]. Then go to the project root directory and run
+To build, first install [CMake](https://cmake.org/). Then go to the project root directory and run
 the following command:
 
     cmake -B build
