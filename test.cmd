@@ -46,6 +46,7 @@ if %buildConfig% equ release (
     set timePrint=build\Debug\timeprint.exe
 )
 
+echo.
 echo Testing %timePrint%.
 
 if not exist %timePrint% (
