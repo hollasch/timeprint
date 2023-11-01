@@ -185,8 +185,10 @@ goto :failUnaccepted
     call :test "A$tB$tC"
     call :test "Dollar sign = $$"
 
-    call :test Bogus codes: $E $f $i $J $N $P $s $v
-    call :test Bogus codes: $_a $_z
+    call :test Bogus codes: ($E $f $J $k $K $l $L $N $o $O $P $q $Q $s $v)
+    call :test Bogus codes: ($_a $_z)
+
+    call :test --time 2023-11-01T14:15:11 --timezone UTC-12:34 ($i)
 
     call :test --timezone UTC --time 2000-01-01T00:00:00Z
     call :test --timezone UTC --time 2000-01-02T03:04:05+67

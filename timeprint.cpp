@@ -718,7 +718,7 @@ void printResults (
 
         } else if (*formatIterator == codeChar) {
 
-            const static auto legalCodes = L"aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ";
+            const static auto legalCodes = L"aAbBcCdDeFgGhHiIjmMnprRStTuUVwWxXyYzZ";
 
             wchar_t token[4];    // Code Token Word
 
@@ -765,6 +765,7 @@ void printResults (
 
             } else if (*formatIterator == codeChar) {
                 putwchar (codeChar);
+
             } else if ((*formatIterator != L'#') && !wcschr(legalCodes, *formatIterator)) {
                 // Print out illegal codes as-is.
                 putwchar (codeChar);
@@ -777,7 +778,13 @@ void printResults (
                 putwchar (L'#');
                 putwchar (*formatIterator);
 
+            } else if (*formatIterator == L'i') {
+
+                wcsftime (outputBuffer, std::size(outputBuffer), L"%FT%T%z", &timeValue);
+                fputws (outputBuffer, stdout);
+
             } else {
+
                 // Standard legal strftime() Code Sequences
                 token[0] = L'%';
                 token[1] = *formatIterator;
@@ -1301,6 +1308,7 @@ Format Codes
         %G     Week-based year
         %h     Abbreviated month name (same as %b) *
         %H     Hour in 24-hour format (00-23)
+        %i     Full date and time in ISO-8601 format
         %I     Hour in 12-hour format (01-12)
         %j     Day of year as decimal number (001-366)
         %m     Month as decimal number (01-12)

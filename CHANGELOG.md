@@ -7,7 +7,7 @@ Change Log -- timeprint
   - Delta time output now uses environment variable `TimeFormat_Delta` instead of old `TimeFormat`
     (#45)
   - New default output format for printing time differences / elapsed times (#44)
-  - Project now builds using CMake (#52)
+  - New `%i` format for full ISO-8601 date-time output
 
 ### Minor Changes
   - Updated help output
@@ -19,6 +19,7 @@ Change Log -- timeprint
 
 ### Patches
   - Fix: multiple problems when handling alternate code characters
+  - Project now builds using CMake (#52)
 
 
 ----------------------------------------------------------------------------------------------------

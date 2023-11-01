@@ -242,6 +242,7 @@ Format Codes
         %G     Week-based year
         %h     Abbreviated month name (same as %b) *
         %H     Hour in 24-hour format (00-23)
+        %i     Full date and time in ISO-8601 format
         %I     Hour in 12-hour format (01-12)
         %j     Day of year as decimal number (001-366)
         %m     Month as decimal number (01-12)
@@ -514,11 +515,14 @@ A	B	C
 [--codeChar $ "Dollar sign = $$"]
 Dollar sign = $
 --------------------------------------------------------------------------------
-[--codeChar $ Bogus codes: $E $f $i $J $N $P $s $v]
-Bogus codes: $E $f $i $J $N $P $s $v
+[--codeChar $ Bogus codes: ($E $f $J $k $K $l $L $N $o $O $P $q $Q $s $v)]
+Bogus codes: ($E $f $J $k $K $l $L $N $o $O $P $q $Q $s $v)
 --------------------------------------------------------------------------------
-[--codeChar $ Bogus codes: $_a $_z]
-Bogus codes: $_a $_z
+[--codeChar $ Bogus codes: ($_a $_z)]
+Bogus codes: ($_a $_z)
+--------------------------------------------------------------------------------
+[--codeChar $ --time 2023-11-01T14:15:11 --timezone UTC-12:34 ($i)]
+(2023-11-01T14:15:11+1234)
 --------------------------------------------------------------------------------
 [--codeChar $ --timezone UTC --time 2000-01-01T00:00:00Z]
 Saturday, January 01, 2000 00:00:00
