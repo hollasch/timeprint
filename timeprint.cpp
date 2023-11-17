@@ -22,7 +22,7 @@ using std::vector;
 using std::wcout;
 using std::wstring;
 
-static auto version = L"timeprint 3.0.0-alpha.19 | 2022-04-07 | https://github.com/hollasch/timeprint";
+static auto version = L"timeprint 3.0.0-alpha.20 | 2023-11-16 | https://github.com/hollasch/timeprint";
 
 enum class HelpType {
     // Types of usage information for the --help option
@@ -220,8 +220,10 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[]) {
                 // The help option may or may not take a parameter.
                 params.helpType = (parameter == nullptr)                     ? HelpType::General
                                 : equalIgnoreCase(parameter, L"examples")    ? HelpType::Examples
+                                : equalIgnoreCase(parameter, L"delta")       ? HelpType::DeltaTime
                                 : equalIgnoreCase(parameter, L"deltaTime")   ? HelpType::DeltaTime
                                 : equalIgnoreCase(parameter, L"deltaTimes")  ? HelpType::DeltaTime
+                                : equalIgnoreCase(parameter, L"format")      ? HelpType::FormatCodes
                                 : equalIgnoreCase(parameter, L"formatCode")  ? HelpType::FormatCodes
                                 : equalIgnoreCase(parameter, L"formatCodes") ? HelpType::FormatCodes
                                 : equalIgnoreCase(parameter, L"timeSyntax")  ? HelpType::TimeSyntax
@@ -1149,14 +1151,14 @@ The escape codes include \n (newline), \t (tab), \b (backspace),
 \r (carriage return), and \a (alert, or beep).
 
 For a full description of supported time format codes, use
-`--help formatCodes`.
+`--help format`.
 
 For additional help, use `--help <topic>`, where <topic> is one of:
     - examples
-    - deltaTime
-    - formatCodes
+    - delta / deltaTime / deltaTimes
+    - format / formatCode / formatCodes
     - timeSyntax
-    - timeZone
+    - timeZone / timeZones
 )";
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -1293,49 +1295,70 @@ Format Codes
 
     The following time format codes are supported:
 
-        %a     Abbreviated weekday name *
-        %<d>a  Weekday name, abbreviated to d characters (min 1)
-        %A     Full weekday name *
-        %b     Abbreviated month name *
-        %B     Full month name *
-        %c     Date and time representation *
+      Date, Full
+        %D     Short MM/DD/YY date, equivalent to %m/%d/%y
+        %F     Short YYYY-MM-DD date, equivalent to %Y-%m-%d
+        %x *   Date representation
+
+      Date Components
+        %b *   Abbreviated month name
+        %B *   Full month name
         %C     Year divided by 100 and truncated to integer (00-99)
         %d     Day of month as decimal number (01-31)
-        %D     Short MM/DD/YY date, equivalent to %m/%d/%y
         %e     Day of the month, space-padded ( 1-31)
-        %F     Short YYYY-MM-DD date, equivalent to %Y-%m-%d
-        %g     Week-based year, last two digits (00-99)
         %G     Week-based year
-        %h     Abbreviated month name (same as %b) *
+        %g     Week-based year, last two digits (00-99)
         %H     Hour in 24-hour format (00-23)
         %i     Full date and time in ISO-8601 format
         %I     Hour in 12-hour format (01-12)
+        %h *   Abbreviated month name (same as %b)
         %j     Day of year as decimal number (001-366)
         %m     Month as decimal number (01-12)
-        %M     Minute as decimal number (00-59)
-        %n     New line character (same as '\n')
-        %p     AM or PM designation
-        %r     12-hour clock time *
-        %R     24-hour HH:MM time, equivalent to %H:%M
-        %S     Seconds as a decimal number (00-59)
-        %t     Horizontal tab character (same as '\t')
-        %T     ISO 8601 time format (HH:MM:SS) equivalent to %H:%M:%S
-        %u     ISO 8601 weekday as number with Monday=1 (1-7)
+        %Y     Year with century, as decimal number
+        %y     Year without century, as decimal number (00-99)
+
+      Week
         %U     Week number, first Sunday = week 1 day 1 (00-53)
         %V     ISO 8601 week number (01-53)
-        %w     Weekday as decimal number, Sunday = 0 (0-6)
-        %W     Week of year, decimal, Monday = week 1 day 1(00-51)
-        %x     Date representation *
-        %X     Time representation *
-        %y     Year without century, as decimal number (00-99)
-        %Y     Year with century, as decimal number
+        %W     Week of year, decimal, Monday = week 1 day 1 (00-51)
+
+      Week Day
+        %<d>a  Weekday name, abbreviated to d characters (min 1)
+        %a *   Abbreviated weekday name
+        %A *   Full weekday name
+        %u     ISO 8601 weekday as number with Monday=1 (1-7)
+        %w     Weekday as decimal number, Sunday=0 (0-6)
+
+      Time, Full
+        %r *   12-hour clock time
+        %R     24-hour HH:MM time, equivalent to %H:%M
+        %T     ISO 8601 time format (HH:MM:SS) equivalent to %H:%M:%S
+        %X *   Time representation
+
+      Time Components
+        %H     Hour in 24-hour format (00-23)
+        %I     Hour in 12-hour format (01-12)
+        %M     Minute as decimal number (00-59)
+        %p     AM or PM designation (locale dependent)
+        %S     Seconds as a decimal number (00-59)
         %z     ISO 8601 offset from UTC in timezone (1 minute=1, 1 hour=100)
                If timezone cannot be determined, no characters
-        %Z     Time-zone name or abbreviation, empty for unrecognized zones *
-        %_...  Delta time formats. See `--help deltaTime`.
-        %%     Percent sign
+        %Z *   Time-zone name or abbreviation.
+               If timezone cannot be determined, no characters
 
-        * Specifiers marked with an asterisk are locale-dependent.
+      Date + Time
+        %c *   Date and time representation
+        %i     Full date and time in ISO-8601 format
+
+      Time/Date Difference
+        %_...  Delta time formats. See `--help deltaTime`.
+
+      Special Characters
+        %%     Percent sign
+        %n     New line character (same as '\n')
+        %t     Horizontal tab character (same as '\t')
+
+    * Specifiers marked with an asterisk are locale-dependent.
 
     As in the printf function, the # flag may prefix any formatting code. In
     that case, the meaning of the format code is changed as follows.
