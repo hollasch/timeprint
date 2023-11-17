@@ -22,7 +22,7 @@ using std::vector;
 using std::wcout;
 using std::wstring;
 
-static auto version = L"timeprint 3.0.0-alpha.19 | 2022-04-07 | https://github.com/hollasch/timeprint";
+static auto version = L"timeprint 3.0.0-alpha.20 | 2023-11-16 | https://github.com/hollasch/timeprint";
 
 enum class HelpType {
     // Types of usage information for the --help option
@@ -220,8 +220,10 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[]) {
                 // The help option may or may not take a parameter.
                 params.helpType = (parameter == nullptr)                     ? HelpType::General
                                 : equalIgnoreCase(parameter, L"examples")    ? HelpType::Examples
+                                : equalIgnoreCase(parameter, L"delta")       ? HelpType::DeltaTime
                                 : equalIgnoreCase(parameter, L"deltaTime")   ? HelpType::DeltaTime
                                 : equalIgnoreCase(parameter, L"deltaTimes")  ? HelpType::DeltaTime
+                                : equalIgnoreCase(parameter, L"format")      ? HelpType::FormatCodes
                                 : equalIgnoreCase(parameter, L"formatCode")  ? HelpType::FormatCodes
                                 : equalIgnoreCase(parameter, L"formatCodes") ? HelpType::FormatCodes
                                 : equalIgnoreCase(parameter, L"timeSyntax")  ? HelpType::TimeSyntax
@@ -1142,14 +1144,14 @@ The escape codes include \n (newline), \t (tab), \b (backspace),
 \r (carriage return), and \a (alert, or beep).
 
 For a full description of supported time format codes, use
-`--help formatCodes`.
+`--help format`.
 
 For additional help, use `--help <topic>`, where <topic> is one of:
     - examples
-    - deltaTime
-    - formatCodes
+    - delta / deltaTime / deltaTimes
+    - format / formatCode / formatCodes
     - timeSyntax
-    - timeZone
+    - timeZone / timeZones
 )";
 
 //----------------------------------------------------------------------------------------------------------------------

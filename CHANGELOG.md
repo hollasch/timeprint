@@ -11,6 +11,8 @@ Change Log -- timeprint
 
 ### Minor Changes
   - Updated help output
+  - Added help sub-option "format" as synonym for "formatCodes"
+  - Added `%i` option for formal ISO-8601 date-time output
   - Unrecognized options (including `-`) are now just accrued to the format string. Beware
     possible collision with future options.
   - Added `--version` option.
