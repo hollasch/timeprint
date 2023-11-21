@@ -22,12 +22,13 @@ using std::vector;
 using std::wcout;
 using std::wstring;
 
-static auto version = L"timeprint 3.0.0-alpha.20 | 2023-11-16 | https://github.com/hollasch/timeprint";
+static auto version = L"timeprint 3.0.0-alpha.21 | 2023-11-21 | https://github.com/hollasch/timeprint";
 
 enum class HelpType {
     // Types of usage information for the --help option
 
     None,
+    Full,
     Version,
     General,
     Examples,
@@ -229,6 +230,7 @@ bool getParameters (Parameters &params, int argc, wchar_t* argv[]) {
                                 : equalIgnoreCase(parameter, L"timeSyntax")  ? HelpType::TimeSyntax
                                 : equalIgnoreCase(parameter, L"timeZone")    ? HelpType::TimeZone
                                 : equalIgnoreCase(parameter, L"timeZones")   ? HelpType::TimeZone
+                                : equalIgnoreCase(parameter, L"full")        ? HelpType::Full
                                 : HelpType::General;
                 return true;
             } else {
@@ -1096,8 +1098,9 @@ are valid.)
 
     --help [topic], -h[topic], /?
         Print help and usage information in general, or for the optional
-        specified topic. Topics include 'examples', 'deltaTime', 'formatCodes',
-        'timeSyntax', and 'timezone'.
+        specified topic. Topics include 'full', 'examples', 'version',
+        'delta'/'deltaTime'/'deltaTimes', 'format'/'formatCode'/'formatCodes',
+        'timeSyntax', and 'timeZone'/'timeZones'.
 
     --version
         Print version information.
@@ -1154,11 +1157,12 @@ For a full description of supported time format codes, use
 `--help format`.
 
 For additional help, use `--help <topic>`, where <topic> is one of:
-    - examples
-    - delta / deltaTime / deltaTimes
-    - format / formatCode / formatCodes
     - timeSyntax
     - timeZone / timeZones
+    - format / formatCode / formatCodes
+    - delta / deltaTime / deltaTimes
+    - examples
+    - full
 )";
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -1166,7 +1170,6 @@ For additional help, use `--help <topic>`, where <topic> is one of:
 static auto help_examples = LR"(
 Examples
 ---------
-
     > timeprint
     Sunday, July 20, 2003 17:02:39
 
@@ -1192,7 +1195,6 @@ Examples
 static auto help_deltaTime = LR"(
 Delta Time Formatting
 ----------------------
-
     Time differences are reported using the delta time formats. The delta time
     format has the following syntax:
 
@@ -1292,7 +1294,6 @@ Delta Time Formatting
 static auto help_formatCodes = LR"(
 Format Codes
 -------------
-
     The following time format codes are supported:
 
       Date, Full
@@ -1383,7 +1384,6 @@ Format Codes
 static auto help_timeSyntax = LR"(
 Time Syntax
 ------------
-
     The explicit `--time` option supports a variety of different formats,
     based on the ISO 8601 date/time format.
 
@@ -1440,7 +1440,6 @@ Time Syntax
 static auto help_timeZone = LR"(
 Time Zones
 -----------
-
     The time zone value may be specified with the TZ environment variable,
     or using the `--timezone` option. Time zones have the format
     `tzn[+|-]hh[:mm[:ss]][dzn]`, where
@@ -1500,6 +1499,17 @@ void help (HelpType type) {
         case HelpType::FormatCodes:  _putws(help_formatCodes);  break;
         case HelpType::TimeSyntax:   _putws(help_timeSyntax);   break;
         case HelpType::TimeZone:     _putws(help_timeZone);     break;
+
+        case HelpType::Full:
+            _putws(help_general);
+            _putws(help_timeSyntax);
+            _putws(help_timeZone);
+            _putws(help_formatCodes);
+            _putws(help_deltaTime);
+            _putws(help_examples);
+            _putws(L"");
+            _putws(version);
+            break;
     }
 
     exit (0);

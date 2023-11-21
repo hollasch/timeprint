@@ -55,8 +55,9 @@ if not exist %timePrint% (
 )
 
 call %testScript% run %timePrint% > %testOut%\tests-output.txt
-diff -u3 tests-accepted.txt %testOut%\tests-output.txt
+diff -u3 tests-accepted.txt %testOut%\tests-output.txt | more
 
+diff -u3 --brief tests-accepted.txt %testOut%\tests-output.txt
 if %errorlevel% equ 0 (
     echo PASS: All output matches.
     goto :pass
@@ -126,6 +127,7 @@ goto :failUnaccepted
     call :test --help examples
     call :test --help deltaTime
     call :test --help FORMATCODES
+    call :test --help full
     call :test -H timeSyntax
     call :test -htimezone
     call :test /hexamples

@@ -10,7 +10,7 @@ Summary
 current or elapsed date and time. It is based on the C++ standard `strftime` function, plus
 additional functionality.
 
-For full documentation on `timeprint`, see [timeprint.md](./timeprint.md).
+For full documentation on `timeprint`, see [timeprint.txt](./timeprint.txt).
 
 
 Installation
